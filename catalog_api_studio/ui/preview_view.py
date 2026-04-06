@@ -40,6 +40,29 @@ BBOX_BORDER_COLORS = {
 }
 
 
+def _table_bbox_from_rows(rows: list[list[dict]], scale: float) -> dict:
+    """Build a table bounding box from a group of rows."""
+    all_blocks = [b for row in rows for b in row]
+    x_min = min(b["bbox"][0] for b in all_blocks)
+    y_min = min(b["bbox"][1] for b in all_blocks)
+    x_max = max(b["bbox"][2] for b in all_blocks)
+    y_max = max(b["bbox"][3] for b in all_blocks)
+
+    row_count = len(rows)
+    col_count = max(len(r) for r in rows)
+
+    return {
+        "type": "table",
+        "label": f"table ~{row_count}x{col_count} (detected)",
+        "rect": (
+            x_min * scale,
+            y_min * scale,
+            (x_max - x_min) * scale,
+            (y_max - y_min) * scale,
+        ),
+    }
+
+
 class PageWidget(QWidget):
     """Renders a single PDF page with optional bounding box overlay."""
 
@@ -388,8 +411,26 @@ class PreviewView(QWidget):
                     self._filter_bboxes(self._bboxes_cache[right_idx])
                 )
 
+    def _is_bitmap_page(self, page) -> bool:
+        """Check if a page is bitmap-only (scanned/image PDF)."""
+        text_dict = page.get_text("dict", flags=fitz.TEXT_PRESERVE_WHITESPACE)
+        blocks = text_dict.get("blocks", [])
+        text_blocks = [b for b in blocks if b.get("type") == 0]
+        image_blocks = [b for b in blocks if b.get("type") == 1]
+
+        total_text_chars = 0
+        for b in text_blocks:
+            for line in b.get("lines", []):
+                for span in line.get("spans", []):
+                    total_text_chars += len(span.get("text", "").strip())
+
+        # If very few text chars and at least one large image — it's bitmap
+        if total_text_chars < 50 and image_blocks:
+            return True
+        return False
+
     def _detect_objects(self) -> None:
-        """Detect tables, text blocks, images on all pages using PyMuPDF."""
+        """Detect objects on all pages. Uses PyMuPDF for native PDFs, OCR for bitmap."""
         if not self._doc:
             return
 
@@ -400,72 +441,197 @@ class PreviewView(QWidget):
         try:
             zoom_factor = self._base_dpi * self._zoom / 72.0
 
+            # Check if we need OCR
+            needs_ocr = any(
+                self._is_bitmap_page(self._doc[i]) for i in range(self._page_count)
+            )
+            ocr_engine = None
+            if needs_ocr:
+                try:
+                    from catalog_api_studio.ocr.engine import OCREngine
+                    ocr_engine = OCREngine()
+                    logger.info("Bitmap pages detected, using OCR for detection")
+                except ImportError:
+                    logger.warning("PaddleOCR not available for bitmap detection")
+
             for page_num in range(self._page_count):
                 page = self._doc[page_num]
                 bboxes: list[dict] = []
+                is_bitmap = self._is_bitmap_page(page)
 
-                # Detect tables
-                try:
-                    tables = page.find_tables()
-                    for table in tables.tables:
-                        bbox = table.bbox  # (x0, y0, x1, y1) in points
-                        bboxes.append({
-                            "type": "table",
-                            "label": f"table ({table.row_count}x{table.col_count})",
-                            "rect": self._pts_to_px(bbox, zoom_factor),
-                        })
-                except Exception:
-                    pass
-
-                # Detect text blocks
-                text_dict = page.get_text("dict", flags=fitz.TEXT_PRESERVE_WHITESPACE)
-                for block in text_dict.get("blocks", []):
-                    block_type = block.get("type", 0)
-                    bbox = block.get("bbox", (0, 0, 0, 0))
-
-                    if block_type == 0:  # text
-                        text_preview = ""
-                        for line in block.get("lines", [])[:1]:
-                            for span in line.get("spans", [])[:1]:
-                                text_preview = span.get("text", "")[:30]
-                        bboxes.append({
-                            "type": "text",
-                            "label": f"text: {text_preview}",
-                            "rect": self._pts_to_px(bbox, zoom_factor),
-                        })
-                    elif block_type == 1:  # image
-                        bboxes.append({
-                            "type": "image",
-                            "label": "image",
-                            "rect": self._pts_to_px(bbox, zoom_factor),
-                        })
-
-                # Detect drawings (vector graphics)
-                drawings = page.get_drawings()
-                if drawings:
-                    # Group nearby drawings into clusters
-                    for d in drawings[:50]:  # limit to avoid clutter
-                        rect = d.get("rect")
-                        if rect and (rect.width > 10 and rect.height > 10):
-                            bboxes.append({
-                                "type": "drawing",
-                                "label": "drawing",
-                                "rect": self._pts_to_px(
-                                    (rect.x0, rect.y0, rect.x1, rect.y1), zoom_factor
-                                ),
-                            })
+                if is_bitmap and ocr_engine:
+                    # OCR-based detection for bitmap pages
+                    bboxes = self._detect_bitmap_page(page, page_num, ocr_engine, zoom_factor)
+                else:
+                    # Native detection for text-layer pages
+                    bboxes = self._detect_native_page(page, zoom_factor)
 
                 self._bboxes_cache[page_num] = bboxes
+                logger.info(
+                    "Page %d: %s, %d objects detected",
+                    page_num + 1, "bitmap" if is_bitmap else "native", len(bboxes)
+                )
 
             self._apply_bboxes_to_spreads()
             self.bbox_check.setChecked(True)
-            logger.info("Detection complete: found objects on %d pages", self._page_count)
+            logger.info("Detection complete")
 
         except Exception as e:
             logger.error("Object detection failed: %s", e)
         finally:
             self.detect_btn.setEnabled(True)
             self.detect_btn.setText("Detect Objects")
+
+    def _detect_native_page(self, page, zoom_factor: float) -> list[dict]:
+        """Detect objects on a native text-layer page using PyMuPDF."""
+        bboxes: list[dict] = []
+
+        # Detect tables
+        try:
+            tables = page.find_tables()
+            for table in tables.tables:
+                bboxes.append({
+                    "type": "table",
+                    "label": f"table ({table.row_count}x{table.col_count})",
+                    "rect": self._pts_to_px(table.bbox, zoom_factor),
+                })
+        except Exception:
+            pass
+
+        # Detect text and image blocks
+        text_dict = page.get_text("dict", flags=fitz.TEXT_PRESERVE_WHITESPACE)
+        for block in text_dict.get("blocks", []):
+            block_type = block.get("type", 0)
+            bbox = block.get("bbox", (0, 0, 0, 0))
+
+            if block_type == 0:  # text
+                text_preview = ""
+                for line in block.get("lines", [])[:1]:
+                    for span in line.get("spans", [])[:1]:
+                        text_preview = span.get("text", "")[:30]
+                bboxes.append({
+                    "type": "text",
+                    "label": f"text: {text_preview}",
+                    "rect": self._pts_to_px(bbox, zoom_factor),
+                })
+            elif block_type == 1:  # image
+                bboxes.append({
+                    "type": "image",
+                    "label": "image",
+                    "rect": self._pts_to_px(bbox, zoom_factor),
+                })
+
+        # Detect drawings
+        drawings = page.get_drawings()
+        if drawings:
+            for d in drawings[:50]:
+                rect = d.get("rect")
+                if rect and (rect.width > 10 and rect.height > 10):
+                    bboxes.append({
+                        "type": "drawing",
+                        "label": "drawing",
+                        "rect": self._pts_to_px(
+                            (rect.x0, rect.y0, rect.x1, rect.y1), zoom_factor
+                        ),
+                    })
+
+        return bboxes
+
+    def _detect_bitmap_page(
+        self, page, page_num: int, ocr_engine, zoom_factor: float
+    ) -> list[dict]:
+        """Detect objects on a bitmap page using OCR."""
+        from PIL import Image
+
+        bboxes: list[dict] = []
+
+        # Render page to image for OCR
+        ocr_dpi = 200
+        ocr_zoom = ocr_dpi / 72.0
+        pix = page.get_pixmap(dpi=ocr_dpi)
+        img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+
+        # Run OCR to get text blocks
+        text_blocks = ocr_engine.extract_text(img)
+
+        # Scale factor: OCR coords are in ocr_dpi pixels, display is in zoom_factor
+        scale = zoom_factor / ocr_zoom
+
+        for block in text_blocks:
+            x_min, y_min, x_max, y_max = block["bbox"]
+            text = block["text"]
+            conf = block.get("confidence", 0)
+
+            bboxes.append({
+                "type": "text",
+                "label": f"[{conf:.0%}] {text[:40]}",
+                "rect": (
+                    x_min * scale,
+                    y_min * scale,
+                    (x_max - x_min) * scale,
+                    (y_max - y_min) * scale,
+                ),
+            })
+
+        # Try to detect table-like regions by grouping aligned text blocks
+        table_regions = self._detect_table_regions(text_blocks, scale)
+        bboxes.extend(table_regions)
+
+        # Mark the full-page image block
+        page_rect = page.rect
+        bboxes.append({
+            "type": "image",
+            "label": "page image (bitmap)",
+            "rect": self._pts_to_px(
+                (page_rect.x0, page_rect.y0, page_rect.x1, page_rect.y1), zoom_factor
+            ),
+        })
+
+        return bboxes
+
+    @staticmethod
+    def _detect_table_regions(
+        text_blocks: list[dict], scale: float, min_rows: int = 3
+    ) -> list[dict]:
+        """Heuristic: detect table-like regions from aligned OCR text blocks."""
+        if len(text_blocks) < min_rows:
+            return []
+
+        # Sort by Y coordinate
+        sorted_blocks = sorted(text_blocks, key=lambda b: b["bbox"][1])
+
+        # Group into rows by Y proximity
+        rows: list[list[dict]] = []
+        current_row: list[dict] = [sorted_blocks[0]]
+        current_y = sorted_blocks[0]["bbox"][1]
+
+        for block in sorted_blocks[1:]:
+            if abs(block["bbox"][1] - current_y) < 15:
+                current_row.append(block)
+            else:
+                rows.append(current_row)
+                current_row = [block]
+                current_y = block["bbox"][1]
+        rows.append(current_row)
+
+        # Find sequences of rows with similar column count (table-like)
+        tables: list[dict] = []
+        run_start = 0
+        for i in range(1, len(rows)):
+            cols_prev = len(rows[i - 1])
+            cols_curr = len(rows[i])
+
+            # If column count changes significantly, end the run
+            if abs(cols_prev - cols_curr) > 1 or cols_curr < 2:
+                if i - run_start >= min_rows and len(rows[run_start]) >= 2:
+                    tables.append(_table_bbox_from_rows(rows[run_start:i], scale))
+                run_start = i
+
+        # Check last run
+        if len(rows) - run_start >= min_rows and len(rows[run_start]) >= 2:
+            tables.append(_table_bbox_from_rows(rows[run_start:], scale))
+
+        return tables
 
     @staticmethod
     def _pts_to_px(bbox: tuple, zoom_factor: float) -> tuple[float, float, float, float]:
