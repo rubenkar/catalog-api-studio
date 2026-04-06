@@ -3,7 +3,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from catalog_api_studio.db.engine import get_session
+from catalog_api_studio.db import engine as _db_engine
 from catalog_api_studio.models.schemas import (
     FilterResponse,
     ProductList,
@@ -18,8 +18,8 @@ router = APIRouter()
 _search_indexer: SearchIndexer | None = None
 
 
-def get_db() -> Session:
-    session = get_session()
+def get_db():
+    session = _db_engine.get_session()
     try:
         yield session
     finally:

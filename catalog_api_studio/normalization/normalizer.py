@@ -79,8 +79,10 @@ class Normalizer:
         if price is None:
             return None
         if price < 0:
-            return abs(price)
-        return round(price, 2)
+            price = abs(price)
+        from decimal import ROUND_HALF_UP, Decimal
+
+        return float(Decimal(str(price)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
 
     def clean_text(self, text: str | None) -> str | None:
         """Clean text: strip HTML, normalize whitespace."""

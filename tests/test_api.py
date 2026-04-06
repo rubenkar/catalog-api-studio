@@ -2,22 +2,21 @@
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
-from catalog_api_studio.api.app import create_app
-from catalog_api_studio.api.routes import get_db
-from catalog_api_studio.db.models import Base, Product
+from catalog_api_studio.db.engine import get_session, init_db
+from catalog_api_studio.db.models import Product
 
 
-@pytest.fixture
-def test_app():
-    engine = create_engine("sqlite:///:memory:")
-    Base.metadata.create_all(engine)
-    TestSession = sessionmaker(bind=engine)
+@pytest.fixture(scope="module", autouse=True)
+def setup_db():
+    """Initialize the real DB and seed test data."""
+    init_db()
+    session = get_session()
+    # Clean existing
+    session.query(Product).delete()
+    session.commit()
 
-    # Seed data
-    session = TestSession()
+    # Seed
     for i in range(5):
         session.add(Product(
             sku=f"SKU-{i:03d}",
@@ -30,69 +29,73 @@ def test_app():
     session.commit()
     session.close()
 
+    yield
+
+    # Cleanup
+    session = get_session()
+    session.query(Product).delete()
+    session.commit()
+    session.close()
+
+
+@pytest.fixture
+def client():
+    from catalog_api_studio.api.app import create_app
+
     app = create_app()
-
-    def override_get_db():
-        session = TestSession()
-        try:
-            yield session
-        finally:
-            session.close()
-
-    app.dependency_overrides[get_db] = override_get_db
     return TestClient(app)
 
 
-def test_health(test_app):
-    resp = test_app.get("/health")
+def test_health(client):
+    resp = client.get("/health")
     assert resp.status_code == 200
     data = resp.json()
     assert data["status"] == "ok"
     assert data["products_count"] == 5
 
 
-def test_list_products(test_app):
-    resp = test_app.get("/products")
+def test_list_products(client):
+    resp = client.get("/products")
     assert resp.status_code == 200
     data = resp.json()
     assert data["total"] == 5
     assert len(data["items"]) == 5
 
 
-def test_get_product(test_app):
-    resp = test_app.get("/products/1")
+def test_get_product(client):
+    resp = client.get("/products/1")
     assert resp.status_code == 200
     data = resp.json()
     assert data["sku"] == "SKU-000"
 
 
-def test_get_product_not_found(test_app):
-    resp = test_app.get("/products/999")
+def test_get_product_not_found(client):
+    resp = client.get("/products/999")
     assert resp.status_code == 404
 
 
-def test_brands(test_app):
-    resp = test_app.get("/brands")
+def test_brands(client):
+    resp = client.get("/brands")
     assert resp.status_code == 200
     assert "TestBrand" in resp.json()
 
 
-def test_categories(test_app):
-    resp = test_app.get("/categories")
+def test_categories(client):
+    resp = client.get("/categories")
     assert resp.status_code == 200
     assert "TestCat" in resp.json()
 
 
-def test_filters(test_app):
-    resp = test_app.get("/filters")
+def test_filters(client):
+    resp = client.get("/filters")
     assert resp.status_code == 200
     data = resp.json()
     assert "TestBrand" in data["brands"]
     assert "TestCat" in data["categories"]
 
 
-def test_search(test_app):
-    resp = test_app.get("/search?q=Product")
+def test_search(client):
+    resp = client.get("/search?q=Product")
     assert resp.status_code == 200
     data = resp.json()
     assert data["total"] > 0
