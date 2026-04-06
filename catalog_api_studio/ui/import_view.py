@@ -4,6 +4,7 @@ import logging
 from pathlib import Path
 
 from PySide6.QtCore import QThread, Signal
+from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
     QFileDialog,
     QHBoxLayout,
@@ -48,9 +49,12 @@ class ImportWorker(QThread):
 class ImportView(QWidget):
     """File import tab with drag-drop and import history."""
 
+    preview_requested = Signal(str)  # file_path
+
     def __init__(self) -> None:
         super().__init__()
         self._worker: ImportWorker | None = None
+        self._jobs: list[ImportJob] = []
         self._setup_ui()
         self.refresh()
 
@@ -64,6 +68,12 @@ class ImportView(QWidget):
         self.import_btn.clicked.connect(self._on_import)
         top_bar.addWidget(self.import_btn)
 
+        self.preview_btn = QPushButton("Preview")
+        self.preview_btn.setMinimumHeight(40)
+        self.preview_btn.setEnabled(False)
+        self.preview_btn.clicked.connect(self._on_preview)
+        top_bar.addWidget(self.preview_btn)
+
         self.status_label = QLabel("Ready")
         top_bar.addWidget(self.status_label)
         top_bar.addStretch()
@@ -71,7 +81,7 @@ class ImportView(QWidget):
         layout.addLayout(top_bar)
 
         # Supported formats hint
-        hint = QLabel("Supported formats: PDF, XLSX, CSV")
+        hint = QLabel("Supported formats: PDF, XLSX, CSV  |  Select a PDF row and click Preview")
         hint.setStyleSheet("color: #666; font-size: 11px;")
         layout.addWidget(hint)
 
@@ -84,6 +94,8 @@ class ImportView(QWidget):
         self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.table.currentRowChanged.connect(self._on_row_changed)
+        self.table.doubleClicked.connect(self._on_double_click)
         layout.addWidget(self.table)
 
     def _on_import(self) -> None:
@@ -118,14 +130,39 @@ class ImportView(QWidget):
 
         self.refresh()
 
+    def _on_row_changed(self, row: int) -> None:
+        """Enable Preview button for PDF files."""
+        if 0 <= row < len(self._jobs):
+            job = self._jobs[row]
+            is_pdf = job.file_type.lower() == "pdf"
+            self.preview_btn.setEnabled(is_pdf)
+        else:
+            self.preview_btn.setEnabled(False)
+
+    def _on_preview(self) -> None:
+        """Open selected PDF in preview tab."""
+        row = self.table.currentRow()
+        if 0 <= row < len(self._jobs):
+            job = self._jobs[row]
+            if job.file_type.lower() == "pdf" and Path(job.file_path).exists():
+                self.preview_requested.emit(job.file_path)
+
+    def _on_double_click(self, index) -> None:
+        """Double-click on PDF row opens preview."""
+        row = index.row()
+        if 0 <= row < len(self._jobs):
+            job = self._jobs[row]
+            if job.file_type.lower() == "pdf" and Path(job.file_path).exists():
+                self.preview_requested.emit(job.file_path)
+
     def refresh(self) -> None:
         """Reload import jobs from database."""
         session = get_session()
         try:
-            jobs = session.query(ImportJob).order_by(ImportJob.created_at.desc()).all()
-            self.table.setRowCount(len(jobs))
+            self._jobs = session.query(ImportJob).order_by(ImportJob.created_at.desc()).all()
+            self.table.setRowCount(len(self._jobs))
 
-            for row, job in enumerate(jobs):
+            for row, job in enumerate(self._jobs):
                 self.table.setItem(row, 0, QTableWidgetItem(str(job.id)))
                 self.table.setItem(row, 1, QTableWidgetItem(job.filename))
                 self.table.setItem(row, 2, QTableWidgetItem(job.file_type.upper()))
@@ -138,7 +175,7 @@ class ImportView(QWidget):
                     "error": "#d9534f",
                 }
                 color = color_map.get(job.status, "#333")
-                status_item.setForeground(__import__("PySide6.QtGui", fromlist=["QColor"]).QColor(color))
+                status_item.setForeground(QColor(color))
                 self.table.setItem(row, 3, status_item)
 
                 self.table.setItem(row, 4, QTableWidgetItem(str(job.products_count)))
