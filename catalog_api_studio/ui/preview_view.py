@@ -205,7 +205,7 @@ class PreviewView(QWidget):
         # Separator
         toolbar.addWidget(self._separator())
 
-        # Bounding boxes
+        # Bounding boxes toggle
         self.bbox_check = QCheckBox("Bounding Boxes")
         self.bbox_check.toggled.connect(self._toggle_bboxes)
         toolbar.addWidget(self.bbox_check)
@@ -213,14 +213,7 @@ class PreviewView(QWidget):
         self.bbox_type_combo = QComboBox()
         self.bbox_type_combo.addItems(["All", "Tables", "Text", "Images", "Drawings"])
         self.bbox_type_combo.currentTextChanged.connect(self._on_bbox_filter_changed)
-        self.bbox_type_combo.setEnabled(False)
         toolbar.addWidget(self.bbox_type_combo)
-
-        # Detect button
-        self.detect_btn = QPushButton("Detect Objects")
-        self.detect_btn.clicked.connect(self._detect_objects)
-        self.detect_btn.setEnabled(False)
-        toolbar.addWidget(self.detect_btn)
 
         layout.addLayout(toolbar)
 
@@ -260,8 +253,8 @@ class PreviewView(QWidget):
         self.page_spin.setMaximum(self._page_count)
         self.page_spin.setValue(1)
         self.page_count_label.setText(f"/ {self._page_count}")
-        self.detect_btn.setEnabled(True)
 
+        self._detect_objects()
         self._render_all_spreads()
         logger.info("Loaded document: %s (%d pages)", file_path.name, self._page_count)
 
@@ -377,8 +370,7 @@ class PreviewView(QWidget):
                 break
 
     def _toggle_bboxes(self, checked: bool) -> None:
-        """Toggle bounding box display on all pages."""
-        self.bbox_type_combo.setEnabled(checked)
+        """Show or hide bounding box overlay on all pages."""
         for spread in self._spreads:
             spread.left_page.set_show_bboxes(checked)
             spread.right_page.set_show_bboxes(checked)
@@ -430,13 +422,11 @@ class PreviewView(QWidget):
         return False
 
     def _detect_objects(self) -> None:
-        """Detect objects on all pages. Uses PyMuPDF for native PDFs, OCR for bitmap."""
+        """Detect objects on all pages. Runs automatically on document load."""
         if not self._doc:
             return
 
         logger.info("Detecting objects on %d pages...", self._page_count)
-        self.detect_btn.setEnabled(False)
-        self.detect_btn.setText("Detecting...")
 
         try:
             zoom_factor = self._base_dpi * self._zoom / 72.0
@@ -472,15 +462,10 @@ class PreviewView(QWidget):
                     page_num + 1, "bitmap" if is_bitmap else "native", len(bboxes)
                 )
 
-            self._apply_bboxes_to_spreads()
-            self.bbox_check.setChecked(True)
             logger.info("Detection complete")
 
         except Exception as e:
             logger.error("Object detection failed: %s", e)
-        finally:
-            self.detect_btn.setEnabled(True)
-            self.detect_btn.setText("Detect Objects")
 
     def _detect_native_page(self, page, zoom_factor: float) -> list[dict]:
         """Detect objects on a native text-layer page using PyMuPDF."""
