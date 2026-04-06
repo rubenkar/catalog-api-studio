@@ -5,7 +5,7 @@ from pathlib import Path
 
 import fitz  # PyMuPDF
 from PySide6.QtCore import QPoint, QRectF, Qt
-from PySide6.QtGui import QColor, QImage, QPainter, QPen, QPixmap, QWheelEvent
+from PySide6.QtGui import QBrush, QColor, QFont, QImage, QPainter, QPen, QPixmap, QWheelEvent
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -40,17 +40,20 @@ BBOX_BORDER_COLORS = {
 
 
 class PageWidget(QWidget):
-    """Renders a single PDF page with optional bounding box overlay."""
+    """Renders a single PDF page with optional bounding box overlay and stats header."""
+
+    HEADER_HEIGHT = 24
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
         self._pixmap: QPixmap | None = None
         self._bboxes: list[dict] = []
         self._show_bboxes = False
+        self._page_stats: str = ""
 
     def set_pixmap(self, pixmap: QPixmap) -> None:
         self._pixmap = pixmap
-        self.setFixedSize(pixmap.size())
+        self.setFixedSize(pixmap.width(), pixmap.height() + self.HEADER_HEIGHT)
         self.update()
 
     def set_bboxes(self, bboxes: list[dict]) -> None:
@@ -61,12 +64,31 @@ class PageWidget(QWidget):
         self._show_bboxes = show
         self.update()
 
+    def set_page_stats(self, stats: str) -> None:
+        self._page_stats = stats
+        self.update()
+
     def paintEvent(self, event) -> None:
         if not self._pixmap:
             return
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        painter.drawPixmap(0, 0, self._pixmap)
+
+        h = self.HEADER_HEIGHT
+
+        # Draw stats header
+        if self._page_stats:
+            painter.setBrush(QColor(0, 0, 0, 160))
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.drawRect(QRectF(0, 0, self._pixmap.width(), h))
+
+            font = QFont("Consolas", 9)
+            painter.setFont(font)
+            painter.setPen(QColor(255, 255, 255))
+            painter.drawText(int(6), int(h - 7), self._page_stats)
+
+        # Draw page image below header
+        painter.drawPixmap(0, h, self._pixmap)
 
         if self._show_bboxes and self._bboxes:
             for bbox in self._bboxes:
@@ -75,13 +97,14 @@ class PageWidget(QWidget):
                 if not rect:
                     continue
 
-                x, y, w, h = rect
+                x, y, w, bh = rect
+                y += h  # offset by header
                 fill = BBOX_COLORS.get(bbox_type, BBOX_COLORS["unknown"])
                 border = BBOX_BORDER_COLORS.get(bbox_type, BBOX_BORDER_COLORS["unknown"])
 
                 painter.setBrush(fill)
                 painter.setPen(QPen(border, 2))
-                painter.drawRect(QRectF(x, y, w, h))
+                painter.drawRect(QRectF(x, y, w, bh))
 
                 # Label
                 painter.setPen(QPen(border, 1))
@@ -120,6 +143,7 @@ class PreviewView(QWidget):
         self._base_dpi = 150
         self._spreads: list[PageSpreadWidget] = []
         self._bboxes_cache: dict[int, list[dict]] = {}
+        self._stats_cache: dict[int, str] = {}
 
         self._setup_ui()
 
@@ -216,6 +240,7 @@ class PreviewView(QWidget):
 
         self._file_path = file_path
         self._bboxes_cache.clear()
+        self._stats_cache.clear()
 
         try:
             self._doc = fitz.open(str(file_path))
@@ -260,6 +285,8 @@ class PreviewView(QWidget):
                 spread.left_page.set_bboxes(
                     self._filter_bboxes(self._bboxes_cache[page_idx])
                 )
+            if page_idx in self._stats_cache:
+                spread.left_page.set_page_stats(self._stats_cache[page_idx])
 
             # Right page
             if page_idx + 1 < self._page_count:
@@ -270,6 +297,8 @@ class PreviewView(QWidget):
                     spread.right_page.set_bboxes(
                         self._filter_bboxes(self._bboxes_cache[page_idx + 1])
                     )
+                if page_idx + 1 in self._stats_cache:
+                    spread.right_page.set_page_stats(self._stats_cache[page_idx + 1])
             else:
                 # Odd page count — blank right side
                 blank = QPixmap(left_pixmap.size())
@@ -391,69 +420,172 @@ class PreviewView(QWidget):
 
             for page_num in range(self._page_count):
                 page = self._doc[page_num]
-                bboxes = self._detect_native_page(page, zoom_factor)
+                bboxes, stats = self._detect_native_page(page, zoom_factor)
                 self._bboxes_cache[page_num] = bboxes
-                logger.info("Page %d: %d objects", page_num + 1, len(bboxes))
+                self._stats_cache[page_num] = stats
+                logger.info("Page %d: %s", page_num + 1, stats)
 
             logger.info("Detection complete")
 
         except Exception as e:
             logger.error("Object detection failed: %s", e)
 
-    def _detect_native_page(self, page, zoom_factor: float) -> list[dict]:
-        """Detect objects on a native text-layer page using PyMuPDF."""
+    def _detect_native_page(self, page, zoom_factor: float) -> tuple[list[dict], str]:
+        """Detect objects on a page using PyMuPDF. Returns (bboxes, stats_string)."""
         bboxes: list[dict] = []
+        obj_id = 0
 
-        # Detect tables
+        # 1. Tables via find_tables()
+        words = page.get_text("words")  # (x0, y0, x1, y1, word, block_no, line_no, word_no)
+        table_fitz_rects: list[fitz.Rect] = []
         try:
             tables = page.find_tables()
             for table in tables.tables:
+                tr = fitz.Rect(table.bbox)
+                table_fitz_rects.append(tr)
                 bboxes.append({
                     "type": "table",
-                    "label": f"table ({table.row_count}x{table.col_count})",
+                    "label": f"#{obj_id} table {table.row_count}x{table.col_count}",
                     "rect": self._pts_to_px(table.bbox, zoom_factor),
                 })
+                obj_id += 1
         except Exception:
             pass
 
-        # Detect text and image blocks
-        text_dict = page.get_text("dict", flags=fitz.TEXT_PRESERVE_WHITESPACE)
-        for block in text_dict.get("blocks", []):
-            block_type = block.get("type", 0)
-            bbox = block.get("bbox", (0, 0, 0, 0))
+        # 2. Text — use words for precise line-level bboxes
+        # Expanded table rects for filtering (catch text just outside table lines)
+        table_filter_rects = [
+            fitz.Rect(tr.x0 - 60, tr.y0 - 15, tr.x1 + 60, tr.y1 + 15)
+            for tr in table_fitz_rects
+        ]
+        if words:
+            # Group words into text lines
+            lines: dict[tuple[int, int], list] = {}
+            for w in words:
+                key = (w[5], w[6])  # block_no, line_no
+                lines.setdefault(key, []).append(w)
 
-            if block_type == 0:  # text
-                text_preview = ""
-                for line in block.get("lines", [])[:1]:
-                    for span in line.get("spans", [])[:1]:
-                        text_preview = span.get("text", "")[:30]
+            for key, line_words in lines.items():
+                x0 = min(w[0] for w in line_words)
+                y0 = min(w[1] for w in line_words)
+                x1 = max(w[2] for w in line_words)
+                y1 = max(w[3] for w in line_words)
+                text_preview = " ".join(w[4] for w in line_words[:4])[:30]
+
+                # Skip text lines inside or near table areas
+                line_rect = fitz.Rect(x0, y0, x1, y1)
+                in_table = any(tr.contains(line_rect) for tr in table_filter_rects)
+                if in_table:
+                    continue
+
                 bboxes.append({
                     "type": "text",
-                    "label": f"text: {text_preview}",
-                    "rect": self._pts_to_px(bbox, zoom_factor),
+                    "label": f"#{obj_id} {text_preview}",
+                    "rect": self._pts_to_px((x0, y0, x1, y1), zoom_factor),
                 })
-            elif block_type == 1:  # image
+                obj_id += 1
+
+        # 3. Embedded raster images via get_images()
+        for img_info in page.get_images(full=True):
+            xref = img_info[0]
+            img_w, img_h = img_info[2], img_info[3]
+            for rect in page.get_image_rects(xref):
                 bboxes.append({
                     "type": "image",
-                    "label": "image",
-                    "rect": self._pts_to_px(bbox, zoom_factor),
+                    "label": f"#{obj_id} image {img_w}x{img_h}px",
+                    "rect": self._pts_to_px(
+                        (rect.x0, rect.y0, rect.x1, rect.y1), zoom_factor
+                    ),
                 })
+                obj_id += 1
 
-        # Detect drawings
+        # 4. Vector drawings — cluster into regions, skip table-area lines
         drawings = page.get_drawings()
         if drawings:
-            for d in drawings[:50]:
-                rect = d.get("rect")
-                if rect and (rect.width > 10 and rect.height > 10):
+            diagram_rects: list[tuple[float, float, float, float]] = []
+            for d in drawings:
+                r = d.get("rect")
+                if not r or (r.width < 3 and r.height < 3):
+                    continue
+                # Normalize degenerate (zero-width/height) rects for intersection test
+                nr = fitz.Rect(r.x0 - 1, r.y0 - 1, r.x1 + 1, r.y1 + 1)
+                # Skip drawings that overlap with table areas
+                if any(tr.intersects(nr) for tr in table_filter_rects):
+                    continue
+                diagram_rects.append((r.x0, r.y0, r.x1, r.y1))
+
+            # Cluster nearby drawings into diagram regions
+            regions = self._cluster_rects(diagram_rects, gap=5)
+            # Filter: keep only regions that are significant (not thin lines)
+            for c in regions:
+                w, h = c[2] - c[0], c[3] - c[1]
+                if w > 30 and h > 30:
                     bboxes.append({
                         "type": "drawing",
-                        "label": "drawing",
+                        "label": f"#{obj_id} diagram {w:.0f}x{h:.0f}pt",
                         "rect": self._pts_to_px(
-                            (rect.x0, rect.y0, rect.x1, rect.y1), zoom_factor
+                            (c[0], c[1], c[2], c[3]), zoom_factor
                         ),
                     })
+                    obj_id += 1
 
-        return bboxes
+        n_tables = sum(1 for b in bboxes if b["type"] == "table")
+        n_text = sum(1 for b in bboxes if b["type"] == "text")
+        n_images = sum(1 for b in bboxes if b["type"] == "image")
+        n_drawings = sum(1 for b in bboxes if b["type"] == "drawing")
+
+        stats = (
+            f"P{page.number + 1}  |  "
+            f"T:{n_tables}  Txt:{n_text}  Img:{n_images}  Drw:{n_drawings}  "
+            f"Total:{len(bboxes)}"
+        )
+
+        return bboxes, stats
+
+    @staticmethod
+    def _cluster_rects(
+        rects: list[tuple[float, float, float, float]], gap: float = 5
+    ) -> list[list[float]]:
+        """Merge overlapping/nearby rectangles into clusters."""
+        if not rects:
+            return []
+        clusters = [list(rects[0])]
+        for r in rects[1:]:
+            merged = False
+            for c in clusters:
+                if (r[0] <= c[2] + gap and r[2] >= c[0] - gap
+                        and r[1] <= c[3] + gap and r[3] >= c[1] - gap):
+                    c[0] = min(c[0], r[0])
+                    c[1] = min(c[1], r[1])
+                    c[2] = max(c[2], r[2])
+                    c[3] = max(c[3], r[3])
+                    merged = True
+                    break
+            if not merged:
+                clusters.append(list(r))
+        # Re-merge until stable
+        changed = True
+        while changed:
+            changed = False
+            new_clusters: list[list[float]] = []
+            used: set[int] = set()
+            for i, a in enumerate(clusters):
+                if i in used:
+                    continue
+                for j, b in enumerate(clusters):
+                    if j <= i or j in used:
+                        continue
+                    if (a[0] <= b[2] + gap and a[2] >= b[0] - gap
+                            and a[1] <= b[3] + gap and a[3] >= b[1] - gap):
+                        a[0] = min(a[0], b[0])
+                        a[1] = min(a[1], b[1])
+                        a[2] = max(a[2], b[2])
+                        a[3] = max(a[3], b[3])
+                        used.add(j)
+                        changed = True
+                new_clusters.append(a)
+            clusters = new_clusters
+        return clusters
 
     @staticmethod
     def _pts_to_px(bbox: tuple, zoom_factor: float) -> tuple[float, float, float, float]:

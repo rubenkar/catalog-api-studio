@@ -1,9 +1,18 @@
 """Main application window with tabbed interface."""
 
 import logging
+from datetime import datetime
+from pathlib import Path
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QMainWindow, QTabWidget, QVBoxLayout, QWidget
+from PySide6.QtWidgets import (
+    QHBoxLayout,
+    QLabel,
+    QMainWindow,
+    QTabWidget,
+    QVBoxLayout,
+    QWidget,
+)
 
 from catalog_api_studio.ui.api_view import APIView
 from catalog_api_studio.ui.import_view import ImportView
@@ -14,9 +23,24 @@ from catalog_api_studio.ui.search_view import SearchView
 
 logger = logging.getLogger(__name__)
 
+APP_VERSION = "0.1.1"
+
+
+def _get_build_time() -> str:
+    """Get latest modification time across UI source files."""
+    try:
+        ui_dir = Path(__file__).parent
+        mtimes = [f.stat().st_mtime for f in ui_dir.glob("*.py")]
+        if mtimes:
+            latest = max(mtimes)
+            return datetime.fromtimestamp(latest).strftime("%Y-%m-%d %H:%M:%S")
+    except Exception:
+        pass
+    return "unknown"
+
 
 class MainWindow(QMainWindow):
-    """Main application window with 5 tabs."""
+    """Main application window with 6 tabs."""
 
     def __init__(self) -> None:
         super().__init__()
@@ -27,6 +51,16 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(central)
         layout = QVBoxLayout(central)
         layout.setContentsMargins(0, 0, 0, 0)
+
+        # Top bar with version
+        top_bar = QHBoxLayout()
+        top_bar.setContentsMargins(8, 4, 8, 4)
+        top_bar.addStretch()
+        build_time = _get_build_time()
+        version_label = QLabel(f"v{APP_VERSION} | {build_time}")
+        version_label.setStyleSheet("color: #888; font-size: 11px;")
+        top_bar.addWidget(version_label)
+        layout.addLayout(top_bar)
 
         self.tabs = QTabWidget()
         layout.addWidget(self.tabs)
