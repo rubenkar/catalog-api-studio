@@ -94,7 +94,7 @@ class ImportView(QWidget):
         self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.table.currentRowChanged.connect(self._on_row_changed)
+        self.table.currentCellChanged.connect(lambda row, *_: self._on_row_changed(row))
         self.table.doubleClicked.connect(self._on_double_click)
         layout.addWidget(self.table)
 
