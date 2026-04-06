@@ -1,0 +1,136 @@
+{
+  "catalog": "ZVL - Spherical Roller Bearings.pdf",
+  "manufacturer": "ZVL",
+  "total_pages": 4,
+  "stats": {
+    "pages_with_tables": 1,
+    "tables_analyzed": 1,
+    "data_rows": 4,
+    "unique_models": 1
+  },
+  "model_index": {
+    "100Cr6": [
+      {
+        "page": 3,
+        "table_idx": 0,
+        "row_idx": 3,
+        "y0": 363.5,
+        "y1": 377.7,
+        "values": {
+          "d": 0.98,
+          "D": 1.49
+        }
+      },
+      {
+        "page": 3,
+        "table_idx": 0,
+        "row_idx": 4,
+        "y0": 377.7,
+        "y1": 391.9,
+        "values": {
+          "d": 1.04,
+          "D": 1.53
+        }
+      },
+      {
+        "page": 3,
+        "table_idx": 0,
+        "row_idx": 5,
+        "y0": 391.9,
+        "y1": 406.0,
+        "values": {
+          "d": 0.98,
+          "D": 1.54
+        }
+      }
+    ]
+  },
+  "table_map": {
+    "3": [
+      {
+        "page": 3,
+        "bbox": [
+          102.5,
+          321.1,
+          549.7,
+          406.0
+        ],
+        "header_bbox": [
+          102.5,
+          321.1,
+          549.7,
+          349.4
+        ],
+        "n_cols": 11,
+        "n_data_rows": 4,
+        "header_row_count": 2,
+        "cols": [
+          {
+            "index": 1,
+            "header": "MATERIAL | 100Cr6",
+            "field": "model",
+            "x0": 181.7,
+            "x1": 221.10240173339844
+          },
+          {
+            "index": 2,
+            "header": "C | 0.93",
+            "field": "d",
+            "x0": 221.1,
+            "x1": 258.0
+          },
+          {
+            "index": 5,
+            "header": "Cr | 1.35",
+            "field": "D",
+            "x0": 331.8,
+            "x1": 368.5039978027344
+          }
+        ],
+        "rows": [
+          {
+            "row_idx": 2,
+            "model": "",
+            "y0": 349.4,
+            "y1": 363.5,
+            "values": {
+              "d": 1.05,
+              "D": 1.6
+            }
+          },
+          {
+            "row_idx": 3,
+            "model": "100Cr6",
+            "y0": 363.5,
+            "y1": 377.7,
+            "values": {
+              "d": 0.98,
+              "D": 1.49
+            }
+          },
+          {
+            "row_idx": 4,
+            "model": "100Cr6",
+            "y0": 377.7,
+            "y1": 391.9,
+            "values": {
+              "d": 1.04,
+              "D": 1.53
+            }
+          },
+          {
+            "row_idx": 5,
+            "model": "100Cr6",
+            "y0": 391.9,
+            "y1": 406.0,
+            "values": {
+              "d": 0.98,
+              "D": 1.54
+            }
+          }
+        ],
+        "table_idx": 0
+      }
+    ]
+  }
+}

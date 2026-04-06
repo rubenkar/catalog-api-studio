@@ -1,0 +1,83 @@
+{
+  "catalog": "SNR - DOC_I_ROX_ARG1_A4_3VOLETS_GBa-WEB.pdf",
+  "manufacturer": "SNR",
+  "total_pages": 6,
+  "stats": {
+    "pages_with_tables": 1,
+    "tables_analyzed": 1,
+    "data_rows": 3,
+    "unique_models": 0
+  },
+  "model_index": {},
+  "table_map": {
+    "5": [
+      {
+        "page": 5,
+        "bbox": [
+          0.0,
+          194.2,
+          578.1,
+          561.3
+        ],
+        "header_bbox": [
+          0.0,
+          194.2,
+          578.1,
+          246.7
+        ],
+        "n_cols": 6,
+        "n_data_rows": 3,
+        "header_row_count": 1,
+        "cols": [
+          {
+            "index": 1,
+            "header": "Maintenance/ year",
+            "field": "d",
+            "x0": 137.5,
+            "x1": 214.82749938964844
+          },
+          {
+            "index": 2,
+            "header": "Bearings/ year",
+            "field": "D",
+            "x0": 214.8,
+            "x1": 290.0
+          }
+        ],
+        "rows": [
+          {
+            "row_idx": 1,
+            "model": "",
+            "y0": 246.7,
+            "y1": 304.8,
+            "values": {
+              "d": 2.0,
+              "D": 40.0
+            }
+          },
+          {
+            "row_idx": 2,
+            "model": "",
+            "y0": 304.8,
+            "y1": 362.9,
+            "values": {
+              "d": 1.0,
+              "D": 20.0
+            }
+          },
+          {
+            "row_idx": 3,
+            "model": "",
+            "y0": 362.9,
+            "y1": 420.9,
+            "values": {
+              "d": 1.0,
+              "D": 20.0
+            }
+          }
+        ],
+        "table_idx": 0
+      }
+    ]
+  }
+}

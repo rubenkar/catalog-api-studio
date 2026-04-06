@@ -1,0 +1,53 @@
+[
+    {
+        "id": 3,
+        "material_id": null,
+        "translations": {
+            "en": {
+                "name": "Metals"
+            },
+            "ru": {
+                "name": "Металлы"
+            }
+        },
+        "children": [
+            {
+                "id": 4,
+                "material_id": 2991,
+                "translations": {
+                    "en": {
+                        "name": "Aluminium alloys"
+                    },
+                    "ru": {
+                        "name": "Алюминиевые сплавы"
+                    }
+                },
+                "children": [
+                    {
+                        "id": 6,
+                        "material_id": 3009,
+                        "translations": {
+                            "en": {
+                                "name": "2024"
+                            },
+                            "ru": {
+                                "name": "Д16 / Д16Т"
+                            }
+                        },
+                        "children": []
+                    }
+                ]
+            },
+            {
+                "id": 5,
+                "material_id": null,
+                "translations": {
+                    "en": {
+                        "name": "Steel Sheets"
+                    }
+                },
+                "children": []
+            }
+        ]
+    }
+]

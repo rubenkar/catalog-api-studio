@@ -1,0 +1,13 @@
+{
+  "catalog": "URB - Brochure.pdf",
+  "manufacturer": "URB",
+  "total_pages": 6,
+  "stats": {
+    "pages_with_tables": 0,
+    "tables_analyzed": 0,
+    "data_rows": 0,
+    "unique_models": 0
+  },
+  "model_index": {},
+  "table_map": {}
+}

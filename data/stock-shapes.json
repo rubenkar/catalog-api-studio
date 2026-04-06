@@ -1,0 +1,260 @@
+[
+    {
+        "id": 1,
+        "code": "ROUND",
+        "image": "/media/uploads/473ade75_1754857897_a07b445d_c078dfbb.png",
+        "formula": "PI * (d1 / 2) ^ 2",
+        "ordering_template": "length",
+        "translations": {
+            "en": {
+                "name": "Round"
+            },
+            "ru": {
+                "name": "Прутки"
+            }
+        },
+        "measurement_types": [
+            {
+                "id": 53,
+                "unit_group_id": 5,
+                "label": null,
+                "sort_order": 1,
+                "is_required": true
+            }
+        ]
+    },
+    {
+        "id": 2,
+        "code": "SQUARE",
+        "image": "/media/images/admin/1754744509_WhatsApp Image 2025-08-08 at 19.53.39.jpeg",
+        "formula": "d1^2",
+        "ordering_template": "length",
+        "translations": {
+            "en": {
+                "name": "Square"
+            },
+            "ru": {
+                "name": "Квадратный"
+            }
+        },
+        "measurement_types": [
+            {
+                "id": 55,
+                "unit_group_id": 1,
+                "label": null,
+                "sort_order": 1,
+                "is_required": true
+            }
+        ]
+    },
+    {
+        "id": 3,
+        "code": "FLAT_TEST",
+        "image": "/media/7c65bf0a_1754773717_728e6910_2a64cc21.png",
+        "formula": null,
+        "ordering_template": "length",
+        "translations": {
+            "en": {
+                "name": "Flat Test Updated"
+            },
+            "ru": {
+                "name": "Плоский Тест"
+            }
+        },
+        "measurement_types": [
+            {
+                "id": 38,
+                "unit_group_id": 1,
+                "label": "Width",
+                "sort_order": 1,
+                "is_required": true
+            }
+        ]
+    },
+    {
+        "id": 4,
+        "code": "TUBULAR",
+        "image": "/media/images/admin/1754744509_WhatsApp Image 2025-08-08 at 19.53.39.jpeg",
+        "formula": "PI * ((d1 / 2) ^ 2 - (d1 / 2 - (d1-d2)) ^ 2)",
+        "ordering_template": "length",
+        "translations": {
+            "en": {
+                "name": "Tubular"
+            },
+            "ru": {
+                "name": "Трубчатый"
+            }
+        },
+        "measurement_types": [
+            {
+                "id": 61,
+                "unit_group_id": 5,
+                "label": "Диам. внутр.",
+                "sort_order": 1,
+                "is_required": true
+            },
+            {
+                "id": 62,
+                "unit_group_id": 6,
+                "label": null,
+                "sort_order": 2,
+                "is_required": true
+            }
+        ]
+    },
+    {
+        "id": 5,
+        "code": "SHEET",
+        "image": "/media/7c65bf0a_1754773717_728e6910_2a64cc21.png",
+        "formula": "d1",
+        "ordering_template": "length x width",
+        "translations": {
+            "en": {
+                "name": "Sheet/Plate"
+            },
+            "ru": {
+                "name": "Лист/Плита"
+            }
+        },
+        "measurement_types": [
+            {
+                "id": 67,
+                "unit_group_id": 6,
+                "label": null,
+                "sort_order": 1,
+                "is_required": true
+            }
+        ]
+    },
+    {
+        "id": 6,
+        "code": "L-beam",
+        "image": "/media/uploads/fdea22f7_1754858224_d5e98249_de567ad6.png",
+        "formula": "d1 * d2 + (d1 - d2) * d2",
+        "ordering_template": "length",
+        "translations": {
+            "en": {
+                "name": "L-beam"
+            },
+            "ru": {
+                "name": "Уголок"
+            }
+        },
+        "measurement_types": [
+            {
+                "id": 63,
+                "unit_group_id": 1,
+                "label": null,
+                "sort_order": 1,
+                "is_required": true
+            },
+            {
+                "id": 64,
+                "unit_group_id": 6,
+                "label": null,
+                "sort_order": 2,
+                "is_required": true
+            }
+        ]
+    },
+    {
+        "id": 7,
+        "code": "CHANNEL",
+        "image": "/media/images/admin/1754744509_WhatsApp Image 2025-08-08 at 19.53.39.jpeg",
+        "formula": null,
+        "ordering_template": "length",
+        "translations": {
+            "en": {
+                "name": "Channel"
+            },
+            "ru": {
+                "name": "Швеллер"
+            },
+            "de": {
+                "name": "U-Profil"
+            },
+            "es": {
+                "name": "Canal"
+            }
+        },
+        "measurement_types": []
+    },
+    {
+        "id": 8,
+        "code": "BEAM",
+        "image": "/media/uploads/0f3ea145_1754858146_79935ba7_eac9eba7.png",
+        "formula": null,
+        "ordering_template": "length",
+        "translations": {
+            "en": {
+                "name": "Beam"
+            },
+            "ru": {
+                "name": "Двутавр"
+            }
+        },
+        "measurement_types": [
+            {
+                "id": 52,
+                "unit_group_id": 10,
+                "label": null,
+                "sort_order": 1,
+                "is_required": true
+            }
+        ]
+    },
+    {
+        "id": 9,
+        "code": "WIRE",
+        "image": "/media/images/admin/1754744509_WhatsApp Image 2025-08-08 at 19.53.39.jpeg",
+        "formula": null,
+        "ordering_template": "length",
+        "translations": {
+            "en": {
+                "name": "Wire"
+            },
+            "ru": {
+                "name": "Проволока"
+            },
+            "de": {
+                "name": "Draht"
+            },
+            "es": {
+                "name": "Alambre"
+            }
+        },
+        "measurement_types": []
+    },
+    {
+        "id": 10,
+        "code": "INGOT",
+        "image": "/media/uploads/0de47a2d_1754858284_c02f0f67_1bd3f5d1.png",
+        "formula": null,
+        "ordering_template": null,
+        "translations": {
+            "en": {
+                "name": "Ingot"
+            },
+            "ru": {
+                "name": "Чушка"
+            }
+        },
+        "measurement_types": []
+    },
+    {
+        "id": 11,
+        "code": "HEX",
+        "image": "/media/images/admin/1754744509_WhatsApp Image 2025-08-08 at 19.53.39.jpeg",
+        "formula": null,
+        "ordering_template": null,
+        "translations": {
+            "en": {
+                "name": "Hexgon bar"
+            },
+            "ru": {
+                "name": "Шестигранник"
+            }
+        },
+        "measurement_types": []
+    }
+]

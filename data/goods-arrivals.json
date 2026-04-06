@@ -1,0 +1,74 @@
+[
+    {
+        "id": 1,
+        "title": "Сталь нержавеющая AISI310",
+        "supplier": "Снегопад",
+        "invoice_info": null,
+        "arrival_date": "2026-02-28T22:16:00+00:00",
+        "material_id": 2739,
+        "stock_shape_id": 1,
+        "dimensions": {
+            "1": 10
+        },
+        "unit_id": 1,
+        "quantity": 112,
+        "weight": null
+    },
+    {
+        "id": 2,
+        "title": "Test Arrival11",
+        "supplier": "Test Supplier",
+        "invoice_info": null,
+        "arrival_date": "2026-02-28T22:20:00+00:00",
+        "material_id": 2739,
+        "stock_shape_id": null,
+        "dimensions": null,
+        "unit_id": 4,
+        "quantity": 100,
+        "weight": null
+    },
+    {
+        "id": 3,
+        "title": "Steel Bars Arrival",
+        "supplier": "MetalCorp",
+        "invoice_info": null,
+        "arrival_date": "2026-02-28T22:26:00+00:00",
+        "material_id": 9054,
+        "stock_shape_id": 1,
+        "dimensions": null,
+        "unit_id": 1,
+        "quantity": 50,
+        "weight": null
+    },
+    {
+        "id": 4,
+        "title": "Круг старопромышленный изъящный",
+        "supplier": "какой-то хер",
+        "invoice_info": null,
+        "arrival_date": "2026-02-28T22:40:00+00:00",
+        "material_id": 4543,
+        "stock_shape_id": 4,
+        "dimensions": {
+            "44": 225,
+            "45": 218
+        },
+        "unit_id": 1,
+        "quantity": 19.55,
+        "weight": null
+    },
+    {
+        "id": 5,
+        "title": "Швеллер двутавровый П12",
+        "supplier": "хуй",
+        "invoice_info": null,
+        "arrival_date": "2026-02-28T23:18:00+00:00",
+        "material_id": 2651,
+        "stock_shape_id": 8,
+        "dimensions": {
+            "52": "П12"
+        },
+        "unit_id": 1,
+        "quantity": 112,
+        "weight": null
+    }
+]

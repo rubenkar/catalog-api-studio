@@ -1,0 +1,1514 @@
+[
+  {
+    "suffix": "HS",
+    "category": "modification",
+    "code": "HS",
+    "description_en": "high-temperature bearing design / solid-lubricant series",
+    "description_ru": "высокотемпературное исполнение / серия с твердой смазкой",
+    "count": null
+  },
+  {
+    "suffix": "HF",
+    "category": "modification",
+    "code": "HF",
+    "description_en": "high-temperature bearing design for very high operating temperature",
+    "description_ru": "высокотемпературное исполнение для очень высокой рабочей температуры",
+    "count": null
+  },
+  {
+    "suffix": "H320°",
+    "category": "modification",
+    "code": "HT320-350",
+    "description_en": "high-temperature design for approximately 320–350°C",
+    "description_ru": "высокотемпературное исполнение примерно для 320–350°C",
+    "count": null
+  },
+  {
+    "suffix": "HS320°",
+    "category": "modification",
+    "code": "HS320-350",
+    "description_en": "shielded high-temperature design for approximately 320–350°C",
+    "description_ru": "экранированное высокотемпературное исполнение примерно для 320–350°C",
+    "count": null
+  },
+  {
+    "suffix": "HS270°",
+    "category": "modification",
+    "code": "HS270",
+    "description_en": "high-temperature design for approximately 270°C",
+    "description_ru": "высокотемпературное исполнение примерно для 270°C",
+    "count": null
+  },
+  {
+    "suffix": "HS350",
+    "category": "modification",
+    "code": "HS350",
+    "description_en": "high-temperature design for approximately 350°C",
+    "description_ru": "высокотемпературное исполнение примерно для 350°C",
+    "count": null
+  },
+  {
+    "suffix": "H350",
+    "category": "modification",
+    "code": "HT350",
+    "description_en": "high-temperature design for approximately 350°C",
+    "description_ru": "высокотемпературное исполнение примерно для 350°C",
+    "count": null
+  },
+  {
+    "suffix": "HC",
+    "category": "modification",
+    "code": "HLC",
+    "description_en": "corrosion-resistant stainless / high-corrosion design code",
+    "description_ru": "коррозионностойкое нержавеющее исполнение",
+    "count": null
+  },
+  {
+    "suffix": "U74",
+    "category": "modification",
+    "code": "J74",
+    "description_en": "super-precision preload / rigidity code J74",
+    "description_ru": "код преднатяга / жесткости J74 для суперпрецизионных подшипников",
+    "count": null
+  },
+  {
+    "suffix": "CVU74",
+    "category": "modification",
+    "code": "J74",
+    "description_en": "super-precision preload / rigidity code J74",
+    "description_ru": "код преднатяга / жесткости J74 для суперпрецизионных подшипников",
+    "count": null
+  },
+  {
+    "suffix": "HG1U74",
+    "category": "modification",
+    "code": "J74",
+    "description_en": "super-precision preload / rigidity code J74",
+    "description_ru": "код преднатяга / жесткости J74 для суперпрецизионных подшипников",
+    "count": null
+  },
+  {
+    "suffix": "CG1U74",
+    "category": "modification",
+    "code": "J74",
+    "description_en": "super-precision preload / rigidity code J74",
+    "description_ru": "код преднатяга / жесткости J74 для суперпрецизионных подшипников",
+    "count": null
+  },
+  {
+    "suffix": "CV74",
+    "category": "modification",
+    "code": "J74",
+    "description_en": "super-precision preload / rigidity code J74",
+    "description_ru": "код преднатяга / жесткости J74 для суперпрецизионных подшипников",
+    "count": null
+  },
+  {
+    "suffix": "CPG",
+    "category": "modification",
+    "code": "GC",
+    "description_en": "matched-set preload / universal pairing code",
+    "description_ru": "код преднатяга / универсальной парной установки",
+    "count": null
+  },
+  {
+    "suffix": "CGC",
+    "category": "modification",
+    "code": "GC",
+    "description_en": "matched-set preload / universal pairing code",
+    "description_ru": "код преднатяга / универсальной парной установки",
+    "count": null
+  },
+  {
+    "suffix": "GC",
+    "category": "modification",
+    "code": "GC",
+    "description_en": "universal bearing for paired mounting with preload",
+    "description_ru": "универсальный подшипник для парной установки с преднатягом",
+    "count": null
+  },
+  {
+    "suffix": "CP",
+    "category": "modification",
+    "code": "CP/ECP",
+    "description_en": "polyamide cage family code",
+    "description_ru": "код полиамидного сепаратора",
+    "count": null
+  },
+  {
+    "suffix": "P03",
+    "category": "modification",
+    "code": "LP03",
+    "description_en": "special lubrication / grease fill code",
+    "description_ru": "код специальной смазки",
+    "count": null
+  },
+  {
+    "suffix": "P10",
+    "category": "modification",
+    "code": "P10",
+    "description_en": "plain bearing bush material / design code P10",
+    "description_ru": "код материала / исполнения втулки P10",
+    "count": null
+  },
+  {
+    "suffix": "C7C",
+    "category": "modification",
+    "code": "CL7C",
+    "description_en": "matched tapered-roller set / tolerance class code",
+    "description_ru": "код согласованного комплекта / класса допусков",
+    "count": null
+  },
+  {
+    "suffix": "FO",
+    "category": "modification",
+    "code": "FO",
+    "description_en": "steel/steel radial spherical plain bearing design",
+    "description_ru": "исполнение радиального сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "FW",
+    "category": "modification",
+    "code": "FW",
+    "description_en": "spherical plain bearing design variant FW",
+    "description_ru": "вариант исполнения сферического подшипника скольжения FW",
+    "count": null
+  },
+  {
+    "suffix": "HO",
+    "category": "modification",
+    "code": "HO",
+    "description_en": "spherical plain bearing design variant HO",
+    "description_ru": "вариант исполнения сферического подшипника скольжения HO",
+    "count": null
+  },
+  {
+    "suffix": "U",
+    "category": "modification",
+    "code": "UK",
+    "description_en": "spherical plain / rod-end design variant UK",
+    "description_ru": "вариант исполнения UK для сферического подшипника / наконечника",
+    "count": null
+  },
+  {
+    "suffix": "O",
+    "category": "modification",
+    "code": "O/LO/ZO",
+    "description_en": "spherical plain bearing open / design variant O",
+    "description_ru": "вариант исполнения O/LO/ZO для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "S",
+    "category": "modification",
+    "code": "SX",
+    "description_en": "spherical plain bearing design variant S/SX",
+    "description_ru": "вариант исполнения S/SX для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "FP",
+    "category": "modification",
+    "code": "FPM",
+    "description_en": "fluoroelastomer seal material code",
+    "description_ru": "код материала уплотнения FPM / фторкаучук",
+    "count": null
+  },
+  {
+    "suffix": "G5FO",
+    "category": "modification",
+    "code": "FO",
+    "description_en": "steel/steel radial spherical plain bearing design",
+    "description_ru": "исполнение радиального сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G0FO",
+    "category": "modification",
+    "code": "FO",
+    "description_en": "steel/steel radial spherical plain bearing design",
+    "description_ru": "исполнение радиального сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G30FO",
+    "category": "modification",
+    "code": "FO",
+    "description_en": "steel/steel radial spherical plain bearing design",
+    "description_ru": "исполнение радиального сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G60FO",
+    "category": "modification",
+    "code": "FO",
+    "description_en": "steel/steel radial spherical plain bearing design",
+    "description_ru": "исполнение радиального сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G35FO",
+    "category": "modification",
+    "code": "FO",
+    "description_en": "steel/steel radial spherical plain bearing design",
+    "description_ru": "исполнение радиального сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G7FO",
+    "category": "modification",
+    "code": "FO",
+    "description_en": "steel/steel radial spherical plain bearing design",
+    "description_ru": "исполнение радиального сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G80FO",
+    "category": "modification",
+    "code": "FO",
+    "description_en": "steel/steel radial spherical plain bearing design",
+    "description_ru": "исполнение радиального сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G00FO",
+    "category": "modification",
+    "code": "FO",
+    "description_en": "steel/steel radial spherical plain bearing design",
+    "description_ru": "исполнение радиального сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G8FO",
+    "category": "modification",
+    "code": "FO",
+    "description_en": "steel/steel radial spherical plain bearing design",
+    "description_ru": "исполнение радиального сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G10FO",
+    "category": "modification",
+    "code": "FO",
+    "description_en": "steel/steel radial spherical plain bearing design",
+    "description_ru": "исполнение радиального сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G40FO",
+    "category": "modification",
+    "code": "FO",
+    "description_en": "steel/steel radial spherical plain bearing design",
+    "description_ru": "исполнение радиального сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G45FO",
+    "category": "modification",
+    "code": "FO",
+    "description_en": "steel/steel radial spherical plain bearing design",
+    "description_ru": "исполнение радиального сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G50FO",
+    "category": "modification",
+    "code": "FO",
+    "description_en": "steel/steel radial spherical plain bearing design",
+    "description_ru": "исполнение радиального сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G70FO",
+    "category": "modification",
+    "code": "FO",
+    "description_en": "steel/steel radial spherical plain bearing design",
+    "description_ru": "исполнение радиального сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G6FO",
+    "category": "modification",
+    "code": "FO",
+    "description_en": "steel/steel radial spherical plain bearing design",
+    "description_ru": "исполнение радиального сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G0U",
+    "category": "modification",
+    "code": "UK",
+    "description_en": "spherical plain / rod-end design variant UK",
+    "description_ru": "вариант исполнения UK для сферического подшипника / наконечника",
+    "count": null
+  },
+  {
+    "suffix": "G5U",
+    "category": "modification",
+    "code": "UK",
+    "description_en": "spherical plain / rod-end design variant UK",
+    "description_ru": "вариант исполнения UK для сферического подшипника / наконечника",
+    "count": null
+  },
+  {
+    "suffix": "G7U",
+    "category": "modification",
+    "code": "UK",
+    "description_en": "spherical plain / rod-end design variant UK",
+    "description_ru": "вариант исполнения UK для сферического подшипника / наконечника",
+    "count": null
+  },
+  {
+    "suffix": "G40U",
+    "category": "modification",
+    "code": "UK",
+    "description_en": "spherical plain / rod-end design variant UK",
+    "description_ru": "вариант исполнения UK для сферического подшипника / наконечника",
+    "count": null
+  },
+  {
+    "suffix": "G60U",
+    "category": "modification",
+    "code": "UK",
+    "description_en": "spherical plain / rod-end design variant UK",
+    "description_ru": "вариант исполнения UK для сферического подшипника / наконечника",
+    "count": null
+  },
+  {
+    "suffix": "G00U",
+    "category": "modification",
+    "code": "UK",
+    "description_en": "spherical plain / rod-end design variant UK",
+    "description_ru": "вариант исполнения UK для сферического подшипника / наконечника",
+    "count": null
+  },
+  {
+    "suffix": "G35U",
+    "category": "modification",
+    "code": "UK",
+    "description_en": "spherical plain / rod-end design variant UK",
+    "description_ru": "вариант исполнения UK для сферического подшипника / наконечника",
+    "count": null
+  },
+  {
+    "suffix": "G90U",
+    "category": "modification",
+    "code": "UK",
+    "description_en": "spherical plain / rod-end design variant UK",
+    "description_ru": "вариант исполнения UK для сферического подшипника / наконечника",
+    "count": null
+  },
+  {
+    "suffix": "G6U",
+    "category": "modification",
+    "code": "UK",
+    "description_en": "spherical plain / rod-end design variant UK",
+    "description_ru": "вариант исполнения UK для сферического подшипника / наконечника",
+    "count": null
+  },
+  {
+    "suffix": "G8U",
+    "category": "modification",
+    "code": "UK",
+    "description_en": "spherical plain / rod-end design variant UK",
+    "description_ru": "вариант исполнения UK для сферического подшипника / наконечника",
+    "count": null
+  },
+  {
+    "suffix": "G30U",
+    "category": "modification",
+    "code": "UK",
+    "description_en": "spherical plain / rod-end design variant UK",
+    "description_ru": "вариант исполнения UK для сферического подшипника / наконечника",
+    "count": null
+  },
+  {
+    "suffix": "G80U",
+    "category": "modification",
+    "code": "UK",
+    "description_en": "spherical plain / rod-end design variant UK",
+    "description_ru": "вариант исполнения UK для сферического подшипника / наконечника",
+    "count": null
+  },
+  {
+    "suffix": "G50U",
+    "category": "modification",
+    "code": "UK",
+    "description_en": "spherical plain / rod-end design variant UK",
+    "description_ru": "вариант исполнения UK для сферического подшипника / наконечника",
+    "count": null
+  },
+  {
+    "suffix": "G70U",
+    "category": "modification",
+    "code": "UK",
+    "description_en": "spherical plain / rod-end design variant UK",
+    "description_ru": "вариант исполнения UK для сферического подшипника / наконечника",
+    "count": null
+  },
+  {
+    "suffix": "G45U",
+    "category": "modification",
+    "code": "UK",
+    "description_en": "spherical plain / rod-end design variant UK",
+    "description_ru": "вариант исполнения UK для сферического подшипника / наконечника",
+    "count": null
+  },
+  {
+    "suffix": "G5O",
+    "category": "modification",
+    "code": "O/LO/ZO",
+    "description_en": "spherical plain bearing open / design variant O",
+    "description_ru": "вариант исполнения O/LO/ZO для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G38O",
+    "category": "modification",
+    "code": "O/LO/ZO",
+    "description_en": "spherical plain bearing open / design variant O",
+    "description_ru": "вариант исполнения O/LO/ZO для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G90O",
+    "category": "modification",
+    "code": "O/LO/ZO",
+    "description_en": "spherical plain bearing open / design variant O",
+    "description_ru": "вариант исполнения O/LO/ZO для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G32O",
+    "category": "modification",
+    "code": "O/LO/ZO",
+    "description_en": "spherical plain bearing open / design variant O",
+    "description_ru": "вариант исполнения O/LO/ZO для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G9O",
+    "category": "modification",
+    "code": "O/LO/ZO",
+    "description_en": "spherical plain bearing open / design variant O",
+    "description_ru": "вариант исполнения O/LO/ZO для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G34O",
+    "category": "modification",
+    "code": "O/LO/ZO",
+    "description_en": "spherical plain bearing open / design variant O",
+    "description_ru": "вариант исполнения O/LO/ZO для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "GO",
+    "category": "modification",
+    "code": "O/LO/ZO",
+    "description_en": "spherical plain bearing open / design variant O",
+    "description_ru": "вариант исполнения O/LO/ZO для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G0O",
+    "category": "modification",
+    "code": "O/LO/ZO",
+    "description_en": "spherical plain bearing open / design variant O",
+    "description_ru": "вариант исполнения O/LO/ZO для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G31O",
+    "category": "modification",
+    "code": "O/LO/ZO",
+    "description_en": "spherical plain bearing open / design variant O",
+    "description_ru": "вариант исполнения O/LO/ZO для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G57O",
+    "category": "modification",
+    "code": "O/LO/ZO",
+    "description_en": "spherical plain bearing open / design variant O",
+    "description_ru": "вариант исполнения O/LO/ZO для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G63O",
+    "category": "modification",
+    "code": "O/LO/ZO",
+    "description_en": "spherical plain bearing open / design variant O",
+    "description_ru": "вариант исполнения O/LO/ZO для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G50O",
+    "category": "modification",
+    "code": "O/LO/ZO",
+    "description_en": "spherical plain bearing open / design variant O",
+    "description_ru": "вариант исполнения O/LO/ZO для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G70O",
+    "category": "modification",
+    "code": "O/LO/ZO",
+    "description_en": "spherical plain bearing open / design variant O",
+    "description_ru": "вариант исполнения O/LO/ZO для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G80O",
+    "category": "modification",
+    "code": "O/LO/ZO",
+    "description_en": "spherical plain bearing open / design variant O",
+    "description_ru": "вариант исполнения O/LO/ZO для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G00O",
+    "category": "modification",
+    "code": "O/LO/ZO",
+    "description_en": "spherical plain bearing open / design variant O",
+    "description_ru": "вариант исполнения O/LO/ZO для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G30O",
+    "category": "modification",
+    "code": "O/LO/ZO",
+    "description_en": "spherical plain bearing open / design variant O",
+    "description_ru": "вариант исполнения O/LO/ZO для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G44O",
+    "category": "modification",
+    "code": "O/LO/ZO",
+    "description_en": "spherical plain bearing open / design variant O",
+    "description_ru": "вариант исполнения O/LO/ZO для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G69O",
+    "category": "modification",
+    "code": "O/LO/ZO",
+    "description_en": "spherical plain bearing open / design variant O",
+    "description_ru": "вариант исполнения O/LO/ZO для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G10O",
+    "category": "modification",
+    "code": "O/LO/ZO",
+    "description_en": "spherical plain bearing open / design variant O",
+    "description_ru": "вариант исполнения O/LO/ZO для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G8O",
+    "category": "modification",
+    "code": "O/LO/ZO",
+    "description_en": "spherical plain bearing open / design variant O",
+    "description_ru": "вариант исполнения O/LO/ZO для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G01O",
+    "category": "modification",
+    "code": "O/LO/ZO",
+    "description_en": "spherical plain bearing open / design variant O",
+    "description_ru": "вариант исполнения O/LO/ZO для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G30HO",
+    "category": "modification",
+    "code": "HO",
+    "description_en": "spherical plain bearing design variant HO",
+    "description_ru": "вариант исполнения HO для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G70HO",
+    "category": "modification",
+    "code": "HO",
+    "description_en": "spherical plain bearing design variant HO",
+    "description_ru": "вариант исполнения HO для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G40HO",
+    "category": "modification",
+    "code": "HO",
+    "description_en": "spherical plain bearing design variant HO",
+    "description_ru": "вариант исполнения HO для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G5HO",
+    "category": "modification",
+    "code": "HO",
+    "description_en": "spherical plain bearing design variant HO",
+    "description_ru": "вариант исполнения HO для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G50HO",
+    "category": "modification",
+    "code": "HO",
+    "description_en": "spherical plain bearing design variant HO",
+    "description_ru": "вариант исполнения HO для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G45HO",
+    "category": "modification",
+    "code": "HO",
+    "description_en": "spherical plain bearing design variant HO",
+    "description_ru": "вариант исполнения HO для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G35HO",
+    "category": "modification",
+    "code": "HO",
+    "description_en": "spherical plain bearing design variant HO",
+    "description_ru": "вариант исполнения HO для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G60HO",
+    "category": "modification",
+    "code": "HO",
+    "description_en": "spherical plain bearing design variant HO",
+    "description_ru": "вариант исполнения HO для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G0HO",
+    "category": "modification",
+    "code": "HO",
+    "description_en": "spherical plain bearing design variant HO",
+    "description_ru": "вариант исполнения HO для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G7HO",
+    "category": "modification",
+    "code": "HO",
+    "description_en": "spherical plain bearing design variant HO",
+    "description_ru": "вариант исполнения HO для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G80HO",
+    "category": "modification",
+    "code": "HO",
+    "description_en": "spherical plain bearing design variant HO",
+    "description_ru": "вариант исполнения HO для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G5FW",
+    "category": "modification",
+    "code": "FW",
+    "description_en": "spherical plain bearing design variant FW",
+    "description_ru": "вариант исполнения FW для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G0FW",
+    "category": "modification",
+    "code": "FW",
+    "description_en": "spherical plain bearing design variant FW",
+    "description_ru": "вариант исполнения FW для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G30FW",
+    "category": "modification",
+    "code": "FW",
+    "description_en": "spherical plain bearing design variant FW",
+    "description_ru": "вариант исполнения FW для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G40FW",
+    "category": "modification",
+    "code": "FW",
+    "description_en": "spherical plain bearing design variant FW",
+    "description_ru": "вариант исполнения FW для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G45FW",
+    "category": "modification",
+    "code": "FW",
+    "description_en": "spherical plain bearing design variant FW",
+    "description_ru": "вариант исполнения FW для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G6FW",
+    "category": "modification",
+    "code": "FW",
+    "description_en": "spherical plain bearing design variant FW",
+    "description_ru": "вариант исполнения FW для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G7FW",
+    "category": "modification",
+    "code": "FW",
+    "description_en": "spherical plain bearing design variant FW",
+    "description_ru": "вариант исполнения FW для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G8FW",
+    "category": "modification",
+    "code": "FW",
+    "description_en": "spherical plain bearing design variant FW",
+    "description_ru": "вариант исполнения FW для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G50FW",
+    "category": "modification",
+    "code": "FW",
+    "description_en": "spherical plain bearing design variant FW",
+    "description_ru": "вариант исполнения FW для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G80FW",
+    "category": "modification",
+    "code": "FW",
+    "description_en": "spherical plain bearing design variant FW",
+    "description_ru": "вариант исполнения FW для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G50S",
+    "category": "modification",
+    "code": "SX",
+    "description_en": "spherical plain bearing design variant S/SX",
+    "description_ru": "вариант исполнения S/SX для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G70S",
+    "category": "modification",
+    "code": "SX",
+    "description_en": "spherical plain bearing design variant S/SX",
+    "description_ru": "вариант исполнения S/SX для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G30S",
+    "category": "modification",
+    "code": "SX",
+    "description_en": "spherical plain bearing design variant S/SX",
+    "description_ru": "вариант исполнения S/SX для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G35S",
+    "category": "modification",
+    "code": "SX",
+    "description_en": "spherical plain bearing design variant S/SX",
+    "description_ru": "вариант исполнения S/SX для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G40S",
+    "category": "modification",
+    "code": "SX",
+    "description_en": "spherical plain bearing design variant S/SX",
+    "description_ru": "вариант исполнения S/SX для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G45S",
+    "category": "modification",
+    "code": "SX",
+    "description_en": "spherical plain bearing design variant S/SX",
+    "description_ru": "вариант исполнения S/SX для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G60S",
+    "category": "modification",
+    "code": "SX",
+    "description_en": "spherical plain bearing design variant S/SX",
+    "description_ru": "вариант исполнения S/SX для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G90S",
+    "category": "modification",
+    "code": "SX",
+    "description_en": "spherical plain bearing design variant S/SX",
+    "description_ru": "вариант исполнения S/SX для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "G5S",
+    "category": "modification",
+    "code": "SX",
+    "description_en": "spherical plain bearing design variant S/SX",
+    "description_ru": "вариант исполнения S/SX для сферического подшипника",
+    "count": null
+  },
+  {
+    "suffix": "**",
+    "category": "noise",
+    "reason": "catalog wildcard / note marks, not a bearing suffix",
+    "count": null
+  },
+  {
+    "suffix": "***",
+    "category": "noise",
+    "reason": "catalog wildcard / note marks, not a bearing suffix",
+    "count": null
+  },
+  {
+    "suffix": "201*",
+    "category": "noise",
+    "reason": "catalog wildcard / manufacturing note fragment",
+    "count": null
+  },
+  {
+    "suffix": "201*01",
+    "category": "noise",
+    "reason": "catalog wildcard / manufacturing note fragment",
+    "count": null
+  },
+  {
+    "suffix": "W**",
+    "category": "noise",
+    "reason": "catalog wildcard / note marks, not a bearing suffix",
+    "count": null
+  },
+  {
+    "suffix": ">V",
+    "category": "noise",
+    "reason": "manufacturer internal version code; no distinct product feature",
+    "count": null
+  },
+  {
+    "suffix": "C>V",
+    "category": "noise",
+    "reason": "manufacturer internal version code; no distinct product feature",
+    "count": null
+  },
+  {
+    "suffix": "H715311",
+    "category": "noise",
+    "reason": "tapered roller cup part number from a cone/cup set",
+    "count": null
+  },
+  {
+    "suffix": "H804810",
+    "category": "noise",
+    "reason": "tapered roller cup part number from a cone/cup set",
+    "count": null
+  },
+  {
+    "suffix": "H89410",
+    "category": "noise",
+    "reason": "tapered roller cup part number from a cone/cup set",
+    "count": null
+  },
+  {
+    "suffix": "H807010",
+    "category": "noise",
+    "reason": "tapered roller cup part number from a cone/cup set",
+    "count": null
+  },
+  {
+    "suffix": "H903210",
+    "category": "noise",
+    "reason": "tapered roller cup part number from a cone/cup set",
+    "count": null
+  },
+  {
+    "suffix": "H813810",
+    "category": "noise",
+    "reason": "tapered roller cup part number from a cone/cup set",
+    "count": null
+  },
+  {
+    "suffix": "H913810",
+    "category": "noise",
+    "reason": "tapered roller cup part number from a cone/cup set",
+    "count": null
+  },
+  {
+    "suffix": "H204010",
+    "category": "noise",
+    "reason": "tapered roller cup part number from a cone/cup set",
+    "count": null
+  },
+  {
+    "suffix": "H720210",
+    "category": "noise",
+    "reason": "tapered roller cup part number from a cone/cup set",
+    "count": null
+  },
+  {
+    "suffix": "H88510",
+    "category": "noise",
+    "reason": "tapered roller cup part number from a cone/cup set",
+    "count": null
+  },
+  {
+    "suffix": "H88610",
+    "category": "noise",
+    "reason": "tapered roller cup part number from a cone/cup set",
+    "count": null
+  },
+  {
+    "suffix": "H924010",
+    "category": "noise",
+    "reason": "tapered roller cup part number from a cone/cup set",
+    "count": null
+  },
+  {
+    "suffix": "R0",
+    "category": "noise",
+    "reason": "basic series / size fragment from RNAO family",
+    "count": null
+  },
+  {
+    "suffix": "1R",
+    "category": "noise",
+    "reason": "inner-ring designation family, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "R6",
+    "category": "noise",
+    "reason": "basic size/model fragment from miniature / track roller families",
+    "count": null
+  },
+  {
+    "suffix": "R20",
+    "category": "noise",
+    "reason": "basic size/model fragment from cam follower / track roller families",
+    "count": null
+  },
+  {
+    "suffix": "R30",
+    "category": "noise",
+    "reason": "basic size/model fragment from cam follower / track roller families",
+    "count": null
+  },
+  {
+    "suffix": "R12",
+    "category": "noise",
+    "reason": "basic size/model fragment from cam follower / track roller families",
+    "count": null
+  },
+  {
+    "suffix": "R15",
+    "category": "noise",
+    "reason": "basic size/model fragment from cam follower / track roller families",
+    "count": null
+  },
+  {
+    "suffix": "R8",
+    "category": "noise",
+    "reason": "basic size/model fragment from cam follower / track roller families",
+    "count": null
+  },
+  {
+    "suffix": "R16",
+    "category": "noise",
+    "reason": "basic size/model fragment from cam follower / track roller families",
+    "count": null
+  },
+  {
+    "suffix": "R5",
+    "category": "noise",
+    "reason": "basic size/model fragment from cam follower / track roller families",
+    "count": null
+  },
+  {
+    "suffix": "R40",
+    "category": "noise",
+    "reason": "basic size/model fragment from cam follower / track roller families",
+    "count": null
+  },
+  {
+    "suffix": "R35",
+    "category": "noise",
+    "reason": "basic size/model fragment from cam follower / track roller families",
+    "count": null
+  },
+  {
+    "suffix": "R2",
+    "category": "noise",
+    "reason": "basic size/model fragment from miniature bearing family",
+    "count": null
+  },
+  {
+    "suffix": "R25",
+    "category": "noise",
+    "reason": "basic size/model fragment from cam follower / track roller families",
+    "count": null
+  },
+  {
+    "suffix": "R22",
+    "category": "noise",
+    "reason": "basic size/model fragment from cam follower / track roller families",
+    "count": null
+  },
+  {
+    "suffix": "R10",
+    "category": "noise",
+    "reason": "basic size/model fragment from cam follower / track roller families",
+    "count": null
+  },
+  {
+    "suffix": "R26",
+    "category": "noise",
+    "reason": "basic size/model fragment from cam follower / track roller families",
+    "count": null
+  },
+  {
+    "suffix": "R17",
+    "category": "noise",
+    "reason": "basic size/model fragment from cam follower / track roller families",
+    "count": null
+  },
+  {
+    "suffix": "R4905",
+    "category": "noise",
+    "reason": "basic series fragment from RNA49/RNA4905 family",
+    "count": null
+  },
+  {
+    "suffix": "R4903",
+    "category": "noise",
+    "reason": "basic series fragment from RNA49/RNA4903 family",
+    "count": null
+  },
+  {
+    "suffix": "R4901",
+    "category": "noise",
+    "reason": "basic series fragment from RNA49/RNA4901 family",
+    "count": null
+  },
+  {
+    "suffix": "R4907",
+    "category": "noise",
+    "reason": "basic series fragment from RNA49/RNA4907 family",
+    "count": null
+  },
+  {
+    "suffix": "R4900",
+    "category": "noise",
+    "reason": "basic series fragment from RNA49/RNA4900 family",
+    "count": null
+  },
+  {
+    "suffix": "R6916",
+    "category": "noise",
+    "reason": "basic series / inner-ring fragment",
+    "count": null
+  },
+  {
+    "suffix": "U07",
+    "category": "noise",
+    "reason": "insert-bearing size / unit-family fragment",
+    "count": null
+  },
+  {
+    "suffix": "U209",
+    "category": "noise",
+    "reason": "insert-bearing or cylindrical-roller basic series fragment",
+    "count": null
+  },
+  {
+    "suffix": "U207",
+    "category": "noise",
+    "reason": "insert-bearing or cylindrical-roller basic series fragment",
+    "count": null
+  },
+  {
+    "suffix": "U208",
+    "category": "noise",
+    "reason": "insert-bearing or cylindrical-roller basic series fragment",
+    "count": null
+  },
+  {
+    "suffix": "U11",
+    "category": "noise",
+    "reason": "insert-bearing size / unit-family fragment",
+    "count": null
+  },
+  {
+    "suffix": "U12",
+    "category": "noise",
+    "reason": "insert-bearing size / unit-family fragment",
+    "count": null
+  },
+  {
+    "suffix": "U311",
+    "category": "noise",
+    "reason": "cylindrical-roller basic series fragment",
+    "count": null
+  },
+  {
+    "suffix": "U2207",
+    "category": "noise",
+    "reason": "cylindrical-roller basic series fragment",
+    "count": null
+  },
+  {
+    "suffix": "U2309",
+    "category": "noise",
+    "reason": "cylindrical-roller basic series fragment",
+    "count": null
+  },
+  {
+    "suffix": "U2205",
+    "category": "noise",
+    "reason": "cylindrical-roller basic series fragment",
+    "count": null
+  },
+  {
+    "suffix": "U305",
+    "category": "noise",
+    "reason": "cylindrical-roller basic series fragment",
+    "count": null
+  },
+  {
+    "suffix": "U306",
+    "category": "noise",
+    "reason": "cylindrical-roller basic series fragment",
+    "count": null
+  },
+  {
+    "suffix": "U310",
+    "category": "noise",
+    "reason": "cylindrical-roller basic series fragment",
+    "count": null
+  },
+  {
+    "suffix": "U03",
+    "category": "noise",
+    "reason": "insert-bearing size / unit-family fragment",
+    "count": null
+  },
+  {
+    "suffix": "U05",
+    "category": "noise",
+    "reason": "insert-bearing size / unit-family fragment",
+    "count": null
+  },
+  {
+    "suffix": "U06",
+    "category": "noise",
+    "reason": "insert-bearing size / unit-family fragment",
+    "count": null
+  },
+  {
+    "suffix": "U10",
+    "category": "noise",
+    "reason": "insert-bearing size / unit-family fragment",
+    "count": null
+  },
+  {
+    "suffix": "U13",
+    "category": "noise",
+    "reason": "insert-bearing size / unit-family fragment",
+    "count": null
+  },
+  {
+    "suffix": "U14",
+    "category": "noise",
+    "reason": "insert-bearing size / unit-family fragment",
+    "count": null
+  },
+  {
+    "suffix": "U15",
+    "category": "noise",
+    "reason": "insert-bearing size / unit-family fragment",
+    "count": null
+  },
+  {
+    "suffix": "U16",
+    "category": "noise",
+    "reason": "insert-bearing size / unit-family fragment",
+    "count": null
+  },
+  {
+    "suffix": "F605",
+    "category": "noise",
+    "reason": "basic flanged-bearing model number, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "F600",
+    "category": "noise",
+    "reason": "basic flanged-bearing model number, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "F604",
+    "category": "noise",
+    "reason": "basic flanged-bearing model number, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "F6",
+    "category": "noise",
+    "reason": "basic flanged / linear-bearing model number, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "F7",
+    "category": "noise",
+    "reason": "basic flanged / linear-bearing model number, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "F4",
+    "category": "noise",
+    "reason": "basic flanged / linear-bearing model number, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "F5",
+    "category": "noise",
+    "reason": "basic flanged / linear-bearing model number, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "F6700",
+    "category": "noise",
+    "reason": "basic flanged-bearing model number, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "F6701",
+    "category": "noise",
+    "reason": "basic flanged-bearing model number, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "H1616",
+    "category": "noise",
+    "reason": "basic HK/HMK needle-roller size designation",
+    "count": null
+  },
+  {
+    "suffix": "H2520",
+    "category": "noise",
+    "reason": "basic HK/HMK needle-roller size designation",
+    "count": null
+  },
+  {
+    "suffix": "H2020",
+    "category": "noise",
+    "reason": "basic HK/HMK needle-roller size designation",
+    "count": null
+  },
+  {
+    "suffix": "H1010",
+    "category": "noise",
+    "reason": "basic HK/HMK needle-roller size designation",
+    "count": null
+  },
+  {
+    "suffix": "H1816",
+    "category": "noise",
+    "reason": "basic HK/HMK needle-roller size designation",
+    "count": null
+  },
+  {
+    "suffix": "H2216",
+    "category": "noise",
+    "reason": "basic HK/HMK needle-roller size designation",
+    "count": null
+  },
+  {
+    "suffix": "H2820",
+    "category": "noise",
+    "reason": "basic HK/HMK needle-roller size designation",
+    "count": null
+  },
+  {
+    "suffix": "H20",
+    "category": "noise",
+    "reason": "basic HK/HMK needle-roller size designation",
+    "count": null
+  },
+  {
+    "suffix": "H4020",
+    "category": "noise",
+    "reason": "basic HK/HMK needle-roller size designation",
+    "count": null
+  },
+  {
+    "suffix": "H2030",
+    "category": "noise",
+    "reason": "basic HK/HMK/KH needle-roller size designation",
+    "count": null
+  },
+  {
+    "suffix": "H4520",
+    "category": "noise",
+    "reason": "basic HK/HMK needle-roller size designation",
+    "count": null
+  },
+  {
+    "suffix": "S204",
+    "category": "noise",
+    "reason": "housing / insert-bearing basic series fragment",
+    "count": null
+  },
+  {
+    "suffix": "S206",
+    "category": "noise",
+    "reason": "housing / insert-bearing basic series fragment",
+    "count": null
+  },
+  {
+    "suffix": "S207",
+    "category": "noise",
+    "reason": "housing / insert-bearing basic series fragment",
+    "count": null
+  },
+  {
+    "suffix": "S208",
+    "category": "noise",
+    "reason": "housing / insert-bearing basic series fragment",
+    "count": null
+  },
+  {
+    "suffix": "S209",
+    "category": "noise",
+    "reason": "housing / insert-bearing basic series fragment",
+    "count": null
+  },
+  {
+    "suffix": "S210",
+    "category": "noise",
+    "reason": "housing / insert-bearing basic series fragment",
+    "count": null
+  },
+  {
+    "suffix": "S01",
+    "category": "noise",
+    "reason": "basic SL/AB/SET series fragment",
+    "count": null
+  },
+  {
+    "suffix": "S02",
+    "category": "noise",
+    "reason": "basic SL/AB/SET series fragment",
+    "count": null
+  },
+  {
+    "suffix": "S04",
+    "category": "noise",
+    "reason": "basic SL/AB/SET series fragment",
+    "count": null
+  },
+  {
+    "suffix": "S045008",
+    "category": "noise",
+    "reason": "basic SL04 / SL045 series fragment",
+    "count": null
+  },
+  {
+    "suffix": "S183011",
+    "category": "noise",
+    "reason": "basic SL183011 series fragment",
+    "count": null
+  },
+  {
+    "suffix": "G5",
+    "category": "noise",
+    "reason": "partial model number / size fragment from GE15/GE25 family",
+    "count": null
+  },
+  {
+    "suffix": "G0",
+    "category": "noise",
+    "reason": "partial model number / size fragment from GE10/GE20 family",
+    "count": null
+  },
+  {
+    "suffix": "G7",
+    "category": "noise",
+    "reason": "partial model number / size fragment from GE17 family",
+    "count": null
+  },
+  {
+    "suffix": "G30",
+    "category": "noise",
+    "reason": "partial model number / size fragment from GE30 family",
+    "count": null
+  },
+  {
+    "suffix": "G35",
+    "category": "noise",
+    "reason": "partial model number / size fragment from GE35 family",
+    "count": null
+  },
+  {
+    "suffix": "G40",
+    "category": "noise",
+    "reason": "partial model number / size fragment from GE40/140/240 family",
+    "count": null
+  },
+  {
+    "suffix": "G45",
+    "category": "noise",
+    "reason": "partial model number / size fragment from GE45 family",
+    "count": null
+  },
+  {
+    "suffix": "G50",
+    "category": "noise",
+    "reason": "partial model number / size fragment from GE50 family",
+    "count": null
+  },
+  {
+    "suffix": "G60",
+    "category": "noise",
+    "reason": "partial model number / size fragment from GE60/160 family",
+    "count": null
+  },
+  {
+    "suffix": "G70",
+    "category": "noise",
+    "reason": "partial model number / size fragment from GE70 family",
+    "count": null
+  },
+  {
+    "suffix": "G80",
+    "category": "noise",
+    "reason": "partial model number / size fragment from GE80/180 family",
+    "count": null
+  },
+  {
+    "suffix": "G90",
+    "category": "noise",
+    "reason": "partial model number / size fragment from GE90 family",
+    "count": null
+  },
+  {
+    "suffix": "G00",
+    "category": "noise",
+    "reason": "partial model number / size fragment from GE100/200 family",
+    "count": null
+  }
+]

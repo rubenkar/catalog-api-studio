@@ -1,0 +1,4798 @@
+{
+    "meta": {
+      "schema": "bearings_catalog_normalized",
+      "version": "2.0.0",
+      "default_language_code": "RU",
+      "supported_language_codes": ["RU", "EN"]
+    },
+    "catalog_categories": [
+      {
+        "id": 1,
+        "parent_id": null,
+        "code": "bearings",
+        "slug": "bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 0,
+        "path": "bearings",
+        "sort_order": 0,
+        "is_active": true
+      },
+      {
+        "id": 2,
+        "parent_id": 1,
+        "code": "ball_bearings",
+        "slug": "ball-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 1,
+        "path": "bearings/ball-bearings",
+        "sort_order": 10,
+        "is_active": true
+      },
+      {
+        "id": 3,
+        "parent_id": 1,
+        "code": "roller_bearings",
+        "slug": "roller-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 1,
+        "path": "bearings/roller-bearings",
+        "sort_order": 20,
+        "is_active": true
+      },
+      {
+        "id": 4,
+        "parent_id": 1,
+        "code": "needle_bearings",
+        "slug": "needle-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 1,
+        "path": "bearings/needle-bearings",
+        "sort_order": 30,
+        "is_active": true
+      },
+      {
+        "id": 5,
+        "parent_id": 1,
+        "code": "housed_bearing_units",
+        "slug": "housed-bearing-units",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 1,
+        "path": "bearings/housed-bearing-units",
+        "sort_order": 40,
+        "is_active": true
+      },
+      {
+        "id": 6,
+        "parent_id": 1,
+        "code": "linear_bearings",
+        "slug": "linear-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 1,
+        "path": "bearings/linear-bearings",
+        "sort_order": 50,
+        "is_active": true
+      },
+      {
+        "id": 7,
+        "parent_id": 1,
+        "code": "spherical_plain_bearings",
+        "slug": "spherical-plain-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 1,
+        "path": "bearings/spherical-plain-bearings",
+        "sort_order": 60,
+        "is_active": true
+      },
+      {
+        "id": 8,
+        "parent_id": 1,
+        "code": "track_rollers",
+        "slug": "track-rollers",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 1,
+        "path": "bearings/track-rollers",
+        "sort_order": 70,
+        "is_active": true
+      },
+      {
+        "id": 9,
+        "parent_id": 1,
+        "code": "overrunning_clutches",
+        "slug": "overrunning-clutches",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 1,
+        "path": "bearings/overrunning-clutches",
+        "sort_order": 80,
+        "is_active": true
+      },
+      {
+        "id": 10,
+        "parent_id": 1,
+        "code": "special_bearings",
+        "slug": "special-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 1,
+        "path": "bearings/special-bearings",
+        "sort_order": 90,
+        "is_active": true
+      },
+      {
+        "id": 11,
+        "parent_id": 1,
+        "code": "bearing_accessories",
+        "slug": "bearing-accessories",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 1,
+        "path": "bearings/bearing-accessories",
+        "sort_order": 100,
+        "is_active": true
+      },
+      {
+        "id": 12,
+        "parent_id": 2,
+        "code": "deep_groove_ball_bearings",
+        "slug": "deep-groove-ball-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/ball-bearings/deep-groove-ball-bearings",
+        "sort_order": 10,
+        "is_active": true
+      },
+      {
+        "id": 13,
+        "parent_id": 2,
+        "code": "double_row_ball_bearings",
+        "slug": "double-row-ball-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/ball-bearings/double-row-ball-bearings",
+        "sort_order": 20,
+        "is_active": true
+      },
+      {
+        "id": 14,
+        "parent_id": 2,
+        "code": "angular_contact_ball_single_row",
+        "slug": "angular-contact-ball-single-row",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/ball-bearings/angular-contact-ball-single-row",
+        "sort_order": 30,
+        "is_active": true
+      },
+      {
+        "id": 15,
+        "parent_id": 2,
+        "code": "angular_contact_ball_double_row",
+        "slug": "angular-contact-ball-double-row",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/ball-bearings/angular-contact-ball-double-row",
+        "sort_order": 40,
+        "is_active": true
+      },
+      {
+        "id": 16,
+        "parent_id": 2,
+        "code": "self_aligning_ball_bearings",
+        "slug": "self-aligning-ball-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/ball-bearings/self-aligning-ball-bearings",
+        "sort_order": 50,
+        "is_active": true
+      },
+      {
+        "id": 17,
+        "parent_id": 2,
+        "code": "thrust_ball_bearings",
+        "slug": "thrust-ball-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/ball-bearings/thrust-ball-bearings",
+        "sort_order": 60,
+        "is_active": true
+      },
+      {
+        "id": 18,
+        "parent_id": 2,
+        "code": "miniature_ball_bearings",
+        "slug": "miniature-ball-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/ball-bearings/miniature-ball-bearings",
+        "sort_order": 70,
+        "is_active": true
+      },
+      {
+        "id": 19,
+        "parent_id": 3,
+        "code": "cylindrical_roller_bearings",
+        "slug": "cylindrical-roller-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/roller-bearings/cylindrical-roller-bearings",
+        "sort_order": 10,
+        "is_active": true
+      },
+      {
+        "id": 20,
+        "parent_id": 3,
+        "code": "tapered_roller_bearings",
+        "slug": "tapered-roller-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/roller-bearings/tapered-roller-bearings",
+        "sort_order": 20,
+        "is_active": true
+      },
+      {
+        "id": 21,
+        "parent_id": 3,
+        "code": "spherical_roller_bearings",
+        "slug": "spherical-roller-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/roller-bearings/spherical-roller-bearings",
+        "sort_order": 30,
+        "is_active": true
+      },
+      {
+        "id": 22,
+        "parent_id": 3,
+        "code": "thrust_roller_bearings",
+        "slug": "thrust-roller-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/roller-bearings/thrust-roller-bearings",
+        "sort_order": 40,
+        "is_active": true
+      },
+      {
+        "id": 23,
+        "parent_id": 4,
+        "code": "needle_bearings_without_inner_ring",
+        "slug": "needle-bearings-without-inner-ring",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/needle-bearings/needle-bearings-without-inner-ring",
+        "sort_order": 10,
+        "is_active": true
+      },
+      {
+        "id": 24,
+        "parent_id": 4,
+        "code": "needle_bearings_with_inner_ring",
+        "slug": "needle-bearings-with-inner-ring",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/needle-bearings/needle-bearings-with-inner-ring",
+        "sort_order": 20,
+        "is_active": true
+      },
+      {
+        "id": 25,
+        "parent_id": 4,
+        "code": "thrust_needle_bearings",
+        "slug": "thrust-needle-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/needle-bearings/thrust-needle-bearings",
+        "sort_order": 30,
+        "is_active": true
+      },
+      {
+        "id": 26,
+        "parent_id": 4,
+        "code": "needle_rollers_and_cages",
+        "slug": "needle-rollers-and-cages",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/needle-bearings/needle-rollers-and-cages",
+        "sort_order": 40,
+        "is_active": true
+      },
+      {
+        "id": 27,
+        "parent_id": 5,
+        "code": "bearing_inserts",
+        "slug": "bearing-inserts",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/housed-bearing-units/bearing-inserts",
+        "sort_order": 10,
+        "is_active": true
+      },
+      {
+        "id": 28,
+        "parent_id": 5,
+        "code": "assembled_bearing_units",
+        "slug": "assembled-bearing-units",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/housed-bearing-units/assembled-bearing-units",
+        "sort_order": 20,
+        "is_active": true
+      },
+      {
+        "id": 29,
+        "parent_id": 5,
+        "code": "bearing_housings",
+        "slug": "bearing-housings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/housed-bearing-units/bearing-housings",
+        "sort_order": 30,
+        "is_active": true
+      },
+      {
+        "id": 30,
+        "parent_id": 5,
+        "code": "damping_rings",
+        "slug": "damping-rings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/housed-bearing-units/damping-rings",
+        "sort_order": 40,
+        "is_active": true
+      },
+      {
+        "id": 31,
+        "parent_id": 6,
+        "code": "linear_ball_bushings",
+        "slug": "linear-ball-bushings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/linear-bearings/linear-ball-bushings",
+        "sort_order": 10,
+        "is_active": true
+      },
+      {
+        "id": 32,
+        "parent_id": 6,
+        "code": "flanged_linear_ball_bushings",
+        "slug": "flanged-linear-ball-bushings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/linear-bearings/flanged-linear-ball-bushings",
+        "sort_order": 20,
+        "is_active": true
+      },
+      {
+        "id": 33,
+        "parent_id": 6,
+        "code": "housed_linear_bearings",
+        "slug": "housed-linear-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/linear-bearings/housed-linear-bearings",
+        "sort_order": 30,
+        "is_active": true
+      },
+      {
+        "id": 34,
+        "parent_id": 6,
+        "code": "linear_guides",
+        "slug": "linear-guides",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/linear-bearings/linear-guides",
+        "sort_order": 40,
+        "is_active": true
+      },
+      {
+        "id": 35,
+        "parent_id": 6,
+        "code": "shaft_supports",
+        "slug": "shaft-supports",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/linear-bearings/shaft-supports",
+        "sort_order": 50,
+        "is_active": true
+      },
+      {
+        "id": 36,
+        "parent_id": 7,
+        "code": "radial_spherical_plain_bearings",
+        "slug": "radial-spherical-plain-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/spherical-plain-bearings/radial-spherical-plain-bearings",
+        "sort_order": 10,
+        "is_active": true
+      },
+      {
+        "id": 37,
+        "parent_id": 7,
+        "code": "thrust_spherical_plain_bearings",
+        "slug": "thrust-spherical-plain-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/spherical-plain-bearings/thrust-spherical-plain-bearings",
+        "sort_order": 20,
+        "is_active": true
+      },
+      {
+        "id": 38,
+        "parent_id": 8,
+        "code": "track_rollers_with_stud",
+        "slug": "track-rollers-with-stud",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/track-rollers/track-rollers-with-stud",
+        "sort_order": 10,
+        "is_active": true
+      },
+      {
+        "id": 39,
+        "parent_id": 8,
+        "code": "track_rollers_without_stud",
+        "slug": "track-rollers-without-stud",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/track-rollers/track-rollers-without-stud",
+        "sort_order": 20,
+        "is_active": true
+      },
+      {
+        "id": 40,
+        "parent_id": 8,
+        "code": "cam_followers",
+        "slug": "cam-followers",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/track-rollers/cam-followers",
+        "sort_order": 30,
+        "is_active": true
+      },
+      {
+        "id": 41,
+        "parent_id": 10,
+        "code": "automotive_bearings",
+        "slug": "automotive-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/special-bearings/automotive-bearings",
+        "sort_order": 10,
+        "is_active": true
+      },
+      {
+        "id": 42,
+        "parent_id": 10,
+        "code": "air_conditioner_bearings",
+        "slug": "air-conditioner-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/special-bearings/air-conditioner-bearings",
+        "sort_order": 20,
+        "is_active": true
+      },
+      {
+        "id": 43,
+        "parent_id": 10,
+        "code": "electric_motor_bearings",
+        "slug": "electric-motor-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/special-bearings/electric-motor-bearings",
+        "sort_order": 30,
+        "is_active": true
+      },
+      {
+        "id": 44,
+        "parent_id": 11,
+        "code": "adapter_sleeves",
+        "slug": "adapter-sleeves",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/bearing-accessories/adapter-sleeves",
+        "sort_order": 10,
+        "is_active": true
+      },
+      {
+        "id": 45,
+        "parent_id": 11,
+        "code": "withdrawal_sleeves",
+        "slug": "withdrawal-sleeves",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/bearing-accessories/withdrawal-sleeves",
+        "sort_order": 20,
+        "is_active": true
+      },
+      {
+        "id": 46,
+        "parent_id": 11,
+        "code": "locknuts",
+        "slug": "locknuts",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/bearing-accessories/locknuts",
+        "sort_order": 30,
+        "is_active": true
+      },
+      {
+        "id": 47,
+        "parent_id": 11,
+        "code": "lock_washers",
+        "slug": "lock-washers",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/bearing-accessories/lock-washers",
+        "sort_order": 40,
+        "is_active": true
+      },
+      {
+        "id": 48,
+        "parent_id": 11,
+        "code": "seals",
+        "slug": "seals",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/bearing-accessories/seals",
+        "sort_order": 50,
+        "is_active": true
+      },
+      {
+        "id": 49,
+        "parent_id": 11,
+        "code": "lubricants",
+        "slug": "lubricants",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/bearing-accessories/lubricants",
+        "sort_order": 60,
+        "is_active": true
+      }
+    ],
+    "catalog_category_translations": [
+      {
+        "category_id": 1,
+        "language_code": "RU",
+        "name": "Подшипники"
+      },
+      {
+        "category_id": 1,
+        "language_code": "EN",
+        "name": "Bearings"
+      },
+      {
+        "category_id": 2,
+        "language_code": "RU",
+        "name": "Шариковые подшипники"
+      },
+      {
+        "category_id": 2,
+        "language_code": "EN",
+        "name": "Ball bearings"
+      },
+      {
+        "category_id": 3,
+        "language_code": "RU",
+        "name": "Роликовые подшипники"
+      },
+      {
+        "category_id": 3,
+        "language_code": "EN",
+        "name": "Roller bearings"
+      },
+      {
+        "category_id": 4,
+        "language_code": "RU",
+        "name": "Игольчатые подшипники"
+      },
+      {
+        "category_id": 4,
+        "language_code": "EN",
+        "name": "Needle bearings"
+      },
+      {
+        "category_id": 5,
+        "language_code": "RU",
+        "name": "Подшипниковые узлы"
+      },
+      {
+        "category_id": 5,
+        "language_code": "EN",
+        "name": "Housed bearing units"
+      },
+      {
+        "category_id": 6,
+        "language_code": "RU",
+        "name": "Линейные подшипники"
+      },
+      {
+        "category_id": 6,
+        "language_code": "EN",
+        "name": "Linear bearings"
+      },
+      {
+        "category_id": 7,
+        "language_code": "RU",
+        "name": "Шарнирные подшипники"
+      },
+      {
+        "category_id": 7,
+        "language_code": "EN",
+        "name": "Spherical plain bearings"
+      },
+      {
+        "category_id": 8,
+        "language_code": "RU",
+        "name": "Опорные ролики"
+      },
+      {
+        "category_id": 8,
+        "language_code": "EN",
+        "name": "Track rollers"
+      },
+      {
+        "category_id": 9,
+        "language_code": "RU",
+        "name": "Обгонные муфты"
+      },
+      {
+        "category_id": 9,
+        "language_code": "EN",
+        "name": "Overrunning clutches"
+      },
+      {
+        "category_id": 10,
+        "language_code": "RU",
+        "name": "Специальные подшипники"
+      },
+      {
+        "category_id": 10,
+        "language_code": "EN",
+        "name": "Special bearings"
+      },
+      {
+        "category_id": 11,
+        "language_code": "RU",
+        "name": "Комплектующие для подшипников"
+      },
+      {
+        "category_id": 11,
+        "language_code": "EN",
+        "name": "Bearing accessories"
+      },
+      {
+        "category_id": 12,
+        "language_code": "RU",
+        "name": "Радиальные однорядные"
+      },
+      {
+        "category_id": 12,
+        "language_code": "EN",
+        "name": "Single row deep groove"
+      },
+      {
+        "category_id": 13,
+        "language_code": "RU",
+        "name": "Радиальные двухрядные"
+      },
+      {
+        "category_id": 13,
+        "language_code": "EN",
+        "name": "Double row radial"
+      },
+      {
+        "category_id": 14,
+        "language_code": "RU",
+        "name": "Радиально-упорные однорядные"
+      },
+      {
+        "category_id": 14,
+        "language_code": "EN",
+        "name": "Single row angular contact"
+      },
+      {
+        "category_id": 15,
+        "language_code": "RU",
+        "name": "Радиально-упорные двухрядные"
+      },
+      {
+        "category_id": 15,
+        "language_code": "EN",
+        "name": "Double row angular contact"
+      },
+      {
+        "category_id": 16,
+        "language_code": "RU",
+        "name": "Самоустанавливающиеся"
+      },
+      {
+        "category_id": 16,
+        "language_code": "EN",
+        "name": "Self-aligning"
+      },
+      {
+        "category_id": 17,
+        "language_code": "RU",
+        "name": "Упорные"
+      },
+      {
+        "category_id": 17,
+        "language_code": "EN",
+        "name": "Thrust"
+      },
+      {
+        "category_id": 18,
+        "language_code": "RU",
+        "name": "Миниатюрные"
+      },
+      {
+        "category_id": 18,
+        "language_code": "EN",
+        "name": "Miniature"
+      },
+      {
+        "category_id": 19,
+        "language_code": "RU",
+        "name": "Цилиндрические роликовые"
+      },
+      {
+        "category_id": 19,
+        "language_code": "EN",
+        "name": "Cylindrical roller bearings"
+      },
+      {
+        "category_id": 20,
+        "language_code": "RU",
+        "name": "Конические роликовые"
+      },
+      {
+        "category_id": 20,
+        "language_code": "EN",
+        "name": "Tapered roller bearings"
+      },
+      {
+        "category_id": 21,
+        "language_code": "RU",
+        "name": "Сферические роликовые"
+      },
+      {
+        "category_id": 21,
+        "language_code": "EN",
+        "name": "Spherical roller bearings"
+      },
+      {
+        "category_id": 22,
+        "language_code": "RU",
+        "name": "Упорные роликовые"
+      },
+      {
+        "category_id": 22,
+        "language_code": "EN",
+        "name": "Thrust roller bearings"
+      },
+      {
+        "category_id": 23,
+        "language_code": "RU",
+        "name": "Игольчатые без внутреннего кольца"
+      },
+      {
+        "category_id": 23,
+        "language_code": "EN",
+        "name": "Needle bearings without inner ring"
+      },
+      {
+        "category_id": 24,
+        "language_code": "RU",
+        "name": "Игольчатые с внутренним кольцом"
+      },
+      {
+        "category_id": 24,
+        "language_code": "EN",
+        "name": "Needle bearings with inner ring"
+      },
+      {
+        "category_id": 25,
+        "language_code": "RU",
+        "name": "Игольчатые упорные"
+      },
+      {
+        "category_id": 25,
+        "language_code": "EN",
+        "name": "Thrust needle bearings"
+      },
+      {
+        "category_id": 26,
+        "language_code": "RU",
+        "name": "Игольчатые ролики и сепараторы"
+      },
+      {
+        "category_id": 26,
+        "language_code": "EN",
+        "name": "Needle rollers and cages"
+      },
+      {
+        "category_id": 27,
+        "language_code": "RU",
+        "name": "Вставки подшипниковые"
+      },
+      {
+        "category_id": 27,
+        "language_code": "EN",
+        "name": "Bearing inserts"
+      },
+      {
+        "category_id": 28,
+        "language_code": "RU",
+        "name": "Подшипниковые узлы в сборе"
+      },
+      {
+        "category_id": 28,
+        "language_code": "EN",
+        "name": "Assembled bearing units"
+      },
+      {
+        "category_id": 29,
+        "language_code": "RU",
+        "name": "Корпуса под подшипники"
+      },
+      {
+        "category_id": 29,
+        "language_code": "EN",
+        "name": "Bearing housings"
+      },
+      {
+        "category_id": 30,
+        "language_code": "RU",
+        "name": "Демпфирующие кольца"
+      },
+      {
+        "category_id": 30,
+        "language_code": "EN",
+        "name": "Damping rings"
+      },
+      {
+        "category_id": 31,
+        "language_code": "RU",
+        "name": "Шариковые втулки"
+      },
+      {
+        "category_id": 31,
+        "language_code": "EN",
+        "name": "Linear ball bushings"
+      },
+      {
+        "category_id": 32,
+        "language_code": "RU",
+        "name": "Шариковые втулки с фланцем"
+      },
+      {
+        "category_id": 32,
+        "language_code": "EN",
+        "name": "Flanged linear ball bushings"
+      },
+      {
+        "category_id": 33,
+        "language_code": "RU",
+        "name": "Линейные подшипники в корпусе"
+      },
+      {
+        "category_id": 33,
+        "language_code": "EN",
+        "name": "Housed linear bearings"
+      },
+      {
+        "category_id": 34,
+        "language_code": "RU",
+        "name": "Рельсовые направляющие"
+      },
+      {
+        "category_id": 34,
+        "language_code": "EN",
+        "name": "Linear guides"
+      },
+      {
+        "category_id": 35,
+        "language_code": "RU",
+        "name": "Опоры валов"
+      },
+      {
+        "category_id": 35,
+        "language_code": "EN",
+        "name": "Shaft supports"
+      },
+      {
+        "category_id": 36,
+        "language_code": "RU",
+        "name": "Радиальные шарнирные"
+      },
+      {
+        "category_id": 36,
+        "language_code": "EN",
+        "name": "Radial spherical plain bearings"
+      },
+      {
+        "category_id": 37,
+        "language_code": "RU",
+        "name": "Упорные шарнирные"
+      },
+      {
+        "category_id": 37,
+        "language_code": "EN",
+        "name": "Thrust spherical plain bearings"
+      },
+      {
+        "category_id": 38,
+        "language_code": "RU",
+        "name": "Опорные ролики с осью"
+      },
+      {
+        "category_id": 38,
+        "language_code": "EN",
+        "name": "Track rollers with stud"
+      },
+      {
+        "category_id": 39,
+        "language_code": "RU",
+        "name": "Опорные ролики без оси"
+      },
+      {
+        "category_id": 39,
+        "language_code": "EN",
+        "name": "Track rollers without stud"
+      },
+      {
+        "category_id": 40,
+        "language_code": "RU",
+        "name": "Ролики кулачковые"
+      },
+      {
+        "category_id": 40,
+        "language_code": "EN",
+        "name": "Cam followers"
+      },
+      {
+        "category_id": 41,
+        "language_code": "RU",
+        "name": "Автомобильные подшипники"
+      },
+      {
+        "category_id": 41,
+        "language_code": "EN",
+        "name": "Automotive bearings"
+      }
+    ],
+    "brands": [
+      { "id": 1, "code": "nsk", "slug": "nsk", "country_code": null, "is_active": true },
+      { "id": 2, "code": "skf", "slug": "skf", "country_code": null, "is_active": true },
+      { "id": 3, "code": "nis", "slug": "nis", "country_code": null, "is_active": true },
+      { "id": 4, "code": "koyo", "slug": "koyo", "country_code": null, "is_active": true },
+      { "id": 5, "code": "fag", "slug": "fag", "country_code": null, "is_active": true },
+      { "id": 6, "code": "app", "slug": "app", "country_code": null, "is_active": true },
+      { "id": 7, "code": "craft", "slug": "craft", "country_code": null, "is_active": true },
+      { "id": 8, "code": "bbc-r", "slug": "bbc-r", "country_code": null, "is_active": true },
+      { "id": 9, "code": "3-gpz", "slug": "3-gpz", "country_code": null, "is_active": true },
+      { "id": 10, "code": "4-gpz", "slug": "4-gpz", "country_code": null, "is_active": true },
+      { "id": 11, "code": "ntn", "slug": "ntn", "country_code": null, "is_active": true },
+      { "id": 12, "code": "jed", "slug": "jed", "country_code": null, "is_active": true },
+      { "id": 13, "code": "2-gpz", "slug": "2-gpz", "country_code": null, "is_active": true },
+      { "id": 14, "code": "ezo", "slug": "ezo", "country_code": null, "is_active": true },
+      { "id": 15, "code": "gpz", "slug": "gpz", "country_code": null, "is_active": true },
+      { "id": 16, "code": "nmb", "slug": "nmb", "country_code": null, "is_active": true },
+      { "id": 17, "code": "fbj", "slug": "fbj", "country_code": null, "is_active": true },
+      { "id": 18, "code": "ina", "slug": "ina", "country_code": null, "is_active": true },
+      { "id": 19, "code": "sybr", "slug": "sybr", "country_code": null, "is_active": true },
+      { "id": 20, "code": "ame", "slug": "ame", "country_code": null, "is_active": true }
+    ],
+    "brand_translations": [
+      { "brand_id": 1, "language_code": "RU", "name": "NSK" },
+      { "brand_id": 1, "language_code": "EN", "name": "NSK" },
+      { "brand_id": 2, "language_code": "RU", "name": "SKF" },
+      { "brand_id": 2, "language_code": "EN", "name": "SKF" },
+      { "brand_id": 3, "language_code": "RU", "name": "NIS" },
+      { "brand_id": 3, "language_code": "EN", "name": "NIS" },
+      { "brand_id": 4, "language_code": "RU", "name": "KOYO" },
+      { "brand_id": 4, "language_code": "EN", "name": "KOYO" },
+      { "brand_id": 5, "language_code": "RU", "name": "FAG" },
+      { "brand_id": 5, "language_code": "EN", "name": "FAG" },
+      { "brand_id": 6, "language_code": "RU", "name": "АПП" },
+      { "brand_id": 6, "language_code": "EN", "name": "APP" },
+      { "brand_id": 7, "language_code": "RU", "name": "CRAFT" },
+      { "brand_id": 7, "language_code": "EN", "name": "CRAFT" },
+      { "brand_id": 8, "language_code": "RU", "name": "BBC-R" },
+      { "brand_id": 8, "language_code": "EN", "name": "BBC-R" },
+      { "brand_id": 9, "language_code": "RU", "name": "3 ГПЗ" },
+      { "brand_id": 9, "language_code": "EN", "name": "3 GPZ" },
+      { "brand_id": 10, "language_code": "RU", "name": "4 ГПЗ" },
+      { "brand_id": 10, "language_code": "EN", "name": "4 GPZ" },
+      { "brand_id": 11, "language_code": "RU", "name": "NTN" },
+      { "brand_id": 11, "language_code": "EN", "name": "NTN" },
+      { "brand_id": 12, "language_code": "RU", "name": "JED" },
+      { "brand_id": 12, "language_code": "EN", "name": "JED" },
+      { "brand_id": 13, "language_code": "RU", "name": "2 ГПЗ" },
+      { "brand_id": 13, "language_code": "EN", "name": "2 GPZ" },
+      { "brand_id": 14, "language_code": "RU", "name": "EZO" },
+      { "brand_id": 14, "language_code": "EN", "name": "EZO" },
+      { "brand_id": 15, "language_code": "RU", "name": "ГПЗ" },
+      { "brand_id": 15, "language_code": "EN", "name": "GPZ" },
+      { "brand_id": 16, "language_code": "RU", "name": "NMB" },
+      { "brand_id": 16, "language_code": "EN", "name": "NMB" },
+      { "brand_id": 17, "language_code": "RU", "name": "FBJ" },
+      { "brand_id": 17, "language_code": "EN", "name": "FBJ" },
+      { "brand_id": 18, "language_code": "RU", "name": "INA" },
+      { "brand_id": 18, "language_code": "EN", "name": "INA" },
+      { "brand_id": 19, "language_code": "RU", "name": "SYBR" },
+      { "brand_id": 19, "language_code": "EN", "name": "SYBR" },
+      { "brand_id": 20, "language_code": "RU", "name": "AME" },
+      { "brand_id": 20, "language_code": "EN", "name": "AME" }
+    ]
+  }
+  {
+    "meta": {
+      "schema": "bearings_catalog_normalized",
+      "version": "2.0.0",
+      "default_language_code": "RU",
+      "supported_language_codes": ["RU", "EN"]
+    },
+    "catalog_categories": [
+      {
+        "id": 1,
+        "parent_id": null,
+        "code": "bearings",
+        "slug": "bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 0,
+        "path": "bearings",
+        "sort_order": 0,
+        "is_active": true
+      },
+      {
+        "id": 2,
+        "parent_id": 1,
+        "code": "ball_bearings",
+        "slug": "ball-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 1,
+        "path": "bearings/ball-bearings",
+        "sort_order": 10,
+        "is_active": true
+      },
+      {
+        "id": 3,
+        "parent_id": 1,
+        "code": "roller_bearings",
+        "slug": "roller-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 1,
+        "path": "bearings/roller-bearings",
+        "sort_order": 20,
+        "is_active": true
+      },
+      {
+        "id": 4,
+        "parent_id": 1,
+        "code": "needle_bearings",
+        "slug": "needle-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 1,
+        "path": "bearings/needle-bearings",
+        "sort_order": 30,
+        "is_active": true
+      },
+      {
+        "id": 5,
+        "parent_id": 1,
+        "code": "housed_bearing_units",
+        "slug": "housed-bearing-units",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 1,
+        "path": "bearings/housed-bearing-units",
+        "sort_order": 40,
+        "is_active": true
+      },
+      {
+        "id": 6,
+        "parent_id": 1,
+        "code": "linear_bearings",
+        "slug": "linear-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 1,
+        "path": "bearings/linear-bearings",
+        "sort_order": 50,
+        "is_active": true
+      },
+      {
+        "id": 7,
+        "parent_id": 1,
+        "code": "spherical_plain_bearings",
+        "slug": "spherical-plain-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 1,
+        "path": "bearings/spherical-plain-bearings",
+        "sort_order": 60,
+        "is_active": true
+      },
+      {
+        "id": 8,
+        "parent_id": 1,
+        "code": "track_rollers",
+        "slug": "track-rollers",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 1,
+        "path": "bearings/track-rollers",
+        "sort_order": 70,
+        "is_active": true
+      },
+      {
+        "id": 9,
+        "parent_id": 1,
+        "code": "overrunning_clutches",
+        "slug": "overrunning-clutches",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 1,
+        "path": "bearings/overrunning-clutches",
+        "sort_order": 80,
+        "is_active": true
+      },
+      {
+        "id": 10,
+        "parent_id": 1,
+        "code": "special_bearings",
+        "slug": "special-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 1,
+        "path": "bearings/special-bearings",
+        "sort_order": 90,
+        "is_active": true
+      },
+      {
+        "id": 11,
+        "parent_id": 1,
+        "code": "bearing_accessories",
+        "slug": "bearing-accessories",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 1,
+        "path": "bearings/bearing-accessories",
+        "sort_order": 100,
+        "is_active": true
+      },
+      {
+        "id": 12,
+        "parent_id": 2,
+        "code": "deep_groove_ball_bearings",
+        "slug": "deep-groove-ball-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/ball-bearings/deep-groove-ball-bearings",
+        "sort_order": 10,
+        "is_active": true
+      },
+      {
+        "id": 13,
+        "parent_id": 2,
+        "code": "double_row_ball_bearings",
+        "slug": "double-row-ball-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/ball-bearings/double-row-ball-bearings",
+        "sort_order": 20,
+        "is_active": true
+      },
+      {
+        "id": 14,
+        "parent_id": 2,
+        "code": "angular_contact_ball_single_row",
+        "slug": "angular-contact-ball-single-row",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/ball-bearings/angular-contact-ball-single-row",
+        "sort_order": 30,
+        "is_active": true
+      },
+      {
+        "id": 15,
+        "parent_id": 2,
+        "code": "angular_contact_ball_double_row",
+        "slug": "angular-contact-ball-double-row",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/ball-bearings/angular-contact-ball-double-row",
+        "sort_order": 40,
+        "is_active": true
+      },
+      {
+        "id": 16,
+        "parent_id": 2,
+        "code": "self_aligning_ball_bearings",
+        "slug": "self-aligning-ball-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/ball-bearings/self-aligning-ball-bearings",
+        "sort_order": 50,
+        "is_active": true
+      },
+      {
+        "id": 17,
+        "parent_id": 2,
+        "code": "thrust_ball_bearings",
+        "slug": "thrust-ball-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/ball-bearings/thrust-ball-bearings",
+        "sort_order": 60,
+        "is_active": true
+      },
+      {
+        "id": 18,
+        "parent_id": 2,
+        "code": "miniature_ball_bearings",
+        "slug": "miniature-ball-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/ball-bearings/miniature-ball-bearings",
+        "sort_order": 70,
+        "is_active": true
+      },
+      {
+        "id": 19,
+        "parent_id": 3,
+        "code": "cylindrical_roller_bearings",
+        "slug": "cylindrical-roller-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/roller-bearings/cylindrical-roller-bearings",
+        "sort_order": 10,
+        "is_active": true
+      },
+      {
+        "id": 20,
+        "parent_id": 3,
+        "code": "tapered_roller_bearings",
+        "slug": "tapered-roller-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/roller-bearings/tapered-roller-bearings",
+        "sort_order": 20,
+        "is_active": true
+      },
+      {
+        "id": 21,
+        "parent_id": 3,
+        "code": "spherical_roller_bearings",
+        "slug": "spherical-roller-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/roller-bearings/spherical-roller-bearings",
+        "sort_order": 30,
+        "is_active": true
+      },
+      {
+        "id": 22,
+        "parent_id": 3,
+        "code": "thrust_roller_bearings",
+        "slug": "thrust-roller-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/roller-bearings/thrust-roller-bearings",
+        "sort_order": 40,
+        "is_active": true
+      },
+      {
+        "id": 23,
+        "parent_id": 4,
+        "code": "needle_bearings_without_inner_ring",
+        "slug": "needle-bearings-without-inner-ring",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/needle-bearings/needle-bearings-without-inner-ring",
+        "sort_order": 10,
+        "is_active": true
+      },
+      {
+        "id": 24,
+        "parent_id": 4,
+        "code": "needle_bearings_with_inner_ring",
+        "slug": "needle-bearings-with-inner-ring",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/needle-bearings/needle-bearings-with-inner-ring",
+        "sort_order": 20,
+        "is_active": true
+      },
+      {
+        "id": 25,
+        "parent_id": 4,
+        "code": "thrust_needle_bearings",
+        "slug": "thrust-needle-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/needle-bearings/thrust-needle-bearings",
+        "sort_order": 30,
+        "is_active": true
+      },
+      {
+        "id": 26,
+        "parent_id": 4,
+        "code": "needle_rollers_and_cages",
+        "slug": "needle-rollers-and-cages",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/needle-bearings/needle-rollers-and-cages",
+        "sort_order": 40,
+        "is_active": true
+      },
+      {
+        "id": 27,
+        "parent_id": 5,
+        "code": "bearing_inserts",
+        "slug": "bearing-inserts",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/housed-bearing-units/bearing-inserts",
+        "sort_order": 10,
+        "is_active": true
+      },
+      {
+        "id": 28,
+        "parent_id": 5,
+        "code": "assembled_bearing_units",
+        "slug": "assembled-bearing-units",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/housed-bearing-units/assembled-bearing-units",
+        "sort_order": 20,
+        "is_active": true
+      },
+      {
+        "id": 29,
+        "parent_id": 5,
+        "code": "bearing_housings",
+        "slug": "bearing-housings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/housed-bearing-units/bearing-housings",
+        "sort_order": 30,
+        "is_active": true
+      },
+      {
+        "id": 30,
+        "parent_id": 5,
+        "code": "damping_rings",
+        "slug": "damping-rings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/housed-bearing-units/damping-rings",
+        "sort_order": 40,
+        "is_active": true
+      },
+      {
+        "id": 31,
+        "parent_id": 6,
+        "code": "linear_ball_bushings",
+        "slug": "linear-ball-bushings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/linear-bearings/linear-ball-bushings",
+        "sort_order": 10,
+        "is_active": true
+      },
+      {
+        "id": 32,
+        "parent_id": 6,
+        "code": "flanged_linear_ball_bushings",
+        "slug": "flanged-linear-ball-bushings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/linear-bearings/flanged-linear-ball-bushings",
+        "sort_order": 20,
+        "is_active": true
+      },
+      {
+        "id": 33,
+        "parent_id": 6,
+        "code": "housed_linear_bearings",
+        "slug": "housed-linear-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/linear-bearings/housed-linear-bearings",
+        "sort_order": 30,
+        "is_active": true
+      },
+      {
+        "id": 34,
+        "parent_id": 6,
+        "code": "linear_guides",
+        "slug": "linear-guides",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/linear-bearings/linear-guides",
+        "sort_order": 40,
+        "is_active": true
+      },
+      {
+        "id": 35,
+        "parent_id": 6,
+        "code": "shaft_supports",
+        "slug": "shaft-supports",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/linear-bearings/shaft-supports",
+        "sort_order": 50,
+        "is_active": true
+      },
+      {
+        "id": 36,
+        "parent_id": 7,
+        "code": "radial_spherical_plain_bearings",
+        "slug": "radial-spherical-plain-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/spherical-plain-bearings/radial-spherical-plain-bearings",
+        "sort_order": 10,
+        "is_active": true
+      },
+      {
+        "id": 37,
+        "parent_id": 7,
+        "code": "thrust_spherical_plain_bearings",
+        "slug": "thrust-spherical-plain-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/spherical-plain-bearings/thrust-spherical-plain-bearings",
+        "sort_order": 20,
+        "is_active": true
+      },
+      {
+        "id": 38,
+        "parent_id": 8,
+        "code": "track_rollers_with_stud",
+        "slug": "track-rollers-with-stud",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/track-rollers/track-rollers-with-stud",
+        "sort_order": 10,
+        "is_active": true
+      },
+      {
+        "id": 39,
+        "parent_id": 8,
+        "code": "track_rollers_without_stud",
+        "slug": "track-rollers-without-stud",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/track-rollers/track-rollers-without-stud",
+        "sort_order": 20,
+        "is_active": true
+      },
+      {
+        "id": 40,
+        "parent_id": 8,
+        "code": "cam_followers",
+        "slug": "cam-followers",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/track-rollers/cam-followers",
+        "sort_order": 30,
+        "is_active": true
+      },
+      {
+        "id": 41,
+        "parent_id": 10,
+        "code": "automotive_bearings",
+        "slug": "automotive-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/special-bearings/automotive-bearings",
+        "sort_order": 10,
+        "is_active": true
+      },
+      {
+        "id": 42,
+        "parent_id": 10,
+        "code": "air_conditioner_bearings",
+        "slug": "air-conditioner-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/special-bearings/air-conditioner-bearings",
+        "sort_order": 20,
+        "is_active": true
+      },
+      {
+        "id": 43,
+        "parent_id": 10,
+        "code": "electric_motor_bearings",
+        "slug": "electric-motor-bearings",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/special-bearings/electric-motor-bearings",
+        "sort_order": 30,
+        "is_active": true
+      },
+      {
+        "id": 44,
+        "parent_id": 11,
+        "code": "adapter_sleeves",
+        "slug": "adapter-sleeves",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/bearing-accessories/adapter-sleeves",
+        "sort_order": 10,
+        "is_active": true
+      },
+      {
+        "id": 45,
+        "parent_id": 11,
+        "code": "withdrawal_sleeves",
+        "slug": "withdrawal-sleeves",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/bearing-accessories/withdrawal-sleeves",
+        "sort_order": 20,
+        "is_active": true
+      },
+      {
+        "id": 46,
+        "parent_id": 11,
+        "code": "locknuts",
+        "slug": "locknuts",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/bearing-accessories/locknuts",
+        "sort_order": 30,
+        "is_active": true
+      },
+      {
+        "id": 47,
+        "parent_id": 11,
+        "code": "lock_washers",
+        "slug": "lock-washers",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/bearing-accessories/lock-washers",
+        "sort_order": 40,
+        "is_active": true
+      },
+      {
+        "id": 48,
+        "parent_id": 11,
+        "code": "seals",
+        "slug": "seals",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/bearing-accessories/seals",
+        "sort_order": 50,
+        "is_active": true
+      },
+      {
+        "id": 49,
+        "parent_id": 11,
+        "code": "lubricants",
+        "slug": "lubricants",
+        "catalog_root": "bearings",
+        "category_kind": "catalog",
+        "depth": 2,
+        "path": "bearings/bearing-accessories/lubricants",
+        "sort_order": 60,
+        "is_active": true
+      }
+    ],
+    "catalog_category_translations": [
+      {
+        "category_id": 1,
+        "language_code": "RU",
+        "name": "Подшипники"
+      },
+      {
+        "category_id": 1,
+        "language_code": "EN",
+        "name": "Bearings"
+      },
+      {
+        "category_id": 2,
+        "language_code": "RU",
+        "name": "Шариковые подшипники"
+      },
+      {
+        "category_id": 2,
+        "language_code": "EN",
+        "name": "Ball bearings"
+      },
+      {
+        "category_id": 3,
+        "language_code": "RU",
+        "name": "Роликовые подшипники"
+      },
+      {
+        "category_id": 3,
+        "language_code": "EN",
+        "name": "Roller bearings"
+      },
+      {
+        "category_id": 4,
+        "language_code": "RU",
+        "name": "Игольчатые подшипники"
+      },
+      {
+        "category_id": 4,
+        "language_code": "EN",
+        "name": "Needle bearings"
+      },
+      {
+        "category_id": 5,
+        "language_code": "RU",
+        "name": "Подшипниковые узлы"
+      },
+      {
+        "category_id": 5,
+        "language_code": "EN",
+        "name": "Housed bearing units"
+      },
+      {
+        "category_id": 6,
+        "language_code": "RU",
+        "name": "Линейные подшипники"
+      },
+      {
+        "category_id": 6,
+        "language_code": "EN",
+        "name": "Linear bearings"
+      },
+      {
+        "category_id": 7,
+        "language_code": "RU",
+        "name": "Шарнирные подшипники"
+      },
+      {
+        "category_id": 7,
+        "language_code": "EN",
+        "name": "Spherical plain bearings"
+      },
+      {
+        "category_id": 8,
+        "language_code": "RU",
+        "name": "Опорные ролики"
+      },
+      {
+        "category_id": 8,
+        "language_code": "EN",
+        "name": "Track rollers"
+      },
+      {
+        "category_id": 9,
+        "language_code": "RU",
+        "name": "Обгонные муфты"
+      },
+      {
+        "category_id": 9,
+        "language_code": "EN",
+        "name": "Overrunning clutches"
+      },
+      {
+        "category_id": 10,
+        "language_code": "RU",
+        "name": "Специальные подшипники"
+      },
+      {
+        "category_id": 10,
+        "language_code": "EN",
+        "name": "Special bearings"
+      },
+      {
+        "category_id": 11,
+        "language_code": "RU",
+        "name": "Комплектующие для подшипников"
+      },
+      {
+        "category_id": 11,
+        "language_code": "EN",
+        "name": "Bearing accessories"
+      },
+      {
+        "category_id": 12,
+        "language_code": "RU",
+        "name": "Радиальные однорядные"
+      },
+      {
+        "category_id": 12,
+        "language_code": "EN",
+        "name": "Single row deep groove"
+      },
+      {
+        "category_id": 13,
+        "language_code": "RU",
+        "name": "Радиальные двухрядные"
+      },
+      {
+        "category_id": 13,
+        "language_code": "EN",
+        "name": "Double row radial"
+      },
+      {
+        "category_id": 14,
+        "language_code": "RU",
+        "name": "Радиально-упорные однорядные"
+      },
+      {
+        "category_id": 14,
+        "language_code": "EN",
+        "name": "Single row angular contact"
+      },
+      {
+        "category_id": 15,
+        "language_code": "RU",
+        "name": "Радиально-упорные двухрядные"
+      },
+      {
+        "category_id": 15,
+        "language_code": "EN",
+        "name": "Double row angular contact"
+      },
+      {
+        "category_id": 16,
+        "language_code": "RU",
+        "name": "Самоустанавливающиеся"
+      },
+      {
+        "category_id": 16,
+        "language_code": "EN",
+        "name": "Self-aligning"
+      },
+      {
+        "category_id": 17,
+        "language_code": "RU",
+        "name": "Упорные"
+      },
+      {
+        "category_id": 17,
+        "language_code": "EN",
+        "name": "Thrust"
+      },
+      {
+        "category_id": 18,
+        "language_code": "RU",
+        "name": "Миниатюрные"
+      },
+      {
+        "category_id": 18,
+        "language_code": "EN",
+        "name": "Miniature"
+      },
+      {
+        "category_id": 19,
+        "language_code": "RU",
+        "name": "Цилиндрические роликовые"
+      },
+      {
+        "category_id": 19,
+        "language_code": "EN",
+        "name": "Cylindrical roller bearings"
+      },
+      {
+        "category_id": 20,
+        "language_code": "RU",
+        "name": "Конические роликовые"
+      },
+      {
+        "category_id": 20,
+        "language_code": "EN",
+        "name": "Tapered roller bearings"
+      },
+      {
+        "category_id": 21,
+        "language_code": "RU",
+        "name": "Сферические роликовые"
+      },
+      {
+        "category_id": 21,
+        "language_code": "EN",
+        "name": "Spherical roller bearings"
+      },
+      {
+        "category_id": 22,
+        "language_code": "RU",
+        "name": "Упорные роликовые"
+      },
+      {
+        "category_id": 22,
+        "language_code": "EN",
+        "name": "Thrust roller bearings"
+      },
+      {
+        "category_id": 23,
+        "language_code": "RU",
+        "name": "Игольчатые без внутреннего кольца"
+      },
+      {
+        "category_id": 23,
+        "language_code": "EN",
+        "name": "Needle bearings without inner ring"
+      },
+      {
+        "category_id": 24,
+        "language_code": "RU",
+        "name": "Игольчатые с внутренним кольцом"
+      },
+      {
+        "category_id": 24,
+        "language_code": "EN",
+        "name": "Needle bearings with inner ring"
+      },
+      {
+        "category_id": 25,
+        "language_code": "RU",
+        "name": "Игольчатые упорные"
+      },
+      {
+        "category_id": 25,
+        "language_code": "EN",
+        "name": "Thrust needle bearings"
+      },
+      {
+        "category_id": 26,
+        "language_code": "RU",
+        "name": "Игольчатые ролики и сепараторы"
+      },
+      {
+        "category_id": 26,
+        "language_code": "EN",
+        "name": "Needle rollers and cages"
+      },
+      {
+        "category_id": 27,
+        "language_code": "RU",
+        "name": "Вставки подшипниковые"
+      },
+      {
+        "category_id": 27,
+        "language_code": "EN",
+        "name": "Bearing inserts"
+      },
+      {
+        "category_id": 28,
+        "language_code": "RU",
+        "name": "Подшипниковые узлы в сборе"
+      },
+      {
+        "category_id": 28,
+        "language_code": "EN",
+        "name": "Assembled bearing units"
+      },
+      {
+        "category_id": 29,
+        "language_code": "RU",
+        "name": "Корпуса под подшипники"
+      },
+      {
+        "category_id": 29,
+        "language_code": "EN",
+        "name": "Bearing housings"
+      },
+      {
+        "category_id": 30,
+        "language_code": "RU",
+        "name": "Демпфирующие кольца"
+      },
+      {
+        "category_id": 30,
+        "language_code": "EN",
+        "name": "Damping rings"
+      },
+      {
+        "category_id": 31,
+        "language_code": "RU",
+        "name": "Шариковые втулки"
+      },
+      {
+        "category_id": 31,
+        "language_code": "EN",
+        "name": "Linear ball bushings"
+      },
+      {
+        "category_id": 32,
+        "language_code": "RU",
+        "name": "Шариковые втулки с фланцем"
+      },
+      {
+        "category_id": 32,
+        "language_code": "EN",
+        "name": "Flanged linear ball bushings"
+      },
+      {
+        "category_id": 33,
+        "language_code": "RU",
+        "name": "Линейные подшипники в корпусе"
+      },
+      {
+        "category_id": 33,
+        "language_code": "EN",
+        "name": "Housed linear bearings"
+      },
+      {
+        "category_id": 34,
+        "language_code": "RU",
+        "name": "Рельсовые направляющие"
+      },
+      {
+        "category_id": 34,
+        "language_code": "EN",
+        "name": "Linear guides"
+      },
+      {
+        "category_id": 35,
+        "language_code": "RU",
+        "name": "Опоры валов"
+      },
+      {
+        "category_id": 35,
+        "language_code": "EN",
+        "name": "Shaft supports"
+      },
+      {
+        "category_id": 36,
+        "language_code": "RU",
+        "name": "Радиальные шарнирные"
+      },
+      {
+        "category_id": 36,
+        "language_code": "EN",
+        "name": "Radial spherical plain bearings"
+      },
+      {
+        "category_id": 37,
+        "language_code": "RU",
+        "name": "Упорные шарнирные"
+      },
+      {
+        "category_id": 37,
+        "language_code": "EN",
+        "name": "Thrust spherical plain bearings"
+      },
+      {
+        "category_id": 38,
+        "language_code": "RU",
+        "name": "Опорные ролики с осью"
+      },
+      {
+        "category_id": 38,
+        "language_code": "EN",
+        "name": "Track rollers with stud"
+      },
+      {
+        "category_id": 39,
+        "language_code": "RU",
+        "name": "Опорные ролики без оси"
+      },
+      {
+        "category_id": 39,
+        "language_code": "EN",
+        "name": "Track rollers without stud"
+      },
+      {
+        "category_id": 40,
+        "language_code": "RU",
+        "name": "Ролики кулачковые"
+      },
+      {
+        "category_id": 40,
+        "language_code": "EN",
+        "name": "Cam followers"
+      },
+      {
+        "category_id": 41,
+        "language_code": "RU",
+        "name": "Автомобильные подшипники"
+      },
+      {
+        "category_id": 41,
+        "language_code": "EN",
+        "name": "Automotive bearings"
+      }
+    ],
+    "brands": [
+      { "id": 1, "code": "nsk", "slug": "nsk", "country_code": null, "is_active": true },
+      { "id": 2, "code": "skf", "slug": "skf", "country_code": null, "is_active": true },
+      { "id": 3, "code": "nis", "slug": "nis", "country_code": null, "is_active": true },
+      { "id": 4, "code": "koyo", "slug": "koyo", "country_code": null, "is_active": true },
+      { "id": 5, "code": "fag", "slug": "fag", "country_code": null, "is_active": true },
+      { "id": 6, "code": "app", "slug": "app", "country_code": null, "is_active": true },
+      { "id": 7, "code": "craft", "slug": "craft", "country_code": null, "is_active": true },
+      { "id": 8, "code": "bbc-r", "slug": "bbc-r", "country_code": null, "is_active": true },
+      { "id": 9, "code": "3-gpz", "slug": "3-gpz", "country_code": null, "is_active": true },
+      { "id": 10, "code": "4-gpz", "slug": "4-gpz", "country_code": null, "is_active": true },
+      { "id": 11, "code": "ntn", "slug": "ntn", "country_code": null, "is_active": true },
+      { "id": 12, "code": "jed", "slug": "jed", "country_code": null, "is_active": true },
+      { "id": 13, "code": "2-gpz", "slug": "2-gpz", "country_code": null, "is_active": true },
+      { "id": 14, "code": "ezo", "slug": "ezo", "country_code": null, "is_active": true },
+      { "id": 15, "code": "gpz", "slug": "gpz", "country_code": null, "is_active": true },
+      { "id": 16, "code": "nmb", "slug": "nmb", "country_code": null, "is_active": true },
+      { "id": 17, "code": "fbj", "slug": "fbj", "country_code": null, "is_active": true },
+      { "id": 18, "code": "ina", "slug": "ina", "country_code": null, "is_active": true },
+      { "id": 19, "code": "sybr", "slug": "sybr", "country_code": null, "is_active": true },
+      { "id": 20, "code": "ame", "slug": "ame", "country_code": null, "is_active": true }
+    ],
+    "brand_translations": [
+      { "brand_id": 1, "language_code": "RU", "name": "NSK" },
+      { "brand_id": 1, "language_code": "EN", "name": "NSK" },
+      { "brand_id": 2, "language_code": "RU", "name": "SKF" },
+      { "brand_id": 2, "language_code": "EN", "name": "SKF" },
+      { "brand_id": 3, "language_code": "RU", "name": "NIS" },
+      { "brand_id": 3, "language_code": "EN", "name": "NIS" },
+      { "brand_id": 4, "language_code": "RU", "name": "KOYO" },
+      { "brand_id": 4, "language_code": "EN", "name": "KOYO" },
+      { "brand_id": 5, "language_code": "RU", "name": "FAG" },
+      { "brand_id": 5, "language_code": "EN", "name": "FAG" },
+      { "brand_id": 6, "language_code": "RU", "name": "АПП" },
+      { "brand_id": 6, "language_code": "EN", "name": "APP" },
+      { "brand_id": 7, "language_code": "RU", "name": "CRAFT" },
+      { "brand_id": 7, "language_code": "EN", "name": "CRAFT" },
+      { "brand_id": 8, "language_code": "RU", "name": "BBC-R" },
+      { "brand_id": 8, "language_code": "EN", "name": "BBC-R" },
+      { "brand_id": 9, "language_code": "RU", "name": "3 ГПЗ" },
+      { "brand_id": 9, "language_code": "EN", "name": "3 GPZ" },
+      { "brand_id": 10, "language_code": "RU", "name": "4 ГПЗ" },
+      { "brand_id": 10, "language_code": "EN", "name": "4 GPZ" },
+      { "brand_id": 11, "language_code": "RU", "name": "NTN" },
+      { "brand_id": 11, "language_code": "EN", "name": "NTN" },
+      { "brand_id": 12, "language_code": "RU", "name": "JED" },
+      { "brand_id": 12, "language_code": "EN", "name": "JED" },
+      { "brand_id": 13, "language_code": "RU", "name": "2 ГПЗ" },
+      { "brand_id": 13, "language_code": "EN", "name": "2 GPZ" },
+      { "brand_id": 14, "language_code": "RU", "name": "EZO" },
+      { "brand_id": 14, "language_code": "EN", "name": "EZO" },
+      { "brand_id": 15, "language_code": "RU", "name": "ГПЗ" },
+      { "brand_id": 15, "language_code": "EN", "name": "GPZ" },
+      { "brand_id": 16, "language_code": "RU", "name": "NMB" },
+      { "brand_id": 16, "language_code": "EN", "name": "NMB" },
+      { "brand_id": 17, "language_code": "RU", "name": "FBJ" },
+      { "brand_id": 17, "language_code": "EN", "name": "FBJ" },
+      { "brand_id": 18, "language_code": "RU", "name": "INA" },
+      { "brand_id": 18, "language_code": "EN", "name": "INA" },
+      { "brand_id": 19, "language_code": "RU", "name": "SYBR" },
+      { "brand_id": 19, "language_code": "EN", "name": "SYBR" },
+      { "brand_id": 20, "language_code": "RU", "name": "AME" },
+      { "brand_id": 20, "language_code": "EN", "name": "AME" }
+    ]
+  }
+  {
+    "bearing_construction_type_translations": [
+      {
+        "construction_type_id": 24,
+        "language_code": "RU",
+        "name": "Опора вала",
+        "description": null
+      },
+      {
+        "construction_type_id": 24,
+        "language_code": "EN",
+        "name": "Shaft support",
+        "description": null
+      },
+      {
+        "construction_type_id": 25,
+        "language_code": "RU",
+        "name": "Радиальный шарнирный подшипник",
+        "description": null
+      },
+      {
+        "construction_type_id": 25,
+        "language_code": "EN",
+        "name": "Radial spherical plain bearing",
+        "description": null
+      },
+      {
+        "construction_type_id": 26,
+        "language_code": "RU",
+        "name": "Упорный шарнирный подшипник",
+        "description": null
+      },
+      {
+        "construction_type_id": 26,
+        "language_code": "EN",
+        "name": "Thrust spherical plain bearing",
+        "description": null
+      },
+      {
+        "construction_type_id": 27,
+        "language_code": "RU",
+        "name": "Опорный ролик с осью",
+        "description": null
+      },
+      {
+        "construction_type_id": 27,
+        "language_code": "EN",
+        "name": "Track roller with stud",
+        "description": null
+      },
+      {
+        "construction_type_id": 28,
+        "language_code": "RU",
+        "name": "Опорный ролик без оси",
+        "description": null
+      },
+      {
+        "construction_type_id": 28,
+        "language_code": "EN",
+        "name": "Track roller without stud",
+        "description": null
+      },
+      {
+        "construction_type_id": 29,
+        "language_code": "RU",
+        "name": "Ролик кулачковый",
+        "description": null
+      },
+      {
+        "construction_type_id": 29,
+        "language_code": "EN",
+        "name": "Cam follower",
+        "description": null
+      },
+      {
+        "construction_type_id": 30,
+        "language_code": "RU",
+        "name": "Обгонная муфта",
+        "description": null
+      },
+      {
+        "construction_type_id": 30,
+        "language_code": "EN",
+        "name": "Overrunning clutch",
+        "description": null
+      },
+      {
+        "construction_type_id": 31,
+        "language_code": "RU",
+        "name": "Автомобильный подшипник",
+        "description": null
+      },
+      {
+        "construction_type_id": 31,
+        "language_code": "EN",
+        "name": "Automotive bearing",
+        "description": null
+      },
+      {
+        "construction_type_id": 32,
+        "language_code": "RU",
+        "name": "Подшипник кондиционера",
+        "description": null
+      },
+      {
+        "construction_type_id": 32,
+        "language_code": "EN",
+        "name": "Air conditioner bearing",
+        "description": null
+      },
+      {
+        "construction_type_id": 33,
+        "language_code": "RU",
+        "name": "Подшипник для электродвигателя",
+        "description": null
+      },
+      {
+        "construction_type_id": 33,
+        "language_code": "EN",
+        "name": "Electric motor bearing",
+        "description": null
+      },
+      {
+        "construction_type_id": 34,
+        "language_code": "RU",
+        "name": "Втулка закрепительная",
+        "description": null
+      },
+      {
+        "construction_type_id": 34,
+        "language_code": "EN",
+        "name": "Adapter sleeve",
+        "description": null
+      },
+      {
+        "construction_type_id": 35,
+        "language_code": "RU",
+        "name": "Втулка стяжная",
+        "description": null
+      },
+      {
+        "construction_type_id": 35,
+        "language_code": "EN",
+        "name": "Withdrawal sleeve",
+        "description": null
+      },
+      {
+        "construction_type_id": 36,
+        "language_code": "RU",
+        "name": "Гайка",
+        "description": null
+      },
+      {
+        "construction_type_id": 36,
+        "language_code": "EN",
+        "name": "Locknut",
+        "description": null
+      },
+      {
+        "construction_type_id": 37,
+        "language_code": "RU",
+        "name": "Шайба",
+        "description": null
+      },
+      {
+        "construction_type_id": 37,
+        "language_code": "EN",
+        "name": "Lock washer",
+        "description": null
+      },
+      {
+        "construction_type_id": 38,
+        "language_code": "RU",
+        "name": "Уплотнение",
+        "description": null
+      },
+      {
+        "construction_type_id": 38,
+        "language_code": "EN",
+        "name": "Seal",
+        "description": null
+      },
+      {
+        "construction_type_id": 39,
+        "language_code": "RU",
+        "name": "Смазка",
+        "description": null
+      },
+      {
+        "construction_type_id": 39,
+        "language_code": "EN",
+        "name": "Lubricant",
+        "description": null
+      }
+    ],
+    "bearing_series": [
+      { "id": 1, "code": "NU", "series_group": "cylindrical_roller" },
+      { "id": 2, "code": "NJ", "series_group": "cylindrical_roller" },
+      { "id": 3, "code": "NUP", "series_group": "cylindrical_roller" },
+      { "id": 4, "code": "NF", "series_group": "cylindrical_roller" },
+      { "id": 5, "code": "N", "series_group": "cylindrical_roller" },
+      { "id": 6, "code": "HK", "series_group": "needle" },
+      { "id": 7, "code": "NK", "series_group": "needle" },
+      { "id": 8, "code": "RNA", "series_group": "needle" },
+      { "id": 9, "code": "NA", "series_group": "needle" },
+      { "id": 10, "code": "NATR", "series_group": "needle_track_roller" },
+      { "id": 11, "code": "NUTR", "series_group": "needle_track_roller" },
+      { "id": 12, "code": "LM", "series_group": "linear" },
+      { "id": 13, "code": "LME", "series_group": "linear" },
+      { "id": 14, "code": "KH", "series_group": "linear" },
+      { "id": 15, "code": "UCP", "series_group": "housed_unit" },
+      { "id": 16, "code": "UCF", "series_group": "housed_unit" },
+      { "id": 17, "code": "UCFL", "series_group": "housed_unit" },
+      { "id": 18, "code": "UCT", "series_group": "housed_unit" },
+      { "id": 19, "code": "UC", "series_group": "bearing_insert" },
+      { "id": 20, "code": "GE", "series_group": "spherical_plain" },
+      { "id": 21, "code": "HF", "series_group": "overrunning_clutch" },
+      { "id": 22, "code": "HFL", "series_group": "overrunning_clutch" }
+    ],
+    "bearing_series_translations": [
+      { "series_id": 1, "language_code": "RU", "name": "Серия NU" },
+      { "series_id": 1, "language_code": "EN", "name": "Series NU" },
+      { "series_id": 2, "language_code": "RU", "name": "Серия NJ" },
+      { "series_id": 2, "language_code": "EN", "name": "Series NJ" },
+      { "series_id": 3, "language_code": "RU", "name": "Серия NUP" },
+      { "series_id": 3, "language_code": "EN", "name": "Series NUP" },
+      { "series_id": 4, "language_code": "RU", "name": "Серия NF" },
+      { "series_id": 4, "language_code": "EN", "name": "Series NF" },
+      { "series_id": 5, "language_code": "RU", "name": "Серия N" },
+      { "series_id": 5, "language_code": "EN", "name": "Series N" },
+      { "series_id": 6, "language_code": "RU", "name": "Серия HK" },
+      { "series_id": 6, "language_code": "EN", "name": "Series HK" },
+      { "series_id": 7, "language_code": "RU", "name": "Серия NK" },
+      { "series_id": 7, "language_code": "EN", "name": "Series NK" },
+      { "series_id": 8, "language_code": "RU", "name": "Серия RNA" },
+      { "series_id": 8, "language_code": "EN", "name": "Series RNA" },
+      { "series_id": 9, "language_code": "RU", "name": "Серия NA" },
+      { "series_id": 9, "language_code": "EN", "name": "Series NA" },
+      { "series_id": 10, "language_code": "RU", "name": "Серия NATR" },
+      { "series_id": 10, "language_code": "EN", "name": "Series NATR" },
+      { "series_id": 11, "language_code": "RU", "name": "Серия NUTR" },
+      { "series_id": 11, "language_code": "EN", "name": "Series NUTR" },
+      { "series_id": 12, "language_code": "RU", "name": "Серия LM" },
+      { "series_id": 12, "language_code": "EN", "name": "Series LM" },
+      { "series_id": 13, "language_code": "RU", "name": "Серия LME" },
+      { "series_id": 13, "language_code": "EN", "name": "Series LME" },
+      { "series_id": 14, "language_code": "RU", "name": "Серия KH" },
+      { "series_id": 14, "language_code": "EN", "name": "Series KH" },
+      { "series_id": 15, "language_code": "RU", "name": "Серия UCP" },
+      { "series_id": 15, "language_code": "EN", "name": "Series UCP" },
+      { "series_id": 16, "language_code": "RU", "name": "Серия UCF" },
+      { "series_id": 16, "language_code": "EN", "name": "Series UCF" },
+      { "series_id": 17, "language_code": "RU", "name": "Серия UCFL" },
+      { "series_id": 17, "language_code": "EN", "name": "Series UCFL" },
+      { "series_id": 18, "language_code": "RU", "name": "Серия UCT" },
+      { "series_id": 18, "language_code": "EN", "name": "Series UCT" },
+      { "series_id": 19, "language_code": "RU", "name": "Серия UC" },
+      { "series_id": 19, "language_code": "EN", "name": "Series UC" },
+      { "series_id": 20, "language_code": "RU", "name": "Серия GE" },
+      { "series_id": 20, "language_code": "EN", "name": "Series GE" },
+      { "series_id": 21, "language_code": "RU", "name": "Серия HF" },
+      { "series_id": 21, "language_code": "EN", "name": "Series HF" },
+      { "series_id": 22, "language_code": "RU", "name": "Серия HFL" },
+      { "series_id": 22, "language_code": "EN", "name": "Series HFL" }
+    ],
+    "application_scopes": [
+      { "id": 1, "code": "automotive" },
+      { "id": 2, "code": "air_conditioner" },
+      { "id": 3, "code": "electric_motor" },
+      { "id": 4, "code": "industrial" },
+      { "id": 5, "code": "conveyor" },
+      { "id": 6, "code": "cnc_machine" }
+    ],
+    "application_scope_translations": [
+      { "application_scope_id": 1, "language_code": "RU", "name": "Автомобильное применение" },
+      { "application_scope_id": 1, "language_code": "EN", "name": "Automotive" },
+      { "application_scope_id": 2, "language_code": "RU", "name": "Кондиционеры" },
+      { "application_scope_id": 2, "language_code": "EN", "name": "Air conditioners" },
+      { "application_scope_id": 3, "language_code": "RU", "name": "Электродвигатели" },
+      { "application_scope_id": 3, "language_code": "EN", "name": "Electric motors" },
+      { "application_scope_id": 4, "language_code": "RU", "name": "Промышленное применение" },
+      { "application_scope_id": 4, "language_code": "EN", "name": "Industrial" },
+      { "application_scope_id": 5, "language_code": "RU", "name": "Конвейеры" },
+      { "application_scope_id": 5, "language_code": "EN", "name": "Conveyors" },
+      { "application_scope_id": 6, "language_code": "RU", "name": "Станки ЧПУ" },
+      { "application_scope_id": 6, "language_code": "EN", "name": "CNC machines" }
+    ],
+    "temperature_classes": [
+      { "id": 1, "code": "standard", "min_c": null, "max_c": null },
+      { "id": 2, "code": "high_temperature", "min_c": 150.0, "max_c": 350.0 },
+      { "id": 3, "code": "low_temperature", "min_c": -60.0, "max_c": 0.0 }
+    ],
+    "temperature_class_translations": [
+      { "temperature_class_id": 1, "language_code": "RU", "name": "Стандартный" },
+      { "temperature_class_id": 1, "language_code": "EN", "name": "Standard" },
+      { "temperature_class_id": 2, "language_code": "RU", "name": "Высокотемпературный" },
+      { "temperature_class_id": 2, "language_code": "EN", "name": "High temperature" },
+      { "temperature_class_id": 3, "language_code": "RU", "name": "Низкотемпературный" },
+      { "temperature_class_id": 3, "language_code": "EN", "name": "Low temperature" }
+    ],
+    "material_types": [
+      { "id": 1, "code": "bearing_steel" },
+      { "id": 2, "code": "stainless_steel" },
+      { "id": 3, "code": "ceramic_hybrid" },
+      { "id": 4, "code": "polymer" },
+      { "id": 5, "code": "cast_iron_housing" },
+      { "id": 6, "code": "steel_housing" }
+    ],
+    "material_type_translations": [
+      { "material_type_id": 1, "language_code": "RU", "name": "Подшипниковая сталь" },
+      { "material_type_id": 1, "language_code": "EN", "name": "Bearing steel" },
+      { "material_type_id": 2, "language_code": "RU", "name": "Нержавеющая сталь" },
+      { "material_type_id": 2, "language_code": "EN", "name": "Stainless steel" },
+      { "material_type_id": 3, "language_code": "RU", "name": "Гибридная керамика" },
+      { "material_type_id": 3, "language_code": "EN", "name": "Ceramic hybrid" },
+      { "material_type_id": 4, "language_code": "RU", "name": "Полимер" },
+      { "material_type_id": 4, "language_code": "EN", "name": "Polymer" },
+      { "material_type_id": 5, "language_code": "RU", "name": "Чугунный корпус" },
+      { "material_type_id": 5, "language_code": "EN", "name": "Cast iron housing" },
+      { "material_type_id": 6, "language_code": "RU", "name": "Стальной корпус" },
+      { "material_type_id": 6, "language_code": "EN", "name": "Steel housing" }
+    ],
+    "seal_types": [
+      { "id": 1, "code": "open" },
+      { "id": 2, "code": "z" },
+      { "id": 3, "code": "zz" },
+      { "id": 4, "code": "rs" },
+      { "id": 5, "code": "2rs" }
+    ],
+    "seal_type_translations": [
+      { "seal_type_id": 1, "language_code": "RU", "name": "Открытый" },
+      { "seal_type_id": 1, "language_code": "EN", "name": "Open" },
+      { "seal_type_id": 2, "language_code": "RU", "name": "Защитная шайба Z" },
+      { "seal_type_id": 2, "language_code": "EN", "name": "Shield Z" },
+      { "seal_type_id": 3, "language_code": "RU", "name": "Защитные шайбы ZZ" },
+      { "seal_type_id": 3, "language_code": "EN", "name": "Shields ZZ" },
+      { "seal_type_id": 4, "language_code": "RU", "name": "Уплотнение RS" },
+      { "seal_type_id": 4, "language_code": "EN", "name": "Seal RS" },
+      { "seal_type_id": 5, "language_code": "RU", "name": "Уплотнение 2RS" },
+      { "seal_type_id": 5, "language_code": "EN", "name": "Seal 2RS" }
+    ],
+    "precision_classes": [
+      { "id": 1, "code": "normal", "iso_standard": null },
+      { "id": 2, "code": "p6", "iso_standard": null },
+      { "id": 3, "code": "p5", "iso_standard": null },
+      { "id": 4, "code": "p4", "iso_standard": null },
+      { "id": 5, "code": "p2", "iso_standard": null }
+    ],
+    "precision_class_translations": [
+      { "precision_class_id": 1, "language_code": "RU", "name": "Нормальный" },
+      { "precision_class_id": 1, "language_code": "EN", "name": "Normal" },
+      { "precision_class_id": 2, "language_code": "RU", "name": "Класс P6" },
+      { "precision_class_id": 2, "language_code": "EN", "name": "Class P6" },
+      { "precision_class_id": 3, "language_code": "RU", "name": "Класс P5" },
+      { "precision_class_id": 3, "language_code": "EN", "name": "Class P5" }
+    ]
+  }
+  {
+    "precision_class_translations": [
+      { "precision_class_id": 4, "language_code": "RU", "name": "Класс P4" },
+      { "precision_class_id": 4, "language_code": "EN", "name": "Class P4" },
+      { "precision_class_id": 5, "language_code": "RU", "name": "Класс P2" },
+      { "precision_class_id": 5, "language_code": "EN", "name": "Class P2" }
+    ],
+    "clearance_classes": [
+      { "id": 1, "code": "normal" },
+      { "id": 2, "code": "c2" },
+      { "id": 3, "code": "c3" },
+      { "id": 4, "code": "c4" },
+      { "id": 5, "code": "c5" }
+    ],
+    "clearance_class_translations": [
+      { "clearance_class_id": 1, "language_code": "RU", "name": "Нормальный зазор" },
+      { "clearance_class_id": 1, "language_code": "EN", "name": "Normal clearance" },
+      { "clearance_class_id": 2, "language_code": "RU", "name": "Зазор C2" },
+      { "clearance_class_id": 2, "language_code": "EN", "name": "Clearance C2" },
+      { "clearance_class_id": 3, "language_code": "RU", "name": "Зазор C3" },
+      { "clearance_class_id": 3, "language_code": "EN", "name": "Clearance C3" },
+      { "clearance_class_id": 4, "language_code": "RU", "name": "Зазор C4" },
+      { "clearance_class_id": 4, "language_code": "EN", "name": "Clearance C4" },
+      { "clearance_class_id": 5, "language_code": "RU", "name": "Зазор C5" },
+      { "clearance_class_id": 5, "language_code": "EN", "name": "Clearance C5" }
+    ],
+    "products": [
+      {
+        "id": 1,
+        "category_id": 15,
+        "brand_id": 5,
+        "bearing_family_id": 1,
+        "construction_type_id": 4,
+        "load_direction_id": 3,
+        "rolling_element_type_id": 1,
+        "temperature_class_id": 1,
+        "application_scope_id": null,
+        "sku": null,
+        "article": "3206 B 2RSR TVH",
+        "article_inferred": false,
+        "manufacturer_part_number": null,
+        "slug": "3206-b-2rsr-tvh-fag",
+        "source_url": "https://alekspodshipnik.ru/katalog-produkczii/vidy-podshipnikov/sharikovyij/sharikovyij-radialno-upornyij-dvuxryadnyij/3206-b.2rsr.tvh(fag).html",
+        "source_system": "alekspodshipnik",
+        "is_active": true,
+        "is_featured": false
+      },
+      {
+        "id": 2,
+        "category_id": 15,
+        "brand_id": 2,
+        "bearing_family_id": 1,
+        "construction_type_id": 4,
+        "load_direction_id": 3,
+        "rolling_element_type_id": 1,
+        "temperature_class_id": 1,
+        "application_scope_id": null,
+        "sku": null,
+        "article": "3306 A 2RS1",
+        "article_inferred": false,
+        "manufacturer_part_number": null,
+        "slug": "3306-a-2rs1-skf",
+        "source_url": "https://alekspodshipnik.ru/",
+        "source_system": "alekspodshipnik",
+        "is_active": true,
+        "is_featured": false
+      },
+      {
+        "id": 3,
+        "category_id": 12,
+        "brand_id": 4,
+        "bearing_family_id": 1,
+        "construction_type_id": 1,
+        "load_direction_id": 1,
+        "rolling_element_type_id": 1,
+        "temperature_class_id": 1,
+        "application_scope_id": null,
+        "sku": null,
+        "article": "6000 2RS",
+        "article_inferred": false,
+        "manufacturer_part_number": null,
+        "slug": "6000-2rs-koyo",
+        "source_url": "https://alekspodshipnik.ru/",
+        "source_system": "alekspodshipnik",
+        "is_active": true,
+        "is_featured": false
+      },
+      {
+        "id": 4,
+        "category_id": 16,
+        "brand_id": 1,
+        "bearing_family_id": 1,
+        "construction_type_id": 5,
+        "load_direction_id": 1,
+        "rolling_element_type_id": 1,
+        "temperature_class_id": 1,
+        "application_scope_id": null,
+        "sku": null,
+        "article": "1205 K",
+        "article_inferred": false,
+        "manufacturer_part_number": null,
+        "slug": "1205-k-nsk",
+        "source_url": "https://alekspodshipnik.ru/",
+        "source_system": "alekspodshipnik",
+        "is_active": true,
+        "is_featured": false
+      },
+      {
+        "id": 5,
+        "category_id": 17,
+        "brand_id": 2,
+        "bearing_family_id": 1,
+        "construction_type_id": 6,
+        "load_direction_id": 2,
+        "rolling_element_type_id": 1,
+        "temperature_class_id": 1,
+        "application_scope_id": null,
+        "sku": null,
+        "article": "51104",
+        "article_inferred": false,
+        "manufacturer_part_number": null,
+        "slug": "51104-skf",
+        "source_url": "https://alekspodshipnik.ru/",
+        "source_system": "alekspodshipnik",
+        "is_active": true,
+        "is_featured": false
+      },
+      {
+        "id": 6,
+        "category_id": 18,
+        "brand_id": 16,
+        "bearing_family_id": 1,
+        "construction_type_id": 7,
+        "load_direction_id": 1,
+        "rolling_element_type_id": 1,
+        "temperature_class_id": 1,
+        "application_scope_id": null,
+        "sku": null,
+        "article": "608 ZZ",
+        "article_inferred": false,
+        "manufacturer_part_number": null,
+        "slug": "608-zz-nmb",
+        "source_url": "https://alekspodshipnik.ru/",
+        "source_system": "alekspodshipnik",
+        "is_active": true,
+        "is_featured": false
+      },
+      {
+        "id": 7,
+        "category_id": 12,
+        "brand_id": 4,
+        "bearing_family_id": 1,
+        "construction_type_id": 1,
+        "load_direction_id": 1,
+        "rolling_element_type_id": 1,
+        "temperature_class_id": 1,
+        "application_scope_id": null,
+        "sku": null,
+        "article": "6207 ZZCM",
+        "article_inferred": false,
+        "manufacturer_part_number": null,
+        "slug": "6207-zzcm-koyo",
+        "source_url": "https://alekspodshipnik.ru/katalog-produkczii/vidy-podshipnikov/sharikovyij/sharikovyij-radialnyij-odnoryadnyij/6207-zzcm(koyo).html",
+        "source_system": "alekspodshipnik",
+        "is_active": true,
+        "is_featured": false
+      },
+      {
+        "id": 8,
+        "category_id": 20,
+        "brand_id": 27,
+        "bearing_family_id": 2,
+        "construction_type_id": 9,
+        "load_direction_id": 4,
+        "rolling_element_type_id": 3,
+        "temperature_class_id": 1,
+        "application_scope_id": 1,
+        "sku": null,
+        "article": "30205",
+        "article_inferred": false,
+        "manufacturer_part_number": null,
+        "slug": "30205-timken",
+        "source_url": "https://alekspodshipnik.ru/",
+        "source_system": "alekspodshipnik",
+        "is_active": true,
+        "is_featured": false
+      },
+      {
+        "id": 9,
+        "category_id": 24,
+        "brand_id": 18,
+        "bearing_family_id": 3,
+        "construction_type_id": 13,
+        "load_direction_id": 1,
+        "rolling_element_type_id": 5,
+        "temperature_class_id": 1,
+        "application_scope_id": 4,
+        "sku": null,
+        "article": "NA4904",
+        "article_inferred": false,
+        "manufacturer_part_number": null,
+        "slug": "na4904-ina",
+        "source_url": "https://alekspodshipnik.ru/",
+        "source_system": "alekspodshipnik",
+        "is_active": true,
+        "is_featured": false
+      },
+      {
+        "id": 10,
+        "category_id": 27,
+        "brand_id": 8,
+        "bearing_family_id": 4,
+        "construction_type_id": 16,
+        "load_direction_id": 1,
+        "rolling_element_type_id": 1,
+        "temperature_class_id": 1,
+        "application_scope_id": 4,
+        "sku": null,
+        "article": "UC205",
+        "article_inferred": false,
+        "manufacturer_part_number": null,
+        "slug": "uc205-bbc-r",
+        "source_url": "https://alekspodshipnik.ru/",
+        "source_system": "alekspodshipnik",
+        "is_active": true,
+        "is_featured": false
+      },
+      {
+        "id": 11,
+        "category_id": 12,
+        "brand_id": 1,
+        "bearing_family_id": 1,
+        "construction_type_id": 1,
+        "load_direction_id": 1,
+        "rolling_element_type_id": 1,
+        "temperature_class_id": 1,
+        "application_scope_id": null,
+        "sku": null,
+        "article": "6205 DDU CM",
+        "article_inferred": false,
+        "manufacturer_part_number": null,
+        "slug": "6205-ddu-cm-nsk",
+        "source_url": "https://alekspodshipnik.ru/katalog-produkczii/vidy-podshipnikov/sharikovyij/sharikovyij-radialnyij-odnoryadnyij/6205-ddu-cm(nsk).html",
+        "source_system": "alekspodshipnik",
+        "is_active": true,
+        "is_featured": false
+      },
+      {
+        "id": 12,
+        "category_id": 14,
+        "brand_id": 2,
+        "bearing_family_id": 1,
+        "construction_type_id": 3,
+        "load_direction_id": 3,
+        "rolling_element_type_id": 1,
+        "temperature_class_id": 1,
+        "application_scope_id": null,
+        "sku": null,
+        "article": "7205 BEP",
+        "article_inferred": false,
+        "manufacturer_part_number": null,
+        "slug": "7205-bep-skf",
+        "source_url": "https://alekspodshipnik.ru/",
+        "source_system": "alekspodshipnik",
+        "is_active": true,
+        "is_featured": false
+      },
+      {
+        "id": 13,
+        "category_id": 31,
+        "brand_id": 21,
+        "bearing_family_id": 5,
+        "construction_type_id": 20,
+        "load_direction_id": 1,
+        "rolling_element_type_id": 1,
+        "temperature_class_id": 1,
+        "application_scope_id": 6,
+        "sku": null,
+        "article": "LM20UU",
+        "article_inferred": false,
+        "manufacturer_part_number": null,
+        "slug": "lm20uu-technix",
+        "source_url": "https://alekspodshipnik.ru/",
+        "source_system": "alekspodshipnik",
+        "is_active": true,
+        "is_featured": false
+      },
+      {
+        "id": 14,
+        "category_id": 36,
+        "brand_id": 15,
+        "bearing_family_id": 6,
+        "construction_type_id": 25,
+        "load_direction_id": 1,
+        "rolling_element_type_id": 6,
+        "temperature_class_id": 1,
+        "application_scope_id": 4,
+        "sku": null,
+        "article": "GE25ES",
+        "article_inferred": false,
+        "manufacturer_part_number": null,
+        "slug": "ge25es-gpz",
+        "source_url": "https://alekspodshipnik.ru/",
+        "source_system": "alekspodshipnik",
+        "is_active": true,
+        "is_featured": false
+      },
+      {
+        "id": 15,
+        "category_id": 40,
+        "brand_id": 18,
+        "bearing_family_id": 7,
+        "construction_type_id": 29,
+        "load_direction_id": 4,
+        "rolling_element_type_id": 5,
+        "temperature_class_id": 1,
+        "application_scope_id": 4,
+        "sku": null,
+        "article": "KR35",
+        "article_inferred": true,
+        "manufacturer_part_number": null,
+        "slug": "kr35-ina",
+        "source_url": "https://alekspodshipnik.ru/",
+        "source_system": "alekspodshipnik",
+        "is_active": true,
+        "is_featured": false
+      },
+      {
+        "id": 16,
+        "category_id": 9,
+        "brand_id": 7,
+        "bearing_family_id": 8,
+        "construction_type_id": 30,
+        "load_direction_id": 4,
+        "rolling_element_type_id": 6,
+        "temperature_class_id": 1,
+        "application_scope_id": 4,
+        "sku": null,
+        "article": "HFL0822",
+        "article_inferred": true,
+        "manufacturer_part_number": null,
+        "slug": "hfl0822-craft",
+        "source_url": "https://alekspodshipnik.ru/",
+        "source_system": "alekspodshipnik",
+        "is_active": true,
+        "is_featured": false
+      },
+      {
+        "id": 17,
+        "category_id": 41,
+        "brand_id": 2,
+        "bearing_family_id": 9,
+        "construction_type_id": 31,
+        "load_direction_id": 4,
+        "rolling_element_type_id": 1,
+        "temperature_class_id": 1,
+        "application_scope_id": 1,
+        "sku": null,
+        "article": "DAC3055W",
+        "article_inferred": true,
+        "manufacturer_part_number": null,
+        "slug": "dac3055w-skf",
+        "source_url": "https://alekspodshipnik.ru/",
+        "source_system": "alekspodshipnik",
+        "is_active": true,
+        "is_featured": false
+      },
+      {
+        "id": 18,
+        "category_id": 44,
+        "brand_id": 15,
+        "bearing_family_id": 10,
+        "construction_type_id": 34,
+        "load_direction_id": 4,
+        "rolling_element_type_id": 6,
+        "temperature_class_id": 1,
+        "application_scope_id": 4,
+        "sku": null,
+        "article": "H312",
+        "article_inferred": false,
+        "manufacturer_part_number": null,
+        "slug": "h312-gpz",
+        "source_url": "https://alekspodshipnik.ru/",
+        "source_system": "alekspodshipnik",
+        "is_active": true,
+        "is_featured": false
+      },
+      {
+        "id": 19,
+        "category_id": 31,
+        "brand_id": 22,
+        "bearing_family_id": 5,
+        "construction_type_id": 20,
+        "load_direction_id": 1,
+        "rolling_element_type_id": 1,
+        "temperature_class_id": 1,
+        "application_scope_id": 6,
+        "sku": null,
+        "article": "LME12UU",
+        "article_inferred": false,
+        "manufacturer_part_number": null,
+        "slug": "lme12uu-ipk",
+        "source_url": "https://alekspodshipnik.ru/",
+        "source_system": "alekspodshipnik",
+        "is_active": true,
+        "is_featured": false
+      },
+      {
+        "id": 20,
+        "category_id": 28,
+        "brand_id": 8,
+        "bearing_family_id": 4,
+        "construction_type_id": 17,
+        "load_direction_id": 1,
+        "rolling_element_type_id": 1,
+        "temperature_class_id": 1,
+        "application_scope_id": 4,
+        "sku": null,
+        "article": "UCP205",
+        "article_inferred": false,
+        "manufacturer_part_number": null,
+        "slug": "ucp205-bbc-r",
+        "source_url": "https://alekspodshipnik.ru/",
+        "source_system": "alekspodshipnik",
+        "is_active": true,
+        "is_featured": false
+      }
+    ],
+    "product_translations": [
+      {
+        "product_id": 1,
+        "language_code": "RU",
+        "name": "Радиально-упорный шариковый подшипник 3206 B 2RSR TVH",
+        "short_name": "Подшипник 3206 B 2RSR TVH",
+        "description": null,
+        "is_auto_generated": false
+      },
+      {
+        "product_id": 1,
+        "language_code": "EN",
+        "name": "Angular contact ball bearing 3206 B 2RSR TVH",
+        "short_name": "Bearing 3206 B 2RSR TVH",
+        "description": null,
+        "is_auto_generated": true
+      },
+      {
+        "product_id": 2,
+        "language_code": "RU",
+        "name": "Радиально-упорный шариковый подшипник 3306 A 2RS1",
+        "short_name": "Подшипник 3306 A 2RS1",
+        "description": null,
+        "is_auto_generated": false
+      },
+      {
+        "product_id": 2,
+        "language_code": "EN",
+        "name": "Angular contact ball bearing 3306 A 2RS1",
+        "short_name": "Bearing 3306 A 2RS1",
+        "description": null,
+        "is_auto_generated": true
+      },
+      {
+        "product_id": 3,
+        "language_code": "RU",
+        "name": "Шариковый радиальный однорядный подшипник 6000 2RS",
+        "short_name": "Подшипник 6000 2RS",
+        "description": null,
+        "is_auto_generated": false
+      },
+      {
+        "product_id": 3,
+        "language_code": "EN",
+        "name": "Single row deep groove ball bearing 6000 2RS",
+        "short_name": "Bearing 6000 2RS",
+        "description": null,
+        "is_auto_generated": true
+      },
+      {
+        "product_id": 4,
+        "language_code": "RU",
+        "name": "Самоустанавливающийся шариковый подшипник 1205 K",
+        "short_name": "Подшипник 1205 K",
+        "description": null,
+        "is_auto_generated": false
+      },
+      {
+        "product_id": 4,
+        "language_code": "EN",
+        "name": "Self-aligning ball bearing 1205 K",
+        "short_name": "Bearing 1205 K",
+        "description": null,
+        "is_auto_generated": true
+      }
+    ]
+  }
+  {
+    "product_translations": [
+      {
+        "product_id": 5,
+        "language_code": "RU",
+        "name": "Шариковый упорный подшипник 51104",
+        "short_name": "Подшипник 51104",
+        "description": null,
+        "is_auto_generated": false
+      },
+      {
+        "product_id": 5,
+        "language_code": "EN",
+        "name": "Thrust ball bearing 51104",
+        "short_name": "Bearing 51104",
+        "description": null,
+        "is_auto_generated": true
+      },
+      {
+        "product_id": 6,
+        "language_code": "RU",
+        "name": "Миниатюрный шариковый подшипник 608 ZZ",
+        "short_name": "Подшипник 608 ZZ",
+        "description": null,
+        "is_auto_generated": false
+      },
+      {
+        "product_id": 6,
+        "language_code": "EN",
+        "name": "Miniature ball bearing 608 ZZ",
+        "short_name": "Bearing 608 ZZ",
+        "description": null,
+        "is_auto_generated": true
+      },
+      {
+        "product_id": 7,
+        "language_code": "RU",
+        "name": "Однорядный шариковый радиальный подшипник 6207 ZZCM",
+        "short_name": "Подшипник 6207 ZZCM",
+        "description": null,
+        "is_auto_generated": false
+      },
+      {
+        "product_id": 7,
+        "language_code": "EN",
+        "name": "Single row deep groove ball bearing 6207 ZZCM",
+        "short_name": "Bearing 6207 ZZCM",
+        "description": null,
+        "is_auto_generated": true
+      },
+      {
+        "product_id": 8,
+        "language_code": "RU",
+        "name": "Конический роликовый подшипник 30205",
+        "short_name": "Подшипник 30205",
+        "description": null,
+        "is_auto_generated": false
+      },
+      {
+        "product_id": 8,
+        "language_code": "EN",
+        "name": "Tapered roller bearing 30205",
+        "short_name": "Bearing 30205",
+        "description": null,
+        "is_auto_generated": true
+      },
+      {
+        "product_id": 9,
+        "language_code": "RU",
+        "name": "Игольчатый подшипник с внутренним кольцом NA4904",
+        "short_name": "Подшипник NA4904",
+        "description": null,
+        "is_auto_generated": false
+      },
+      {
+        "product_id": 9,
+        "language_code": "EN",
+        "name": "Needle bearing with inner ring NA4904",
+        "short_name": "Bearing NA4904",
+        "description": null,
+        "is_auto_generated": true
+      },
+      {
+        "product_id": 10,
+        "language_code": "RU",
+        "name": "Подшипниковая вставка UC205",
+        "short_name": "Вставка UC205",
+        "description": null,
+        "is_auto_generated": false
+      },
+      {
+        "product_id": 10,
+        "language_code": "EN",
+        "name": "Bearing insert UC205",
+        "short_name": "Insert UC205",
+        "description": null,
+        "is_auto_generated": true
+      },
+      {
+        "product_id": 11,
+        "language_code": "RU",
+        "name": "Однорядный шариковый подшипник 6205 DDU CM",
+        "short_name": "Подшипник 6205 DDU CM",
+        "description": null,
+        "is_auto_generated": false
+      },
+      {
+        "product_id": 11,
+        "language_code": "EN",
+        "name": "Single row deep groove ball bearing 6205 DDU CM",
+        "short_name": "Bearing 6205 DDU CM",
+        "description": null,
+        "is_auto_generated": true
+      },
+      {
+        "product_id": 12,
+        "language_code": "RU",
+        "name": "Радиально-упорный шариковый подшипник 7205 BEP",
+        "short_name": "Подшипник 7205 BEP",
+        "description": null,
+        "is_auto_generated": false
+      },
+      {
+        "product_id": 12,
+        "language_code": "EN",
+        "name": "Angular contact ball bearing 7205 BEP",
+        "short_name": "Bearing 7205 BEP",
+        "description": null,
+        "is_auto_generated": true
+      },
+      {
+        "product_id": 13,
+        "language_code": "RU",
+        "name": "Шариковая втулка LM20UU",
+        "short_name": "Втулка LM20UU",
+        "description": null,
+        "is_auto_generated": false
+      },
+      {
+        "product_id": 13,
+        "language_code": "EN",
+        "name": "Linear ball bushing LM20UU",
+        "short_name": "Bushing LM20UU",
+        "description": null,
+        "is_auto_generated": true
+      },
+      {
+        "product_id": 14,
+        "language_code": "RU",
+        "name": "Радиальный шарнирный подшипник GE25ES",
+        "short_name": "Подшипник GE25ES",
+        "description": null,
+        "is_auto_generated": false
+      },
+      {
+        "product_id": 14,
+        "language_code": "EN",
+        "name": "Radial spherical plain bearing GE25ES",
+        "short_name": "Bearing GE25ES",
+        "description": null,
+        "is_auto_generated": true
+      },
+      {
+        "product_id": 15,
+        "language_code": "RU",
+        "name": "Ролик кулачковый KR35",
+        "short_name": "Ролик KR35",
+        "description": null,
+        "is_auto_generated": false
+      },
+      {
+        "product_id": 15,
+        "language_code": "EN",
+        "name": "Cam follower KR35",
+        "short_name": "Roller KR35",
+        "description": null,
+        "is_auto_generated": true
+      },
+      {
+        "product_id": 16,
+        "language_code": "RU",
+        "name": "Обгонная муфта HFL0822",
+        "short_name": "Муфта HFL0822",
+        "description": null,
+        "is_auto_generated": false
+      },
+      {
+        "product_id": 16,
+        "language_code": "EN",
+        "name": "Overrunning clutch HFL0822",
+        "short_name": "Clutch HFL0822",
+        "description": null,
+        "is_auto_generated": true
+      },
+      {
+        "product_id": 17,
+        "language_code": "RU",
+        "name": "Автомобильный подшипник DAC3055W",
+        "short_name": "Подшипник DAC3055W",
+        "description": null,
+        "is_auto_generated": false
+      },
+      {
+        "product_id": 17,
+        "language_code": "EN",
+        "name": "Automotive bearing DAC3055W",
+        "short_name": "Bearing DAC3055W",
+        "description": null,
+        "is_auto_generated": true
+      },
+      {
+        "product_id": 18,
+        "language_code": "RU",
+        "name": "Втулка закрепительная H312",
+        "short_name": "Втулка H312",
+        "description": null,
+        "is_auto_generated": false
+      },
+      {
+        "product_id": 18,
+        "language_code": "EN",
+        "name": "Adapter sleeve H312",
+        "short_name": "Sleeve H312",
+        "description": null,
+        "is_auto_generated": true
+      },
+      {
+        "product_id": 19,
+        "language_code": "RU",
+        "name": "Шариковая втулка LME12UU",
+        "short_name": "Втулка LME12UU",
+        "description": null,
+        "is_auto_generated": false
+      },
+      {
+        "product_id": 19,
+        "language_code": "EN",
+        "name": "Linear ball bushing LME12UU",
+        "short_name": "Bushing LME12UU",
+        "description": null,
+        "is_auto_generated": true
+      },
+      {
+        "product_id": 20,
+        "language_code": "RU",
+        "name": "Подшипниковый узел UCP205",
+        "short_name": "Узел UCP205",
+        "description": null,
+        "is_auto_generated": false
+      },
+      {
+        "product_id": 20,
+        "language_code": "EN",
+        "name": "Assembled bearing unit UCP205",
+        "short_name": "Unit UCP205",
+        "description": null,
+        "is_auto_generated": true
+      }
+    ],
+    "product_dimensions": [
+      {
+        "product_id": 1,
+        "inner_diameter_mm": 30.0,
+        "outer_diameter_mm": 62.0,
+        "width_mm": 23.8,
+        "height_mm": 23.8,
+        "weight_g": 290.0
+      },
+      {
+        "product_id": 2,
+        "inner_diameter_mm": 30.0,
+        "outer_diameter_mm": 72.0,
+        "width_mm": 30.2,
+        "height_mm": 30.2,
+        "weight_g": 500.0
+      },
+      {
+        "product_id": 3,
+        "inner_diameter_mm": 10.0,
+        "outer_diameter_mm": 26.0,
+        "width_mm": 8.0,
+        "height_mm": 8.0,
+        "weight_g": 19.0
+      },
+      {
+        "product_id": 4,
+        "inner_diameter_mm": 25.0,
+        "outer_diameter_mm": 52.0,
+        "width_mm": 15.0,
+        "height_mm": 15.0,
+        "weight_g": 150.0
+      },
+      {
+        "product_id": 5,
+        "inner_diameter_mm": 20.0,
+        "outer_diameter_mm": 35.0,
+        "width_mm": 10.0,
+        "height_mm": 10.0,
+        "weight_g": 45.0
+      },
+      {
+        "product_id": 6,
+        "inner_diameter_mm": 8.0,
+        "outer_diameter_mm": 22.0,
+        "width_mm": 7.0,
+        "height_mm": 7.0,
+        "weight_g": 12.0
+      },
+      {
+        "product_id": 7,
+        "inner_diameter_mm": 35.0,
+        "outer_diameter_mm": 72.0,
+        "width_mm": 17.0,
+        "height_mm": 17.0,
+        "weight_g": 290.0
+      },
+      {
+        "product_id": 8,
+        "inner_diameter_mm": 25.0,
+        "outer_diameter_mm": 52.0,
+        "width_mm": 16.25,
+        "height_mm": 16.25,
+        "weight_g": 129.0
+      },
+      {
+        "product_id": 9,
+        "inner_diameter_mm": 20.0,
+        "outer_diameter_mm": 37.0,
+        "width_mm": 17.0,
+        "height_mm": 17.0,
+        "weight_g": 75.0
+      },
+      {
+        "product_id": 10,
+        "inner_diameter_mm": 25.0,
+        "outer_diameter_mm": 52.0,
+        "width_mm": 34.1,
+        "height_mm": 34.1,
+        "weight_g": 180.0
+      },
+      {
+        "product_id": 11,
+        "inner_diameter_mm": 25.0,
+        "outer_diameter_mm": 52.0,
+        "width_mm": 15.0,
+        "height_mm": 15.0,
+        "weight_g": 130.0
+      },
+      {
+        "product_id": 12,
+        "inner_diameter_mm": 25.0,
+        "outer_diameter_mm": 52.0,
+        "width_mm": 15.0,
+        "height_mm": 15.0,
+        "weight_g": 128.0
+      },
+      {
+        "product_id": 13,
+        "inner_diameter_mm": 20.0,
+        "outer_diameter_mm": 32.0,
+        "width_mm": 42.0,
+        "height_mm": 42.0,
+        "weight_g": 85.0
+      },
+      {
+        "product_id": 14,
+        "inner_diameter_mm": 25.0,
+        "outer_diameter_mm": 42.0,
+        "width_mm": 20.0,
+        "height_mm": 20.0,
+        "weight_g": 110.0
+      },
+      {
+        "product_id": 15,
+        "inner_diameter_mm": 12.0,
+        "outer_diameter_mm": 35.0,
+        "width_mm": 18.0,
+        "height_mm": 18.0,
+        "weight_g": 95.0
+      },
+      {
+        "product_id": 16,
+        "inner_diameter_mm": 8.0,
+        "outer_diameter_mm": 12.0,
+        "width_mm": 22.0,
+        "height_mm": 22.0,
+        "weight_g": 14.0
+      },
+      {
+        "product_id": 17,
+        "inner_diameter_mm": 30.0,
+        "outer_diameter_mm": 55.0,
+        "width_mm": 32.0,
+        "height_mm": 32.0,
+        "weight_g": 360.0
+      },
+      {
+        "product_id": 18,
+        "inner_diameter_mm": 55.0,
+        "outer_diameter_mm": 60.0,
+        "width_mm": 31.0,
+        "height_mm": 31.0,
+        "weight_g": 210.0
+      },
+      {
+        "product_id": 19,
+        "inner_diameter_mm": 12.0,
+        "outer_diameter_mm": 22.0,
+        "width_mm": 32.0,
+        "height_mm": 32.0,
+        "weight_g": 42.0
+      },
+      {
+        "product_id": 20,
+        "inner_diameter_mm": 25.0,
+        "outer_diameter_mm": 52.0,
+        "width_mm": 34.1,
+        "height_mm": 34.1,
+        "weight_g": 640.0
+      }
+    ],
+    "product_bearing_specs": [
+      {
+        "product_id": 1,
+        "series_id": null,
+        "seal_type_id": 5,
+        "precision_class_id": 1,
+        "clearance_class_id": 1,
+        "material_type_id": 1,
+        "row_count": 2,
+        "has_flange": false,
+        "is_self_aligning": false,
+        "bore_type": "cylindrical",
+        "dynamic_load_kn": null,
+        "static_load_kn": null,
+        "max_rpm_grease": null,
+        "max_rpm_oil": null
+      },
+      {
+        "product_id": 2,
+        "series_id": null,
+        "seal_type_id": 5,
+        "precision_class_id": 1,
+        "clearance_class_id": 1,
+        "material_type_id": 1,
+        "row_count": 2,
+        "has_flange": false,
+        "is_self_aligning": false,
+        "bore_type": "cylindrical",
+        "dynamic_load_kn": null,
+        "static_load_kn": null,
+        "max_rpm_grease": null,
+        "max_rpm_oil": null
+      },
+      {
+        "product_id": 3,
+        "series_id": null,
+        "seal_type_id": 5,
+        "precision_class_id": 1,
+        "clearance_class_id": 1,
+        "material_type_id": 1,
+        "row_count": 1,
+        "has_flange": false,
+        "is_self_aligning": false,
+        "bore_type": "cylindrical",
+        "dynamic_load_kn": null,
+        "static_load_kn": null,
+        "max_rpm_grease": null,
+        "max_rpm_oil": null
+      },
+      {
+        "product_id": 4,
+        "series_id": null,
+        "seal_type_id": 1,
+        "precision_class_id": 1,
+        "clearance_class_id": 1,
+        "material_type_id": 1,
+        "row_count": 2,
+        "has_flange": false,
+        "is_self_aligning": true,
+        "bore_type": "tapered",
+        "dynamic_load_kn": null,
+        "static_load_kn": null,
+        "max_rpm_grease": null,
+        "max_rpm_oil": null
+      }
+    ]
+  }
+  {
+    "product_bearing_specs": [
+      {
+        "product_id": 5,
+        "series_id": null,
+        "seal_type_id": 1,
+        "precision_class_id": 1,
+        "clearance_class_id": 1,
+        "material_type_id": 1,
+        "row_count": 1,
+        "has_flange": false,
+        "is_self_aligning": false,
+        "bore_type": "cylindrical",
+        "dynamic_load_kn": null,
+        "static_load_kn": null,
+        "max_rpm_grease": null,
+        "max_rpm_oil": null
+      },
+      {
+        "product_id": 6,
+        "series_id": null,
+        "seal_type_id": 3,
+        "precision_class_id": 1,
+        "clearance_class_id": 3,
+        "material_type_id": 1,
+        "row_count": 1,
+        "has_flange": false,
+        "is_self_aligning": false,
+        "bore_type": "cylindrical",
+        "dynamic_load_kn": null,
+        "static_load_kn": null,
+        "max_rpm_grease": null,
+        "max_rpm_oil": null
+      },
+      {
+        "product_id": 7,
+        "series_id": null,
+        "seal_type_id": 3,
+        "precision_class_id": 1,
+        "clearance_class_id": 1,
+        "material_type_id": 1,
+        "row_count": 1,
+        "has_flange": false,
+        "is_self_aligning": false,
+        "bore_type": "cylindrical",
+        "dynamic_load_kn": null,
+        "static_load_kn": null,
+        "max_rpm_grease": null,
+        "max_rpm_oil": null
+      },
+      {
+        "product_id": 8,
+        "series_id": null,
+        "seal_type_id": 1,
+        "precision_class_id": 1,
+        "clearance_class_id": 1,
+        "material_type_id": 1,
+        "row_count": 1,
+        "has_flange": false,
+        "is_self_aligning": false,
+        "bore_type": "cylindrical",
+        "dynamic_load_kn": null,
+        "static_load_kn": null,
+        "max_rpm_grease": null,
+        "max_rpm_oil": null
+      },
+      {
+        "product_id": 9,
+        "series_id": 9,
+        "seal_type_id": 1,
+        "precision_class_id": 1,
+        "clearance_class_id": 1,
+        "material_type_id": 1,
+        "row_count": 1,
+        "has_flange": false,
+        "is_self_aligning": false,
+        "bore_type": "cylindrical",
+        "dynamic_load_kn": null,
+        "static_load_kn": null,
+        "max_rpm_grease": null,
+        "max_rpm_oil": null
+      },
+      {
+        "product_id": 10,
+        "series_id": 19,
+        "seal_type_id": 1,
+        "precision_class_id": 1,
+        "clearance_class_id": 1,
+        "material_type_id": 1,
+        "row_count": 1,
+        "has_flange": false,
+        "is_self_aligning": false,
+        "bore_type": "cylindrical",
+        "dynamic_load_kn": null,
+        "static_load_kn": null,
+        "max_rpm_grease": null,
+        "max_rpm_oil": null
+      },
+      {
+        "product_id": 11,
+        "series_id": null,
+        "seal_type_id": 5,
+        "precision_class_id": 1,
+        "clearance_class_id": 1,
+        "material_type_id": 1,
+        "row_count": 1,
+        "has_flange": false,
+        "is_self_aligning": false,
+        "bore_type": "cylindrical",
+        "dynamic_load_kn": null,
+        "static_load_kn": null,
+        "max_rpm_grease": null,
+        "max_rpm_oil": null
+      },
+      {
+        "product_id": 12,
+        "series_id": null,
+        "seal_type_id": 1,
+        "precision_class_id": 1,
+        "clearance_class_id": 1,
+        "material_type_id": 1,
+        "row_count": 1,
+        "has_flange": false,
+        "is_self_aligning": false,
+        "bore_type": "cylindrical",
+        "dynamic_load_kn": null,
+        "static_load_kn": null,
+        "max_rpm_grease": null,
+        "max_rpm_oil": null
+      },
+      {
+        "product_id": 13,
+        "series_id": 12,
+        "seal_type_id": 1,
+        "precision_class_id": 1,
+        "clearance_class_id": 1,
+        "material_type_id": 1,
+        "row_count": 4,
+        "has_flange": false,
+        "is_self_aligning": false,
+        "bore_type": "cylindrical",
+        "dynamic_load_kn": null,
+        "static_load_kn": null,
+        "max_rpm_grease": null,
+        "max_rpm_oil": null
+      },
+      {
+        "product_id": 14,
+        "series_id": 20,
+        "seal_type_id": 1,
+        "precision_class_id": 1,
+        "clearance_class_id": 1,
+        "material_type_id": 1,
+        "row_count": 1,
+        "has_flange": false,
+        "is_self_aligning": true,
+        "bore_type": "cylindrical",
+        "dynamic_load_kn": null,
+        "static_load_kn": null,
+        "max_rpm_grease": null,
+        "max_rpm_oil": null
+      },
+      {
+        "product_id": 15,
+        "series_id": null,
+        "seal_type_id": 1,
+        "precision_class_id": 1,
+        "clearance_class_id": 1,
+        "material_type_id": 1,
+        "row_count": 1,
+        "has_flange": false,
+        "is_self_aligning": false,
+        "bore_type": "cylindrical",
+        "dynamic_load_kn": null,
+        "static_load_kn": null,
+        "max_rpm_grease": null,
+        "max_rpm_oil": null
+      },
+      {
+        "product_id": 16,
+        "series_id": 22,
+        "seal_type_id": 1,
+        "precision_class_id": 1,
+        "clearance_class_id": 1,
+        "material_type_id": 1,
+        "row_count": 1,
+        "has_flange": false,
+        "is_self_aligning": false,
+        "bore_type": "cylindrical",
+        "dynamic_load_kn": null,
+        "static_load_kn": null,
+        "max_rpm_grease": null,
+        "max_rpm_oil": null
+      },
+      {
+        "product_id": 17,
+        "series_id": null,
+        "seal_type_id": 1,
+        "precision_class_id": 1,
+        "clearance_class_id": 1,
+        "material_type_id": 1,
+        "row_count": 2,
+        "has_flange": false,
+        "is_self_aligning": false,
+        "bore_type": "cylindrical",
+        "dynamic_load_kn": null,
+        "static_load_kn": null,
+        "max_rpm_grease": null,
+        "max_rpm_oil": null
+      },
+      {
+        "product_id": 18,
+        "series_id": null,
+        "seal_type_id": 1,
+        "precision_class_id": 1,
+        "clearance_class_id": 1,
+        "material_type_id": 1,
+        "row_count": null,
+        "has_flange": false,
+        "is_self_aligning": false,
+        "bore_type": "tapered",
+        "dynamic_load_kn": null,
+        "static_load_kn": null,
+        "max_rpm_grease": null,
+        "max_rpm_oil": null
+      },
+      {
+        "product_id": 19,
+        "series_id": 13,
+        "seal_type_id": 1,
+        "precision_class_id": 1,
+        "clearance_class_id": 1,
+        "material_type_id": 1,
+        "row_count": 4,
+        "has_flange": false,
+        "is_self_aligning": false,
+        "bore_type": "cylindrical",
+        "dynamic_load_kn": null,
+        "static_load_kn": null,
+        "max_rpm_grease": null,
+        "max_rpm_oil": null
+      },
+      {
+        "product_id": 20,
+        "series_id": 15,
+        "seal_type_id": 1,
+        "precision_class_id": 1,
+        "clearance_class_id": 1,
+        "material_type_id": 5,
+        "row_count": 1,
+        "has_flange": false,
+        "is_self_aligning": false,
+        "bore_type": "cylindrical",
+        "dynamic_load_kn": null,
+        "static_load_kn": null,
+        "max_rpm_grease": null,
+        "max_rpm_oil": null
+      }
+    ],
+    "product_series": [
+      { "product_id": 9, "series_id": 9 },
+      { "product_id": 10, "series_id": 19 },
+      { "product_id": 13, "series_id": 12 },
+      { "product_id": 14, "series_id": 20 },
+      { "product_id": 16, "series_id": 22 },
+      { "product_id": 19, "series_id": 13 },
+      { "product_id": 20, "series_id": 15 }
+    ],
+    "product_applications": [
+      { "product_id": 8, "application_scope_id": 1 },
+      { "product_id": 9, "application_scope_id": 4 },
+      { "product_id": 10, "application_scope_id": 4 },
+      { "product_id": 13, "application_scope_id": 6 },
+      { "product_id": 14, "application_scope_id": 4 },
+      { "product_id": 15, "application_scope_id": 4 },
+      { "product_id": 16, "application_scope_id": 4 },
+      { "product_id": 17, "application_scope_id": 1 },
+      { "product_id": 18, "application_scope_id": 4 },
+      { "product_id": 19, "application_scope_id": 6 },
+      { "product_id": 20, "application_scope_id": 4 }
+    ],
+    "product_categories": [
+      { "product_id": 1, "category_id": 15, "is_primary": true, "sort_order": 0 },
+      { "product_id": 2, "category_id": 15, "is_primary": true, "sort_order": 0 },
+      { "product_id": 3, "category_id": 12, "is_primary": true, "sort_order": 0 },
+      { "product_id": 4, "category_id": 16, "is_primary": true, "sort_order": 0 },
+      { "product_id": 5, "category_id": 17, "is_primary": true, "sort_order": 0 },
+      { "product_id": 6, "category_id": 18, "is_primary": true, "sort_order": 0 },
+      { "product_id": 7, "category_id": 12, "is_primary": true, "sort_order": 0 },
+      { "product_id": 8, "category_id": 20, "is_primary": true, "sort_order": 0 },
+      { "product_id": 9, "category_id": 24, "is_primary": true, "sort_order": 0 },
+      { "product_id": 10, "category_id": 27, "is_primary": true, "sort_order": 0 },
+      { "product_id": 11, "category_id": 12, "is_primary": true, "sort_order": 0 },
+      { "product_id": 12, "category_id": 14, "is_primary": true, "sort_order": 0 },
+      { "product_id": 13, "category_id": 31, "is_primary": true, "sort_order": 0 },
+      { "product_id": 14, "category_id": 36, "is_primary": true, "sort_order": 0 },
+      { "product_id": 15, "category_id": 40, "is_primary": true, "sort_order": 0 },
+      { "product_id": 16, "category_id": 9, "is_primary": true, "sort_order": 0 },
+      { "product_id": 17, "category_id": 41, "is_primary": true, "sort_order": 0 },
+      { "product_id": 18, "category_id": 44, "is_primary": true, "sort_order": 0 },
+      { "product_id": 19, "category_id": 31, "is_primary": true, "sort_order": 0 },
+      { "product_id": 20, "category_id": 28, "is_primary": true, "sort_order": 0 }
+    ],
+    "product_images": [
+      {
+        "id": 1,
+        "product_id": 1,
+        "source_url": "https://alekspodshipnik.ru/assets/images/products/12655/3306.jpg",
+        "storage_disk": null,
+        "storage_path": null,
+        "alt_text": null,
+        "sort_order": 0,
+        "is_primary": true,
+        "width": null,
+        "height": null,
+        "checksum": null
+      },
+      {
+        "id": 2,
+        "product_id": 1,
+        "source_url": "https://alekspodshipnik.ru/assets/images/products/1164/64x64/210420151509.jpg",
+        "storage_disk": null,
+        "storage_path": null,
+        "alt_text": null,
+        "sort_order": 1,
+        "is_primary": false,
+        "width": null,
+        "height": null,
+        "checksum": null
+      },
+      {
+        "id": 3,
+        "product_id": 1,
+        "source_url": "https://alekspodshipnik.ru/assets/images/products/1329/64x64/050320161929.jpg",
+        "storage_disk": null,
+        "storage_path": null,
+        "alt_text": null,
+        "sort_order": 2,
+        "is_primary": false,
+        "width": null,
+        "height": null,
+        "checksum": null
+      },
+      {
+        "id": 4,
+        "product_id": 1,
+        "source_url": "https://alekspodshipnik.ru/assets/images/products/12649/64x64/5202.jpg",
+        "storage_disk": null,
+        "storage_path": null,
+        "alt_text": null,
+        "sort_order": 3,
+        "is_primary": false,
+        "width": null,
+        "height": null,
+        "checksum": null
+      },
+      {
+        "id": 5,
+        "product_id": 1,
+        "source_url": "https://alekspodshipnik.ru/assets/images/products/12655/64x64/3306.jpg",
+        "storage_disk": null,
+        "storage_path": null,
+        "alt_text": null,
+        "sort_order": 4,
+        "is_primary": false,
+        "width": null,
+        "height": null,
+        "checksum": null
+      },
+      {
+        "id": 6,
+        "product_id": 1,
+        "source_url": "https://alekspodshipnik.ru/assets/images/products/12658/64x64/220420122025.jpg",
+        "storage_disk": null,
+        "storage_path": null,
+        "alt_text": null,
+        "sort_order": 5,
+        "is_primary": false,
+        "width": null,
+        "height": null,
+        "checksum": null
+      },
+      {
+        "id": 7,
+        "product_id": 7,
+        "source_url": "https://alekspodshipnik.ru/assets/images/products/13885/6000.jpg",
+        "storage_disk": null,
+        "storage_path": null,
+        "alt_text": null,
+        "sort_order": 0,
+        "is_primary": true,
+        "width": null,
+        "height": null,
+        "checksum": null
+      },
+      {
+        "id": 8,
+        "product_id": 7,
+        "source_url": "https://alekspodshipnik.ru/assets/images/products/448/64x64/2rs.jpg",
+        "storage_disk": null,
+        "storage_path": null,
+        "alt_text": null,
+        "sort_order": 1,
+        "is_primary": false,
+        "width": null,
+        "height": null,
+        "checksum": null
+      },
+      {
+        "id": 9,
+        "product_id": 7,
+        "source_url": "https://alekspodshipnik.ru/assets/images/products/2008/64x64/040520151129.jpg",
+        "storage_disk": null,
+        "storage_path": null,
+        "alt_text": null,
+        "sort_order": 2,
+        "is_primary": false,
+        "width": null,
+        "height": null,
+        "checksum": null
+      },
+      {
+        "id": 10,
+        "product_id": 7,
+        "source_url": "https://alekspodshipnik.ru/assets/images/products/2213/64x64/110520152030.jpg",
+        "storage_disk": null,
+        "storage_path": null,
+        "alt_text": null,
+        "sort_order": 3,
+        "is_primary": false,
+        "width": null,
+        "height": null,
+        "checksum": null
+      },
+      {
+        "id": 11,
+        "product_id": 7,
+        "source_url": "https://alekspodshipnik.ru/assets/images/products/13885/64x64/6000.jpg",
+        "storage_disk": null,
+        "storage_path": null,
+        "alt_text": null,
+        "sort_order": 4,
+        "is_primary": false,
+        "width": null,
+        "height": null,
+        "checksum": null
+      },
+      {
+        "id": 12,
+        "product_id": 7,
+        "source_url": "https://alekspodshipnik.ru/assets/images/products/22147/64x64/12-rs.jpg",
+        "storage_disk": null,
+        "storage_path": null,
+        "alt_text": null,
+        "sort_order": 5,
+        "is_primary": false,
+        "width": null,
+        "height": null,
+        "checksum": null
+      },
+      {
+        "id": 13,
+        "product_id": 7,
+        "source_url": "https://alekspodshipnik.ru/assets/images/products/195605/64x64/6305.jpg",
+        "storage_disk": null,
+        "storage_path": null,
+        "alt_text": null,
+        "sort_order": 6,
+        "is_primary": false,
+        "width": null,
+        "height": null,
+        "checksum": null
+      },
+      {
+        "id": 14,
+        "product_id": 7,
+        "source_url": "https://alekspodshipnik.ru/assets/images/products/195609/64x64/12-rs.jpg",
+        "storage_disk": null,
+        "storage_path": null,
+        "alt_text": null,
+        "sort_order": 7,
+        "is_primary": false,
+        "width": null,
+        "height": null,
+        "checksum": null
+      },
+      {
+        "id": 15,
+        "product_id": 7,
+        "source_url": "https://alekspodshipnik.ru/assets/images/products/195610/64x64/6000.jpg",
+        "storage_disk": null,
+        "storage_path": null,
+        "alt_text": null,
+        "sort_order": 8,
+        "is_primary": false,
+        "width": null,
+        "height": null,
+        "checksum": null
+      }
+    ]
+  }
+  {
+    "product_images": [
+      {
+        "id": 16,
+        "product_id": 7,
+        "source_url": "https://alekspodshipnik.ru/assets/images/products/195611/64x64/6000.jpg",
+        "storage_disk": null,
+        "storage_path": null,
+        "alt_text": null,
+        "sort_order": 9,
+        "is_primary": false,
+        "width": null,
+        "height": null,
+        "checksum": null
+      },
+      {
+        "id": 17,
+        "product_id": 7,
+        "source_url": "https://alekspodshipnik.ru/assets/images/products/196917/64x64/12-rs.jpg",
+        "storage_disk": null,
+        "storage_path": null,
+        "alt_text": null,
+        "sort_order": 10,
+        "is_primary": false,
+        "width": null,
+        "height": null,
+        "checksum": null
+      },
+      {
+        "id": 18,
+        "product_id": 11,
+        "source_url": "https://alekspodshipnik.ru/assets/images/products/195611/6000.jpg",
+        "storage_disk": null,
+        "storage_path": null,
+        "alt_text": null,
+        "sort_order": 0,
+        "is_primary": true,
+        "width": null,
+        "height": null,
+        "checksum": null
+      },
+      {
+        "id": 19,
+        "product_id": 11,
+        "source_url": "https://alekspodshipnik.ru/assets/images/products/443/64x64/6000.jpg",
+        "storage_disk": null,
+        "storage_path": null,
+        "alt_text": null,
+        "sort_order": 1,
+        "is_primary": false,
+        "width": null,
+        "height": null,
+        "checksum": null
+      },
+      {
+        "id": 20,
+        "product_id": 11,
+        "source_url": "https://alekspodshipnik.ru/assets/images/products/13885/64x64/6000.jpg",
+        "storage_disk": null,
+        "storage_path": null,
+        "alt_text": null,
+        "sort_order": 2,
+        "is_primary": false,
+        "width": null,
+        "height": null,
+        "checksum": null
+      },
+      {
+        "id": 21,
+        "product_id": 11,
+        "source_url": "https://alekspodshipnik.ru/assets/images/products/195610/64x64/6000.jpg",
+        "storage_disk": null,
+        "storage_path": null,
+        "alt_text": null,
+        "sort_order": 3,
+        "is_primary": false,
+        "width": null,
+        "height": null,
+        "checksum": null
+      },
+      {
+        "id": 22,
+        "product_id": 11,
+        "source_url": "https://alekspodshipnik.ru/assets/images/products/195611/64x64/6000.jpg",
+        "storage_disk": null,
+        "storage_path": null,
+        "alt_text": null,
+        "sort_order": 4,
+        "is_primary": false,
+        "width": null,
+        "height": null,
+        "checksum": null
+      },
+      {
+        "id": 23,
+        "product_id": 13,
+        "source_url": "https://alekspodshipnik.ru/assets/images/products/300001/lm20uu.jpg",
+        "storage_disk": null,
+        "storage_path": null,
+        "alt_text": null,
+        "sort_order": 0,
+        "is_primary": true,
+        "width": null,
+        "height": null,
+        "checksum": null
+      },
+      {
+        "id": 24,
+        "product_id": 14,
+        "source_url": "https://alekspodshipnik.ru/assets/images/products/300002/ge25es.jpg",
+        "storage_disk": null,
+        "storage_path": null,
+        "alt_text": null,
+        "sort_order": 0,
+        "is_primary": true,
+        "width": null,
+        "height": null,
+        "checksum": null
+      },
+      {
+        "id": 25,
+        "product_id": 15,
+        "source_url": "https://alekspodshipnik.ru/assets/images/products/300003/kr35.jpg",
+        "storage_disk": null,
+        "storage_path": null,
+        "alt_text": null,
+        "sort_order": 0,
+        "is_primary": true,
+        "width": null,
+        "height": null,
+        "checksum": null
+      },
+      {
+        "id": 26,
+        "product_id": 16,
+        "source_url": "https://alekspodshipnik.ru/assets/images/products/300004/hfl0822.jpg",
+        "storage_disk": null,
+        "storage_path": null,
+        "alt_text": null,
+        "sort_order": 0,
+        "is_primary": true,
+        "width": null,
+        "height": null,
+        "checksum": null
+      },
+      {
+        "id": 27,
+        "product_id": 17,
+        "source_url": "https://alekspodshipnik.ru/assets/images/products/300005/dac3055w.jpg",
+        "storage_disk": null,
+        "storage_path": null,
+        "alt_text": null,
+        "sort_order": 0,
+        "is_primary": true,
+        "width": null,
+        "height": null,
+        "checksum": null
+      },
+      {
+        "id": 28,
+        "product_id": 18,
+        "source_url": "https://alekspodshipnik.ru/assets/images/products/300006/h312.jpg",
+        "storage_disk": null,
+        "storage_path": null,
+        "alt_text": null,
+        "sort_order": 0,
+        "is_primary": true,
+        "width": null,
+        "height": null,
+        "checksum": null
+      },
+      {
+        "id": 29,
+        "product_id": 19,
+        "source_url": "https://alekspodshipnik.ru/assets/images/products/300007/lme12uu.jpg",
+        "storage_disk": null,
+        "storage_path": null,
+        "alt_text": null,
+        "sort_order": 0,
+        "is_primary": true,
+        "width": null,
+        "height": null,
+        "checksum": null
+      },
+      {
+        "id": 30,
+        "product_id": 20,
+        "source_url": "https://alekspodshipnik.ru/assets/images/products/300008/ucp205.jpg",
+        "storage_disk": null,
+        "storage_path": null,
+        "alt_text": null,
+        "sort_order": 0,
+        "is_primary": true,
+        "width": null,
+        "height": null,
+        "checksum": null
+      }
+    ],
+    "product_attribute_definitions": [
+      {
+        "id": 1,
+        "code": "photo_label",
+        "data_type": "string",
+        "unit": null,
+        "is_filterable": false,
+        "is_visible": true,
+        "sort_order": 10
+      },
+      {
+        "id": 2,
+        "code": "origin_category_path",
+        "data_type": "text",
+        "unit": null,
+        "is_filterable": false,
+        "is_visible": false,
+        "sort_order": 20
+      },
+      {
+        "id": 3,
+        "code": "raw_title",
+        "data_type": "string",
+        "unit": null,
+        "is_filterable": false,
+        "is_visible": false,
+        "sort_order": 30
+      },
+      {
+        "id": 4,
+        "code": "availability_status",
+        "data_type": "string",
+        "unit": null,
+        "is_filterable": true,
+        "is_visible": true,
+        "sort_order": 40
+      }
+    ],
+    "product_attribute_definition_translations": [
+      {
+        "attribute_definition_id": 1,
+        "language_code": "RU",
+        "name": "Метка фото"
+      },
+      {
+        "attribute_definition_id": 1,
+        "language_code": "EN",
+        "name": "Photo label"
+      },
+      {
+        "attribute_definition_id": 2,
+        "language_code": "RU",
+        "name": "Исходный путь категории"
+      },
+      {
+        "attribute_definition_id": 2,
+        "language_code": "EN",
+        "name": "Source category path"
+      },
+      {
+        "attribute_definition_id": 3,
+        "language_code": "RU",
+        "name": "Исходное название"
+      },
+      {
+        "attribute_definition_id": 3,
+        "language_code": "EN",
+        "name": "Raw title"
+      },
+      {
+        "attribute_definition_id": 4,
+        "language_code": "RU",
+        "name": "Статус наличия"
+      },
+      {
+        "attribute_definition_id": 4,
+        "language_code": "EN",
+        "name": "Availability status"
+      }
+    ],
+    "product_attribute_values": [
+      {
+        "product_id": 1,
+        "attribute_definition_id": 1,
+        "value_string": "Наименование",
+        "value_text": null,
+        "value_integer": null,
+        "value_decimal": null,
+        "value_boolean": null
+      },
+      {
+        "product_id": 1,
+        "attribute_definition_id": 2,
+        "value_string": null,
+        "value_text": "Виды подшипников > Шариковые подшипники > Подшипник шариковый радиально-упорный двухрядный",
+        "value_integer": null,
+        "value_decimal": null,
+        "value_boolean": null
+      },
+      {
+        "product_id": 1,
+        "attribute_definition_id": 3,
+        "value_string": "Радиально-упорный шариковый подшипник-3206 B 2RSR TVH",
+        "value_text": null,
+        "value_integer": null,
+        "value_decimal": null,
+        "value_boolean": null
+      },
+      {
+        "product_id": 2,
+        "attribute_definition_id": 3,
+        "value_string": "Радиально-упорный шариковый подшипник-3306 A 2RS1",
+        "value_text": null,
+        "value_integer": null,
+        "value_decimal": null,
+        "value_boolean": null
+      },
+      {
+        "product_id": 3,
+        "attribute_definition_id": 3,
+        "value_string": "Шариковый радиальный однорядный подшипник 6000 2RS",
+        "value_text": null,
+        "value_integer": null,
+        "value_decimal": null,
+        "value_boolean": null
+      },
+      {
+        "product_id": 4,
+        "attribute_definition_id": 3,
+        "value_string": "Самоустанавливающийся шариковый подшипник 1205 K",
+        "value_text": null,
+        "value_integer": null,
+        "value_decimal": null,
+        "value_boolean": null
+      },
+      {
+        "product_id": 5,
+        "attribute_definition_id": 3,
+        "value_string": "Шариковый упорный подшипник 51104",
+        "value_text": null,
+        "value_integer": null,
+        "value_decimal": null,
+        "value_boolean": null
+      },
+      {
+        "product_id": 6,
+        "attribute_definition_id": 3,
+        "value_string": "Миниатюрный подшипник 608 ZZ",
+        "value_text": null,
+        "value_integer": null,
+        "value_decimal": null,
+        "value_boolean": null
+      },
+      {
+        "product_id": 7,
+        "attribute_definition_id": 1,
+        "value_string": "Наименование",
+        "value_text": null,
+        "value_integer": null,
+        "value_decimal": null,
+        "value_boolean": null
+      },
+      {
+        "product_id": 7,
+        "attribute_definition_id": 2,
+        "value_string": null,
+        "value_text": "Виды подшипников > Шариковые подшипники > Шариковый радиальный однорядный",
+        "value_integer": null,
+        "value_decimal": null,
+        "value_boolean": null
+      },
+      {
+        "product_id": 7,
+        "attribute_definition_id": 3,
+        "value_string": "Однорядный шариковый радиальный подшипник 6207 ZZCM",
+        "value_text": null,
+        "value_integer": null,
+        "value_decimal": null,
+        "value_boolean": null
+      },
+      {
+        "product_id": 8,
+        "attribute_definition_id": 3,
+        "value_string": "Конический роликовый подшипник 30205",
+        "value_text": null,
+        "value_integer": null,
+        "value_decimal": null,
+        "value_boolean": null
+      },
+      {
+        "product_id": 9,
+        "attribute_definition_id": 3,
+        "value_string": "Игольчатый подшипник NA4904",
+        "value_text": null,
+        "value_integer": null,
+        "value_decimal": null,
+        "value_boolean": null
+      },
+      {
+        "product_id": 10,
+        "attribute_definition_id": 3,
+        "value_string": "Корпусный подшипник UC205",
+        "value_text": null,
+        "value_integer": null,
+        "value_decimal": null,
+        "value_boolean": null
+      },
+      {
+        "product_id": 11,
+        "attribute_definition_id": 3,
+        "value_string": "Однорядный шариковый подшипник 6205 DDU CM",
+        "value_text": null,
+        "value_integer": null,
+        "value_decimal": null,
+        "value_boolean": null
+      },
+      {
+        "product_id": 12,
+        "attribute_definition_id": 3,
+        "value_string": "Радиально-упорный шариковый подшипник 7205 BEP",
+        "value_text": null,
+        "value_integer": null,
+        "value_decimal": null,
+        "value_boolean": null
+      },
+      {
+        "product_id": 13,
+        "attribute_definition_id": 3,
+        "value_string": "Шариковая втулка LM20UU",
+        "value_text": null,
+        "value_integer": null,
+        "value_decimal": null,
+        "value_boolean": null
+      },
+      {
+        "product_id": 14,
+        "attribute_definition_id": 3,
+        "value_string": "Шарнирный подшипник GE25ES",
+        "value_text": null,
+        "value_integer": null,
+        "value_decimal": null,
+        "value_boolean": null
+      },
+      {
+        "product_id": 15,
+        "attribute_definition_id": 3,
+        "value_string": "Подшипник Опорный ролик KR35",
+        "value_text": null,
+        "value_integer": null,
+        "value_decimal": null,
+        "value_boolean": null
+      },
+      {
+        "product_id": 16,
+        "attribute_definition_id": 3,
+        "value_string": "Обгонная муфта HFL0822",
+        "value_text": null,
+        "value_integer": null,
+        "value_decimal": null,
+        "value_boolean": null
+      }
+    ]
+  }
+  {
+    "product_attribute_values": [
+      {
+        "product_id": 17,
+        "attribute_definition_id": 3,
+        "value_string": "Автомобильный подшипник DAC3055W",
+        "value_text": null,
+        "value_integer": null,
+        "value_decimal": null,
+        "value_boolean": null
+      },
+      {
+        "product_id": 18,
+        "attribute_definition_id": 3,
+        "value_string": "Втулка закрепительная H312",
+        "value_text": null,
+        "value_integer": null,
+        "value_decimal": null,
+        "value_boolean": null
+      },
+      {
+        "product_id": 19,
+        "attribute_definition_id": 3,
+        "value_string": "Шариковая втулка LME12UU",
+        "value_text": null,
+        "value_integer": null,
+        "value_decimal": null,
+        "value_boolean": null
+      },
+      {
+        "product_id": 20,
+        "attribute_definition_id": 3,
+        "value_string": "Подшипниковый узел UCP205",
+        "value_text": null,
+        "value_integer": null,
+        "value_decimal": null,
+        "value_boolean": null
+      }
+    ],
+    "products_next_batch_template": [
+      {
+        "id": 21,
+        "category_id": 12,
+        "brand_id": 2,
+        "bearing_family_id": 1,
+        "construction_type_id": 1,
+        "load_direction_id": 1,
+        "rolling_element_type_id": 1,
+        "temperature_class_id": 1,
+        "application_scope_id": null,
+        "sku": null,
+        "article": "6206 2RS1",
+        "article_inferred": false,
+        "manufacturer_part_number": null,
+        "slug": "6206-2rs1-skf",
+        "source_url": "https://alekspodshipnik.ru/",
+        "source_system": "alekspodshipnik",
+        "is_active": true,
+        "is_featured": false
+      },
+      {
+        "id": 22,
+        "category_id": 12,
+        "brand_id": 1,
+        "bearing_family_id": 1,
+        "construction_type_id": 1,
+        "load_direction_id": 1,
+        "rolling_element_type_id": 1,
+        "temperature_class_id": 1,
+        "application_scope_id": null,
+        "sku": null,
+        "article": "6204 DDU",
+        "article_inferred": false,
+        "manufacturer_part_number": null,
+        "slug": "6204-ddu-nsk",
+        "source_url": "https://alekspodshipnik.ru/",
+        "source_system": "alekspodshipnik",
+        "is_active": true,
+        "is_featured": false
+      },
+      {
+        "id": 23,
+        "category_id": 14,
+        "brand_id": 5,
+        "bearing_family_id": 1,
+        "construction_type_id": 3,
+        "load_direction_id": 3,
+        "rolling_element_type_id": 1,
+        "temperature_class_id": 1,
+        "application_scope_id": null,
+        "sku": null,
+        "article": "7305 B TVP",
+        "article_inferred": false,
+        "manufacturer_part_number": null,
+        "slug": "7305-b-tvp-fag",
+        "source_url": "https://alekspodshipnik.ru/",
+        "source_system": "alekspodshipnik",
+        "is_active": true,
+        "is_featured": false
+      },
+      {
+        "id": 24,
+        "category_id": 16,
+        "brand_id": 2,
+        "bearing_family_id": 1,
+        "construction_type_id": 5,
+        "load_direction_id": 1,
+        "rolling_element_type_id": 1,
+        "temperature_class_id": 1,
+        "application_scope_id": null,
+        "sku": null,
+        "article": "2205 E-2RS1TN9",
+        "article_inferred": false,
+        "manufacturer_part_number": null,
+        "slug": "2205-e-2rs1tn9-skf",
+        "source_url": "https://alekspodshipnik.ru/",
+        "source_system": "alekspodshipnik",
+        "is_active": true,
+        "is_featured": false
+      },
+      {
+        "id": 25,
+        "category_id": 20,
+        "brand_id": 27,
+        "bearing_family_id": 2,
+        "construction_type_id": 9,
+        "load_direction_id": 4,
+        "rolling_element_type_id": 3,
+        "temperature_class_id": 1,
+        "application_scope_id": 1,
+        "sku": null,
+        "article": "30306",
+        "article_inferred": false,
+        "manufacturer_part_number": null,
+        "slug": "30306-timken",
+        "source_url": "https://alekspodshipnik.ru/",
+        "source_system": "alekspodshipnik",
+        "is_active": true,
+        "is_featured": false
+      }
+    ],
+    "product_translations_next_batch_template": [
+      {
+        "product_id": 21,
+        "language_code": "RU",
+        "name": "Однорядный шариковый подшипник 6206 2RS1",
+        "short_name": "Подшипник 6206 2RS1",
+        "description": null,
+        "is_auto_generated": false
+      },
+      {
+        "product_id": 21,
+        "language_code": "EN",
+        "name": "Single row deep groove ball bearing 6206 2RS1",
+        "short_name": "Bearing 6206 2RS1",
+        "description": null,
+        "is_auto_generated": true
+      },
+      {
+        "product_id": 22,
+        "language_code": "RU",
+        "name": "Однорядный шариковый подшипник 6204 DDU",
+        "short_name": "Подшипник 6204 DDU",
+        "description": null,
+        "is_auto_generated": false
+      },
+      {
+        "product_id": 22,
+        "language_code": "EN",
+        "name": "Single row deep groove ball bearing 6204 DDU",
+        "short_name": "Bearing 6204 DDU",
+        "description": null,
+        "is_auto_generated": true
+      },
+      {
+        "product_id": 23,
+        "language_code": "RU",
+        "name": "Радиально-упорный шариковый подшипник 7305 B TVP",
+        "short_name": "Подшипник 7305 B TVP",
+        "description": null,
+        "is_auto_generated": false
+      },
+      {
+        "product_id": 23,
+        "language_code": "EN",
+        "name": "Angular contact ball bearing 7305 B TVP",
+        "short_name": "Bearing 7305 B TVP",
+        "description": null,
+        "is_auto_generated": true
+      },
+      {
+        "product_id": 24,
+        "language_code": "RU",
+        "name": "Самоустанавливающийся шариковый подшипник 2205 E-2RS1TN9",
+        "short_name": "Подшипник 2205 E-2RS1TN9",
+        "description": null,
+        "is_auto_generated": false
+      },
+      {
+        "product_id": 24,
+        "language_code": "EN",
+        "name": "Self-aligning ball bearing 2205 E-2RS1TN9",
+        "short_name": "Bearing 2205 E-2RS1TN9",
+        "description": null,
+        "is_auto_generated": true
+      },
+      {
+        "product_id": 25,
+        "language_code": "RU",
+        "name": "Конический роликовый подшипник 30306",
+        "short_name": "Подшипник 30306",
+        "description": null,
+        "is_auto_generated": false
+      },
+      {
+        "product_id": 25,
+        "language_code": "EN",
+        "name": "Tapered roller bearing 30306",
+        "short_name": "Bearing 30306",
+        "description": null,
+        "is_auto_generated": true
+      }
+    ],
+    "product_dimensions_next_batch_template": [
+      {
+        "product_id": 21,
+        "inner_diameter_mm": 30.0,
+        "outer_diameter_mm": 62.0,
+        "width_mm": 16.0,
+        "height_mm": 16.0,
+        "weight_g": 200.0
+      },
+      {
+        "product_id": 22,
+        "inner_diameter_mm": 20.0,
+        "outer_diameter_mm": 47.0,
+        "width_mm": 14.0,
+        "height_mm": 14.0,
+        "weight_g": 110.0
+      },
+      {
+        "product_id": 23,
+        "inner_diameter_mm": 25.0,
+        "outer_diameter_mm": 62.0,
+        "width_mm": 17.0,
+        "height_mm": 17.0,
+        "weight_g": 230.0
+      },
+      {
+        "product_id": 24,
+        "inner_diameter_mm": 25.0,
+        "outer_diameter_mm": 52.0,
+        "width_mm": 18.0,
+        "height_mm": 18.0,
+        "weight_g": 155.0
+      },
+      {
+        "product_id": 25,
+        "inner_diameter_mm": 30.0,
+        "outer_diameter_mm": 72.0,
+        "width_mm": 20.75,
+        "height_mm": 20.75,
+        "weight_g": 280.0
+      }
+    ],
+    "product_bearing_specs_next_batch_template": [
+      {
+        "product_id": 21,
+        "series_id": null,
+        "seal_type_id": 5,
+        "precision_class_id": 1,
+        "clearance_class_id": 1,
+        "material_type_id": 1,
+        "row_count": 1,
+        "has_flange": false,
+        "is_self_aligning": false,
+        "bore_type": "cylindrical",
+        "dynamic_load_kn": null,
+        "static_load_kn": null,
+        "max_rpm_grease": null,
+        "max_rpm_oil": null
+      },
+      {
+        "product_id": 22,
+        "series_id": null,
+        "seal_type_id": 5,
+        "precision_class_id": 1,
+        "clearance_class_id": 1,
+        "material_type_id": 1,
+        "row_count": 1,
+        "has_flange": false,
+        "is_self_aligning": false,
+        "bore_type": "cylindrical",
+        "dynamic_load_kn": null,
+        "static_load_kn": null,
+        "max_rpm_grease": null,
+        "max_rpm_oil": null
+      },
+      {
+        "product_id": 23,
+        "series_id": null,
+        "seal_type_id": 1,
+        "precision_class_id": 1,
+        "clearance_class_id": 1,
+        "material_type_id": 1,
+        "row_count": 1,
+        "has_flange": false,
+        "is_self_aligning": false,
+        "bore_type": "cylindrical",
+        "dynamic_load_kn": null,
+        "static_load_kn": null,
+        "max_rpm_grease": null,
+        "max_rpm_oil": null
+      },
+      {
+        "product_id": 24,
+        "series_id": null,
+        "seal_type_id": 5,
+        "precision_class_id": 1,
+        "clearance_class_id": 1,
+        "material_type_id": 1,
+        "row_count": 2,
+        "has_flange": false,
+        "is_self_aligning": true,
+        "bore_type": "cylindrical",
+        "dynamic_load_kn": null,
+        "static_load_kn": null,
+        "max_rpm_grease": null,
+        "max_rpm_oil": null
+      },
+      {
+        "product_id": 25,
+        "series_id": null,
+        "seal_type_id": 1,
+        "precision_class_id": 1,
+        "clearance_class_id": 1,
+        "material_type_id": 1,
+        "row_count": 1,
+        "has_flange": false,
+        "is_self_aligning": false,
+        "bore_type": "cylindrical",
+        "dynamic_load_kn": null,
+        "static_load_kn": null,
+        "max_rpm_grease": null,
+        "max_rpm_oil": null
+      }
+    ],
+  }

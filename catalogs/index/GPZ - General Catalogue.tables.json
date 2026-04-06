@@ -1,0 +1,15 @@
+{
+  "catalog": "GPZ - General Catalogue.pdf",
+  "manufacturer": "GPZ",
+  "total_pages": 224,
+  "extraction_method": "ocr_winocr",
+  "stats": {
+    "pages_with_tables": 0,
+    "tables_analyzed": 0,
+    "data_rows": 0,
+    "unique_models": 0
+  },
+  "model_index": {},
+  "table_map": {},
+  "models": []
+}

@@ -1,0 +1,340 @@
+[
+    {
+        "id": 1,
+        "code": "length",
+        "icon": "📏",
+        "sort_order": 1,
+        "translations": {
+            "en": {
+                "name": "Length",
+                "description": "Units for measuring length and distance"
+            },
+            "ru": {
+                "name": "Длина",
+                "description": "Единицы измерения длины и расстояния"
+            },
+            "de": {
+                "name": "Länge",
+                "description": "Einheiten zur Messung von Länge und Entfernung"
+            },
+            "es": {
+                "name": "Longitud",
+                "description": "Unidades para medir longitud y distancia"
+            }
+        },
+        "units": [
+            {
+                "id": 1,
+                "symbol": "m",
+                "translations": {
+                    "en": {
+                        "name": "Meter"
+                    },
+                    "ru": {
+                        "name": "Метр"
+                    },
+                    "de": {
+                        "name": "Meter"
+                    },
+                    "es": {
+                        "name": "Metro"
+                    }
+                }
+            },
+            {
+                "id": 2,
+                "symbol": "cm",
+                "translations": {
+                    "en": {
+                        "name": "Centimeter"
+                    },
+                    "ru": {
+                        "name": "Сантиметр"
+                    },
+                    "de": {
+                        "name": "Zentimeter"
+                    },
+                    "es": {
+                        "name": "Centímetro"
+                    }
+                }
+            },
+            {
+                "id": 3,
+                "symbol": "mm",
+                "translations": {
+                    "en": {
+                        "name": "Millimeter"
+                    },
+                    "ru": {
+                        "name": "Миллиметр"
+                    },
+                    "de": {
+                        "name": "Millimeter"
+                    },
+                    "es": {
+                        "name": "Milímetro"
+                    }
+                }
+            }
+        ]
+    },
+    {
+        "id": 2,
+        "code": "weight",
+        "icon": "⚖️",
+        "sort_order": 2,
+        "translations": {
+            "en": {
+                "name": "Weight",
+                "description": "Units for measuring weight and mass"
+            },
+            "ru": {
+                "name": "Вес",
+                "description": "Единицы измерения веса и массы"
+            },
+            "de": {
+                "name": "Gewicht",
+                "description": "Einheiten zur Messung von Gewicht und Masse"
+            },
+            "es": {
+                "name": "Peso",
+                "description": "Unidades para medir peso y masa"
+            }
+        },
+        "units": [
+            {
+                "id": 4,
+                "symbol": "kg",
+                "translations": {
+                    "en": {
+                        "name": "Kilogram"
+                    },
+                    "ru": {
+                        "name": "Килограмм"
+                    },
+                    "de": {
+                        "name": "Kilogramm"
+                    },
+                    "es": {
+                        "name": "Kilogramo"
+                    }
+                }
+            },
+            {
+                "id": 6,
+                "symbol": "gr",
+                "translations": {
+                    "en": {
+                        "name": "Gram"
+                    },
+                    "ru": {
+                        "name": "Грам"
+                    }
+                }
+            },
+            {
+                "id": 19,
+                "symbol": "TONN",
+                "translations": {
+                    "en": {
+                        "name": "Tonn"
+                    },
+                    "ru": {
+                        "name": "Тонна"
+                    }
+                }
+            }
+        ]
+    },
+    {
+        "id": 3,
+        "code": "volume",
+        "icon": "🧪",
+        "sort_order": 3,
+        "translations": {
+            "en": {
+                "name": "Volume",
+                "description": "Units for measuring volume and capacity"
+            },
+            "ru": {
+                "name": "Объем",
+                "description": "Единицы измерения объёма и вместимости"
+            },
+            "de": {
+                "name": "Volumen",
+                "description": "Einheiten zur Messung von Volumen und Kapazität"
+            },
+            "es": {
+                "name": "Volumen",
+                "description": "Unidades para medir volumen y capacidad"
+            }
+        },
+        "units": [
+            {
+                "id": 7,
+                "symbol": "cm3",
+                "translations": {
+                    "en": {
+                        "name": "Cubic cm"
+                    },
+                    "ru": {
+                        "name": "Куб. см."
+                    }
+                }
+            },
+            {
+                "id": 8,
+                "symbol": "m3",
+                "translations": {
+                    "en": {
+                        "name": "Cubic meter"
+                    },
+                    "ru": {
+                        "name": "Куб. м."
+                    }
+                }
+            }
+        ]
+    },
+    {
+        "id": 4,
+        "code": "area",
+        "icon": "⬛",
+        "sort_order": 4,
+        "translations": {
+            "en": {
+                "name": "Area",
+                "description": "Units for measuring area and surface"
+            },
+            "ru": {
+                "name": "Площадь",
+                "description": "Единицы измерения площади и поверхности"
+            },
+            "de": {
+                "name": "Fläche",
+                "description": "Einheiten zur Messung von Fläche und Oberfläche"
+            },
+            "es": {
+                "name": "Área",
+                "description": "Unidades para medir área y superficie"
+            }
+        },
+        "units": [
+            {
+                "id": 9,
+                "symbol": "m2",
+                "translations": {
+                    "en": {
+                        "name": "Square meter"
+                    },
+                    "ru": {
+                        "name": "Метр квадратный"
+                    }
+                }
+            },
+            {
+                "id": 10,
+                "symbol": "cm2",
+                "translations": {
+                    "en": {
+                        "name": "Square centimeter"
+                    },
+                    "ru": {
+                        "name": "Сантиметр квадратный"
+                    }
+                }
+            },
+            {
+                "id": 21,
+                "symbol": "mm2",
+                "translations": {
+                    "en": {
+                        "name": "square millimeter"
+                    },
+                    "ru": {
+                        "name": "Миллиметр квадратный"
+                    }
+                }
+            }
+        ]
+    },
+    {
+        "id": 5,
+        "code": "time",
+        "icon": "⏰",
+        "sort_order": 5,
+        "translations": {
+            "en": {
+                "name": "Diameter",
+                "description": "Units for measuring time and duration"
+            },
+            "ru": {
+                "name": "Диаметр",
+                "description": "Единицы измерения времени и продолжительности"
+            },
+            "de": {
+                "name": "Messarten",
+                "description": "Einheiten zur Messung von Zeit und Dauer"
+            },
+            "es": {
+                "name": "Tipos de mediciones",
+                "description": "Unidades para medir tiempo y duración"
+            }
+        },
+        "units": [
+            {
+                "id": 20,
+                "symbol": "mm-dia",
+                "translations": {
+                    "en": {
+                        "name": "mm"
+                    },
+                    "ru": {
+                        "name": "мм"
+                    }
+                }
+            }
+        ]
+    },
+    {
+        "id": 6,
+        "code": "THICKNESS",
+        "icon": "🔢",
+        "sort_order": 6,
+        "translations": {
+            "en": {
+                "name": "Thickness",
+                "description": "Units for counting quantities"
+            },
+            "ru": {
+                "name": "Толщина",
+                "description": "Единицы для подсчёта количества"
+            },
+            "de": {
+                "name": "Messarten",
+                "description": "Einheiten zum Zählen von Mengen"
+            },
+            "es": {
+                "name": "Tipos de mediciones",
+                "description": "Unidades para contar cantidades"
+            }
+        },
+        "units": []
+    },
+    {
+        "id": 10,
+        "code": "TYPE",
+        "icon": null,
+        "sort_order": 6,
+        "translations": {
+            "en": {
+                "name": "Type"
+            },
+            "ru": {
+                "name": "Типоразмер"
+            }
+        },
+        "units": []
+    }
+]

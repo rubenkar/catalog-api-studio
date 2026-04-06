@@ -1,0 +1,1472 @@
+[
+  {
+    "suffix": "R70",
+    "category": "modification",
+    "code": "R70",
+    "description_en": "NBR 70 elastomer material / 70 Shore nitrile rubber",
+    "description_ru": "эластомер NBR 70 / нитрильный каучук твердости 70 Shore",
+    "count": null
+  },
+  {
+    "suffix": "F70",
+    "category": "modification",
+    "code": "F70",
+    "description_en": "FKM 70–75 elastomer material / fluoroelastomer grade",
+    "description_ru": "эластомер FKM 70–75 / фторкаучуковый материал",
+    "count": null
+  },
+  {
+    "suffix": "G15",
+    "category": "precision",
+    "code": "G15",
+    "description_en": "vibration / running accuracy grade G15",
+    "description_ru": "класс вибрации / точности хода G15",
+    "count": null
+  },
+  {
+    "suffix": "H200",
+    "category": "modification",
+    "code": "HT200",
+    "description_en": "high-temperature design up to 200°C",
+    "description_ru": "высокотемпературное исполнение до 200°C",
+    "count": null
+  },
+  {
+    "suffix": "SF",
+    "category": "modification",
+    "code": "SF",
+    "description_en": "self-lubricating plain bearing material family",
+    "description_ru": "самосмазывающийся материал подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "CG",
+    "category": "modification",
+    "code": "GA",
+    "description_en": "matched-pair angular-contact arrangement / preload code",
+    "description_ru": "код парной установки / преднатяга углового контакта",
+    "count": null
+  },
+  {
+    "suffix": "F150",
+    "category": "modification",
+    "code": "FT150",
+    "description_en": "high-temperature design up to 150°C",
+    "description_ru": "высокотемпературное исполнение до 150°C",
+    "count": null
+  },
+  {
+    "suffix": "UP3",
+    "category": "modification",
+    "code": "UP3",
+    "description_en": "universal matched pair / preload grade P3",
+    "description_ru": "универсально согласованная пара / преднатяг класса P3",
+    "count": null
+  },
+  {
+    "suffix": "GF",
+    "category": "modification",
+    "code": "GF",
+    "description_en": "brand-specific super-precision matched-set code",
+    "description_ru": "фирменный код комплектации прецизионной пары",
+    "count": null
+  },
+  {
+    "suffix": "CUP3",
+    "category": "modification",
+    "code": "CUP3",
+    "description_en": "matched-pair / preload code for angular contact bearings",
+    "description_ru": "код парной установки / преднатяга для радиально-упорных подшипников",
+    "count": null
+  },
+  {
+    "suffix": "350°",
+    "category": "modification",
+    "code": "350°",
+    "description_en": "high-temperature operating limit 350°C",
+    "description_ru": "предельная рабочая температура 350°C",
+    "count": null
+  },
+  {
+    "suffix": "G2",
+    "category": "modification",
+    "code": "G2",
+    "description_en": "insert-bearing generation / relubrication and set-screw execution code",
+    "description_ru": "код исполнения корпусного подшипника G2 / вариант смазки и стопорных винтов",
+    "count": null
+  },
+  {
+    "suffix": "DG",
+    "category": "modification",
+    "code": "DGA",
+    "description_en": "duplex matched pair arrangement code",
+    "description_ru": "код дуплексной пары / согласованной установки",
+    "count": null
+  },
+  {
+    "suffix": "CDG",
+    "category": "modification",
+    "code": "DGA",
+    "description_en": "duplex matched pair arrangement code",
+    "description_ru": "код дуплексной пары / согласованной установки",
+    "count": null
+  },
+  {
+    "suffix": "C4S11",
+    "category": "modification",
+    "code": "S11",
+    "description_en": "thermally stabilized for high operating temperature",
+    "description_ru": "термостабилизированное исполнение для высокой рабочей температуры",
+    "count": null
+  },
+  {
+    "suffix": "H320°",
+    "category": "modification",
+    "code": "320°-350°",
+    "description_en": "high-temperature design for 320–350°C range",
+    "description_ru": "высокотемпературное исполнение для диапазона 320–350°C",
+    "count": null
+  },
+  {
+    "suffix": "RDUP3",
+    "category": "modification",
+    "code": "RDUP3",
+    "description_en": "brand-specific matched-pair / preload code",
+    "description_ru": "фирменный код парной установки / преднатяга",
+    "count": null
+  },
+  {
+    "suffix": "OP",
+    "category": "modification",
+    "code": "OP",
+    "description_en": "open type / open raceway execution",
+    "description_ru": "открытое исполнение",
+    "count": null
+  },
+  {
+    "suffix": "CRDUP3",
+    "category": "modification",
+    "code": "CRDUP3",
+    "description_en": "brand-specific matched-pair / preload code",
+    "description_ru": "фирменный код парной установки / преднатяга",
+    "count": null
+  },
+  {
+    "suffix": "H350",
+    "category": "modification",
+    "code": "HT350",
+    "description_en": "high-temperature design up to 350°C",
+    "description_ru": "высокотемпературное исполнение до 350°C",
+    "count": null
+  },
+  {
+    "suffix": "HS280°",
+    "category": "modification",
+    "code": "280°",
+    "description_en": "high-temperature design up to 280°C",
+    "description_ru": "высокотемпературное исполнение до 280°C",
+    "count": null
+  },
+  {
+    "suffix": "HV",
+    "category": "modification",
+    "code": "HV",
+    "description_en": "brand-specific special material / grease / application design",
+    "description_ru": "фирменное специальное исполнение по материалу / смазке / применению",
+    "count": null
+  },
+  {
+    "suffix": "SP",
+    "category": "precision",
+    "code": "SP",
+    "description_en": "super-precision tolerance class SP",
+    "description_ru": "сверхпрецизионный класс точности SP",
+    "count": null
+  },
+  {
+    "suffix": "HS200°",
+    "category": "modification",
+    "code": "200°",
+    "description_en": "high-temperature design up to 200°C",
+    "description_ru": "высокотемпературное исполнение до 200°C",
+    "count": null
+  },
+  {
+    "suffix": "H250",
+    "category": "modification",
+    "code": "HT250",
+    "description_en": "high-temperature design up to 250°C",
+    "description_ru": "высокотемпературное исполнение до 250°C",
+    "count": null
+  },
+  {
+    "suffix": "H280",
+    "category": "modification",
+    "code": "HT280",
+    "description_en": "high-temperature design up to 280°C",
+    "description_ru": "высокотемпературное исполнение до 280°C",
+    "count": null
+  },
+  {
+    "suffix": "H300",
+    "category": "modification",
+    "code": "HT300",
+    "description_en": "high-temperature design up to 300°C",
+    "description_ru": "высокотемпературное исполнение до 300°C",
+    "count": null
+  },
+  {
+    "suffix": "H450",
+    "category": "modification",
+    "code": "HT450",
+    "description_en": "high-temperature design up to 450°C",
+    "description_ru": "высокотемпературное исполнение до 450°C",
+    "count": null
+  },
+  {
+    "suffix": "HS320°",
+    "category": "modification",
+    "code": "320°-350°",
+    "description_en": "high-temperature design for 320–350°C range",
+    "description_ru": "высокотемпературное исполнение для диапазона 320–350°C",
+    "count": null
+  },
+  {
+    "suffix": "HS330°",
+    "category": "modification",
+    "code": "330°",
+    "description_en": "high-temperature design up to 330°C",
+    "description_ru": "высокотемпературное исполнение до 330°C",
+    "count": null
+  },
+  {
+    "suffix": "HS350",
+    "category": "modification",
+    "code": "350°",
+    "description_en": "high-temperature design up to 350°C",
+    "description_ru": "высокотемпературное исполнение до 350°C",
+    "count": null
+  },
+  {
+    "suffix": "HSF350",
+    "category": "modification",
+    "code": "350°",
+    "description_en": "high-temperature sealed design up to 350°C",
+    "description_ru": "высокотемпературное закрытое исполнение до 350°C",
+    "count": null
+  },
+  {
+    "suffix": "H200°",
+    "category": "modification",
+    "code": "200°",
+    "description_en": "high-temperature design up to 200°C",
+    "description_ru": "высокотемпературное исполнение до 200°C",
+    "count": null
+  },
+  {
+    "suffix": "CYU",
+    "category": "modification",
+    "code": "CYU",
+    "description_en": "brand-specific super-precision angular-contact set code",
+    "description_ru": "фирменный код комплектации прецизионного радиально-упорного подшипника",
+    "count": null
+  },
+  {
+    "suffix": "YU",
+    "category": "modification",
+    "code": "YU",
+    "description_en": "brand-specific super-precision angular-contact set code",
+    "description_ru": "фирменный код комплектации прецизионного радиально-упорного подшипника",
+    "count": null
+  },
+  {
+    "suffix": "CYDU",
+    "category": "modification",
+    "code": "CYDU",
+    "description_en": "brand-specific super-precision angular-contact set code",
+    "description_ru": "фирменный код комплектации прецизионного радиально-упорного подшипника",
+    "count": null
+  },
+  {
+    "suffix": "CYD",
+    "category": "modification",
+    "code": "CYD",
+    "description_en": "brand-specific super-precision angular-contact set code",
+    "description_ru": "фирменный код комплектации прецизионного радиально-упорного подшипника",
+    "count": null
+  },
+  {
+    "suffix": "CVU74",
+    "category": "modification",
+    "code": "VU74",
+    "description_en": "brand-specific super-precision arrangement / preload code",
+    "description_ru": "фирменный код схемы установки / преднатяга прецизионного подшипника",
+    "count": null
+  },
+  {
+    "suffix": "HVU74",
+    "category": "modification",
+    "code": "VU74",
+    "description_en": "brand-specific super-precision arrangement / preload code",
+    "description_ru": "фирменный код схемы установки / преднатяга прецизионного подшипника",
+    "count": null
+  },
+  {
+    "suffix": "CG1U74",
+    "category": "modification",
+    "code": "G1U74",
+    "description_en": "brand-specific super-precision arrangement / preload code",
+    "description_ru": "фирменный код схемы установки / преднатяга прецизионного подшипника",
+    "count": null
+  },
+  {
+    "suffix": "CVDU74",
+    "category": "modification",
+    "code": "VDU74",
+    "description_en": "brand-specific super-precision arrangement / preload code",
+    "description_ru": "фирменный код схемы установки / преднатяга прецизионного подшипника",
+    "count": null
+  },
+  {
+    "suffix": "HG1U74",
+    "category": "modification",
+    "code": "G1U74",
+    "description_en": "brand-specific super-precision arrangement / preload code",
+    "description_ru": "фирменный код схемы установки / преднатяга прецизионного подшипника",
+    "count": null
+  },
+  {
+    "suffix": "HG1D74",
+    "category": "modification",
+    "code": "G1D74",
+    "description_en": "brand-specific super-precision arrangement / preload code",
+    "description_ru": "фирменный код схемы установки / преднатяга прецизионного подшипника",
+    "count": null
+  },
+  {
+    "suffix": "HSF400°",
+    "category": "modification",
+    "code": "400°",
+    "description_en": "high-temperature design up to 400°C",
+    "description_ru": "высокотемпературное исполнение до 400°C",
+    "count": null
+  },
+  {
+    "suffix": "RU",
+    "category": "modification",
+    "code": "RU",
+    "description_en": "single non-contact rubber seal",
+    "description_ru": "одностороннее бесконтактное резиновое уплотнение",
+    "count": null
+  },
+  {
+    "suffix": "2RU",
+    "category": "modification",
+    "code": "2RU",
+    "description_en": "double non-contact rubber seals",
+    "description_ru": "двусторонние бесконтактные резиновые уплотнения",
+    "count": null
+  },
+  {
+    "suffix": "W3",
+    "category": "modification",
+    "code": "W3",
+    "description_en": "relubrication groove / relubrication feature",
+    "description_ru": "канавка / исполнение для повторной смазки",
+    "count": null
+  },
+  {
+    "suffix": "VP",
+    "category": "modification",
+    "code": "VP",
+    "description_en": "polyamide cage design code",
+    "description_ru": "код исполнения с полиамидным сепаратором",
+    "count": null
+  },
+  {
+    "suffix": "DU",
+    "category": "modification",
+    "code": "DU",
+    "description_en": "single contact rubber seal",
+    "description_ru": "одностороннее контактное резиновое уплотнение",
+    "count": null
+  },
+  {
+    "suffix": "DO",
+    "category": "modification",
+    "code": "DO",
+    "description_en": "steel-on-steel spherical plain bearing design",
+    "description_ru": "исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G0U",
+    "category": "modification",
+    "code": "UK",
+    "description_en": "maintenance-free steel/PTFE spherical plain bearing design",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения сталь/PTFE",
+    "count": null
+  },
+  {
+    "suffix": "G5U",
+    "category": "modification",
+    "code": "UK",
+    "description_en": "maintenance-free steel/PTFE spherical plain bearing design",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения сталь/PTFE",
+    "count": null
+  },
+  {
+    "suffix": "G7U",
+    "category": "modification",
+    "code": "UK",
+    "description_en": "maintenance-free steel/PTFE spherical plain bearing design",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения сталь/PTFE",
+    "count": null
+  },
+  {
+    "suffix": "G20U",
+    "category": "modification",
+    "code": "UK",
+    "description_en": "maintenance-free steel/PTFE spherical plain bearing design",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения сталь/PTFE",
+    "count": null
+  },
+  {
+    "suffix": "G30U",
+    "category": "modification",
+    "code": "UK",
+    "description_en": "maintenance-free steel/PTFE spherical plain bearing design",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения сталь/PTFE",
+    "count": null
+  },
+  {
+    "suffix": "G35U",
+    "category": "modification",
+    "code": "UK",
+    "description_en": "maintenance-free steel/PTFE spherical plain bearing design",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения сталь/PTFE",
+    "count": null
+  },
+  {
+    "suffix": "G40U",
+    "category": "modification",
+    "code": "UK",
+    "description_en": "maintenance-free steel/PTFE spherical plain bearing design",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения сталь/PTFE",
+    "count": null
+  },
+  {
+    "suffix": "G45U",
+    "category": "modification",
+    "code": "UK",
+    "description_en": "maintenance-free steel/PTFE spherical plain bearing design",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения сталь/PTFE",
+    "count": null
+  },
+  {
+    "suffix": "G50U",
+    "category": "modification",
+    "code": "UK",
+    "description_en": "maintenance-free steel/PTFE spherical plain bearing design",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения сталь/PTFE",
+    "count": null
+  },
+  {
+    "suffix": "G60U",
+    "category": "modification",
+    "code": "UK",
+    "description_en": "maintenance-free steel/PTFE spherical plain bearing design",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения сталь/PTFE",
+    "count": null
+  },
+  {
+    "suffix": "G70U",
+    "category": "modification",
+    "code": "UK",
+    "description_en": "maintenance-free steel/PTFE spherical plain bearing design",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения сталь/PTFE",
+    "count": null
+  },
+  {
+    "suffix": "G80U",
+    "category": "modification",
+    "code": "UK",
+    "description_en": "maintenance-free steel/PTFE spherical plain bearing design",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения сталь/PTFE",
+    "count": null
+  },
+  {
+    "suffix": "G90U",
+    "category": "modification",
+    "code": "UK",
+    "description_en": "maintenance-free steel/PTFE spherical plain bearing design",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения сталь/PTFE",
+    "count": null
+  },
+  {
+    "suffix": "G00U",
+    "category": "modification",
+    "code": "UK",
+    "description_en": "maintenance-free steel/PTFE spherical plain bearing design",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения сталь/PTFE",
+    "count": null
+  },
+  {
+    "suffix": "G2U",
+    "category": "modification",
+    "code": "UK",
+    "description_en": "maintenance-free steel/PTFE spherical plain bearing design",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения сталь/PTFE",
+    "count": null
+  },
+  {
+    "suffix": "G5FO",
+    "category": "modification",
+    "code": "FO",
+    "description_en": "sealed steel-on-steel spherical plain bearing design",
+    "description_ru": "закрытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G7FO",
+    "category": "modification",
+    "code": "FO",
+    "description_en": "sealed steel-on-steel spherical plain bearing design",
+    "description_ru": "закрытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G30FO",
+    "category": "modification",
+    "code": "FO",
+    "description_en": "sealed steel-on-steel spherical plain bearing design",
+    "description_ru": "закрытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G35FO",
+    "category": "modification",
+    "code": "FO",
+    "description_en": "sealed steel-on-steel spherical plain bearing design",
+    "description_ru": "закрытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G40FO",
+    "category": "modification",
+    "code": "FO",
+    "description_en": "sealed steel-on-steel spherical plain bearing design",
+    "description_ru": "закрытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G45FO",
+    "category": "modification",
+    "code": "FO",
+    "description_en": "sealed steel-on-steel spherical plain bearing design",
+    "description_ru": "закрытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G50FO",
+    "category": "modification",
+    "code": "FO",
+    "description_en": "sealed steel-on-steel spherical plain bearing design",
+    "description_ru": "закрытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G60FO",
+    "category": "modification",
+    "code": "FO",
+    "description_en": "sealed steel-on-steel spherical plain bearing design",
+    "description_ru": "закрытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G70FO",
+    "category": "modification",
+    "code": "FO",
+    "description_en": "sealed steel-on-steel spherical plain bearing design",
+    "description_ru": "закрытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G80FO",
+    "category": "modification",
+    "code": "FO",
+    "description_en": "sealed steel-on-steel spherical plain bearing design",
+    "description_ru": "закрытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G00FO",
+    "category": "modification",
+    "code": "FO",
+    "description_en": "sealed steel-on-steel spherical plain bearing design",
+    "description_ru": "закрытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G0FO",
+    "category": "modification",
+    "code": "FO",
+    "description_en": "sealed steel-on-steel spherical plain bearing design",
+    "description_ru": "закрытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G20FO",
+    "category": "modification",
+    "code": "FO",
+    "description_en": "sealed steel-on-steel spherical plain bearing design",
+    "description_ru": "закрытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G10FO",
+    "category": "modification",
+    "code": "FO",
+    "description_en": "sealed steel-on-steel spherical plain bearing design",
+    "description_ru": "закрытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G2FO",
+    "category": "modification",
+    "code": "FO",
+    "description_en": "sealed steel-on-steel spherical plain bearing design",
+    "description_ru": "закрытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G6FO",
+    "category": "modification",
+    "code": "FO",
+    "description_en": "sealed steel-on-steel spherical plain bearing design",
+    "description_ru": "закрытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G8FO",
+    "category": "modification",
+    "code": "FO",
+    "description_en": "sealed steel-on-steel spherical plain bearing design",
+    "description_ru": "закрытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G5DO",
+    "category": "modification",
+    "code": "DO",
+    "description_en": "open steel-on-steel spherical plain bearing design",
+    "description_ru": "открытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G7DO",
+    "category": "modification",
+    "code": "DO",
+    "description_en": "open steel-on-steel spherical plain bearing design",
+    "description_ru": "открытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G30DO",
+    "category": "modification",
+    "code": "DO",
+    "description_en": "open steel-on-steel spherical plain bearing design",
+    "description_ru": "открытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G35DO",
+    "category": "modification",
+    "code": "DO",
+    "description_en": "open steel-on-steel spherical plain bearing design",
+    "description_ru": "открытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G40DO",
+    "category": "modification",
+    "code": "DO",
+    "description_en": "open steel-on-steel spherical plain bearing design",
+    "description_ru": "открытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G45DO",
+    "category": "modification",
+    "code": "DO",
+    "description_en": "open steel-on-steel spherical plain bearing design",
+    "description_ru": "открытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G50DO",
+    "category": "modification",
+    "code": "DO",
+    "description_en": "open steel-on-steel spherical plain bearing design",
+    "description_ru": "открытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G60DO",
+    "category": "modification",
+    "code": "DO",
+    "description_en": "open steel-on-steel spherical plain bearing design",
+    "description_ru": "открытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G70DO",
+    "category": "modification",
+    "code": "DO",
+    "description_en": "open steel-on-steel spherical plain bearing design",
+    "description_ru": "открытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G80DO",
+    "category": "modification",
+    "code": "DO",
+    "description_en": "open steel-on-steel spherical plain bearing design",
+    "description_ru": "открытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G90DO",
+    "category": "modification",
+    "code": "DO",
+    "description_en": "open steel-on-steel spherical plain bearing design",
+    "description_ru": "открытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G00DO",
+    "category": "modification",
+    "code": "DO",
+    "description_en": "open steel-on-steel spherical plain bearing design",
+    "description_ru": "открытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G0DO",
+    "category": "modification",
+    "code": "DO",
+    "description_en": "open steel-on-steel spherical plain bearing design",
+    "description_ru": "открытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G20DO",
+    "category": "modification",
+    "code": "DO",
+    "description_en": "open steel-on-steel spherical plain bearing design",
+    "description_ru": "открытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G10DO",
+    "category": "modification",
+    "code": "DO",
+    "description_en": "open steel-on-steel spherical plain bearing design",
+    "description_ru": "открытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G2DO",
+    "category": "modification",
+    "code": "DO",
+    "description_en": "open steel-on-steel spherical plain bearing design",
+    "description_ru": "открытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G6DO",
+    "category": "modification",
+    "code": "DO",
+    "description_en": "open steel-on-steel spherical plain bearing design",
+    "description_ru": "открытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G8DO",
+    "category": "modification",
+    "code": "DO",
+    "description_en": "open steel-on-steel spherical plain bearing design",
+    "description_ru": "открытое исполнение сферического подшипника скольжения сталь/сталь",
+    "count": null
+  },
+  {
+    "suffix": "G5HO",
+    "category": "modification",
+    "code": "HO",
+    "description_en": "spherical plain bearing special sealed design",
+    "description_ru": "специальное закрытое исполнение сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G7HO",
+    "category": "modification",
+    "code": "HO",
+    "description_en": "spherical plain bearing special sealed design",
+    "description_ru": "специальное закрытое исполнение сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G30HO",
+    "category": "modification",
+    "code": "HO",
+    "description_en": "spherical plain bearing special sealed design",
+    "description_ru": "специальное закрытое исполнение сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G35HO",
+    "category": "modification",
+    "code": "HO",
+    "description_en": "spherical plain bearing special sealed design",
+    "description_ru": "специальное закрытое исполнение сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G40HO",
+    "category": "modification",
+    "code": "HO",
+    "description_en": "spherical plain bearing special sealed design",
+    "description_ru": "специальное закрытое исполнение сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G45HO",
+    "category": "modification",
+    "code": "HO",
+    "description_en": "spherical plain bearing special sealed design",
+    "description_ru": "специальное закрытое исполнение сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G50HO",
+    "category": "modification",
+    "code": "HO",
+    "description_en": "spherical plain bearing special sealed design",
+    "description_ru": "специальное закрытое исполнение сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G60HO",
+    "category": "modification",
+    "code": "HO",
+    "description_en": "spherical plain bearing special sealed design",
+    "description_ru": "специальное закрытое исполнение сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G70HO",
+    "category": "modification",
+    "code": "HO",
+    "description_en": "spherical plain bearing special sealed design",
+    "description_ru": "специальное закрытое исполнение сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G80HO",
+    "category": "modification",
+    "code": "HO",
+    "description_en": "spherical plain bearing special sealed design",
+    "description_ru": "специальное закрытое исполнение сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G0HO",
+    "category": "modification",
+    "code": "HO",
+    "description_en": "spherical plain bearing special sealed design",
+    "description_ru": "специальное закрытое исполнение сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G5O",
+    "category": "modification",
+    "code": "O",
+    "description_en": "open spherical plain bearing code",
+    "description_ru": "код открытого сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G0O",
+    "category": "modification",
+    "code": "O",
+    "description_en": "open spherical plain bearing code",
+    "description_ru": "код открытого сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G2O",
+    "category": "modification",
+    "code": "O",
+    "description_en": "open spherical plain bearing code",
+    "description_ru": "код открытого сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G6O",
+    "category": "modification",
+    "code": "O",
+    "description_en": "open spherical plain bearing code",
+    "description_ru": "код открытого сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G8O",
+    "category": "modification",
+    "code": "O",
+    "description_en": "open spherical plain bearing code",
+    "description_ru": "код открытого сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G9O",
+    "category": "modification",
+    "code": "O",
+    "description_en": "open spherical plain bearing code",
+    "description_ru": "код открытого сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G10O",
+    "category": "modification",
+    "code": "O",
+    "description_en": "open spherical plain bearing code",
+    "description_ru": "код открытого сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G25O",
+    "category": "modification",
+    "code": "O",
+    "description_en": "open spherical plain bearing code",
+    "description_ru": "код открытого сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G30O",
+    "category": "modification",
+    "code": "O",
+    "description_en": "open spherical plain bearing code",
+    "description_ru": "код открытого сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G31O",
+    "category": "modification",
+    "code": "O",
+    "description_en": "open spherical plain bearing code",
+    "description_ru": "код открытого сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G32O",
+    "category": "modification",
+    "code": "O",
+    "description_en": "open spherical plain bearing code",
+    "description_ru": "код открытого сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G34O",
+    "category": "modification",
+    "code": "O",
+    "description_en": "open spherical plain bearing code",
+    "description_ru": "код открытого сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G38O",
+    "category": "modification",
+    "code": "O",
+    "description_en": "open spherical plain bearing code",
+    "description_ru": "код открытого сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G44O",
+    "category": "modification",
+    "code": "O",
+    "description_en": "open spherical plain bearing code",
+    "description_ru": "код открытого сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G50O",
+    "category": "modification",
+    "code": "O",
+    "description_en": "open spherical plain bearing code",
+    "description_ru": "код открытого сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G57O",
+    "category": "modification",
+    "code": "O",
+    "description_en": "open spherical plain bearing code",
+    "description_ru": "код открытого сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G63O",
+    "category": "modification",
+    "code": "O",
+    "description_en": "open spherical plain bearing code",
+    "description_ru": "код открытого сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G69O",
+    "category": "modification",
+    "code": "O",
+    "description_en": "open spherical plain bearing code",
+    "description_ru": "код открытого сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G70O",
+    "category": "modification",
+    "code": "O",
+    "description_en": "open spherical plain bearing code",
+    "description_ru": "код открытого сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G80O",
+    "category": "modification",
+    "code": "O",
+    "description_en": "open spherical plain bearing code",
+    "description_ru": "код открытого сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G90O",
+    "category": "modification",
+    "code": "O",
+    "description_en": "open spherical plain bearing code",
+    "description_ru": "код открытого сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G00O",
+    "category": "modification",
+    "code": "O",
+    "description_en": "open spherical plain bearing code",
+    "description_ru": "код открытого сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G5FW",
+    "category": "modification",
+    "code": "FW",
+    "description_en": "maintenance-free spherical plain bearing design",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G7FW",
+    "category": "modification",
+    "code": "FW",
+    "description_en": "maintenance-free spherical plain bearing design",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G30FW",
+    "category": "modification",
+    "code": "FW",
+    "description_en": "maintenance-free spherical plain bearing design",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G35FW",
+    "category": "modification",
+    "code": "FW",
+    "description_en": "maintenance-free spherical plain bearing design",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G40FW",
+    "category": "modification",
+    "code": "FW",
+    "description_en": "maintenance-free spherical plain bearing design",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G45FW",
+    "category": "modification",
+    "code": "FW",
+    "description_en": "maintenance-free spherical plain bearing design",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G50FW",
+    "category": "modification",
+    "code": "FW",
+    "description_en": "maintenance-free spherical plain bearing design",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G80FW",
+    "category": "modification",
+    "code": "FW",
+    "description_en": "maintenance-free spherical plain bearing design",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G0FW",
+    "category": "modification",
+    "code": "FW",
+    "description_en": "maintenance-free spherical plain bearing design",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G2FW",
+    "category": "modification",
+    "code": "FW",
+    "description_en": "maintenance-free spherical plain bearing design",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G6FW",
+    "category": "modification",
+    "code": "FW",
+    "description_en": "maintenance-free spherical plain bearing design",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G8FW",
+    "category": "modification",
+    "code": "FW",
+    "description_en": "maintenance-free spherical plain bearing design",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения",
+    "count": null
+  },
+  {
+    "suffix": "G50S",
+    "category": "modification",
+    "code": "SX",
+    "description_en": "maintenance-free spherical plain bearing design (SX family)",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения (семейство SX)",
+    "count": null
+  },
+  {
+    "suffix": "G60S",
+    "category": "modification",
+    "code": "SX",
+    "description_en": "maintenance-free spherical plain bearing design (SX family)",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения (семейство SX)",
+    "count": null
+  },
+  {
+    "suffix": "G70S",
+    "category": "modification",
+    "code": "SX",
+    "description_en": "maintenance-free spherical plain bearing design (SX family)",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения (семейство SX)",
+    "count": null
+  },
+  {
+    "suffix": "G90S",
+    "category": "modification",
+    "code": "SX",
+    "description_en": "maintenance-free spherical plain bearing design (SX family)",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения (семейство SX)",
+    "count": null
+  },
+  {
+    "suffix": "G30S",
+    "category": "modification",
+    "code": "SX",
+    "description_en": "maintenance-free spherical plain bearing design (SX family)",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения (семейство SX)",
+    "count": null
+  },
+  {
+    "suffix": "G35S",
+    "category": "modification",
+    "code": "SX",
+    "description_en": "maintenance-free spherical plain bearing design (SX family)",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения (семейство SX)",
+    "count": null
+  },
+  {
+    "suffix": "G40S",
+    "category": "modification",
+    "code": "SX",
+    "description_en": "maintenance-free spherical plain bearing design (SX family)",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения (семейство SX)",
+    "count": null
+  },
+  {
+    "suffix": "G45S",
+    "category": "modification",
+    "code": "SX",
+    "description_en": "maintenance-free spherical plain bearing design (SX family)",
+    "description_ru": "необслуживаемое исполнение сферического подшипника скольжения (семейство SX)",
+    "count": null
+  },
+  {
+    "suffix": "U07",
+    "category": "noise",
+    "reason": "insert-bearing size alias / base designation fragment, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "U209",
+    "category": "noise",
+    "reason": "insert-bearing or cylindrical-roller base designation, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "U207",
+    "category": "noise",
+    "reason": "insert-bearing or cylindrical-roller base designation, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "R6",
+    "category": "noise",
+    "reason": "miniature bearing / track-roller size designation, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "R50",
+    "category": "noise",
+    "reason": "track-roller size designation, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "R20",
+    "category": "noise",
+    "reason": "track-roller size designation, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "R0",
+    "category": "noise",
+    "reason": "needle-roller series fragment from RNA0..., not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "1R",
+    "category": "noise",
+    "reason": "inner-ring series designation, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "R4905",
+    "category": "noise",
+    "reason": "needle-roller series designation, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "R4903",
+    "category": "noise",
+    "reason": "needle-roller series designation, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "R4901",
+    "category": "noise",
+    "reason": "needle-roller series designation, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "R49",
+    "category": "noise",
+    "reason": "needle-roller series / size designation, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "R69",
+    "category": "noise",
+    "reason": "needle-roller series / size designation, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "H715311",
+    "category": "noise",
+    "reason": "cup part number from tapered roller bearing set",
+    "count": null
+  },
+  {
+    "suffix": "H804810",
+    "category": "noise",
+    "reason": "cup part number from tapered roller bearing set",
+    "count": null
+  },
+  {
+    "suffix": "H89410",
+    "category": "noise",
+    "reason": "cup part number from tapered roller bearing set",
+    "count": null
+  },
+  {
+    "suffix": "H807010",
+    "category": "noise",
+    "reason": "cup part number from tapered roller bearing set",
+    "count": null
+  },
+  {
+    "suffix": "H903210",
+    "category": "noise",
+    "reason": "cup part number from tapered roller bearing set",
+    "count": null
+  },
+  {
+    "suffix": "H1616",
+    "category": "noise",
+    "reason": "drawn cup needle bearing size code, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "H2520",
+    "category": "noise",
+    "reason": "drawn cup needle bearing size code, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "H2020",
+    "category": "noise",
+    "reason": "drawn cup needle bearing size code, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "H1010",
+    "category": "noise",
+    "reason": "drawn cup needle bearing size code, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "S04",
+    "category": "noise",
+    "reason": "series / housing / washer designation, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "S204",
+    "category": "noise",
+    "reason": "housing / insert-bearing size designation, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "S01",
+    "category": "noise",
+    "reason": "series / housing designation, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "I17",
+    "category": "noise",
+    "reason": "needle-bearing series size code, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "I22",
+    "category": "noise",
+    "reason": "needle-bearing series size code, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "I10",
+    "category": "noise",
+    "reason": "needle-bearing series size code, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "IR101413",
+    "category": "noise",
+    "reason": "inner-ring dimension designation, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "WS81104",
+    "category": "noise",
+    "reason": "shaft washer part number, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "GS81102",
+    "category": "noise",
+    "reason": "housing washer part number, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "O8",
+    "category": "noise",
+    "reason": "track-roller series / base designation, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "SO10",
+    "category": "noise",
+    "reason": "track-roller series / base designation, not a suffix",
+    "count": null
+  },
+  {
+    "suffix": "P10",
+    "category": "noise",
+    "reason": "plain-bush material series code embedded in part number, not a bearing suffix",
+    "count": null
+  },
+  {
+    "suffix": "**",
+    "category": "noise",
+    "reason": "catalog notation marks / unresolved OCR artifact",
+    "count": null
+  },
+  {
+    "suffix": "***",
+    "category": "noise",
+    "reason": "catalog notation marks / unresolved OCR artifact",
+    "count": null
+  },
+  {
+    "suffix": "201*",
+    "category": "noise",
+    "reason": "catalog notation mark attached to internal part number",
+    "count": null
+  },
+  {
+    "suffix": "201*01",
+    "category": "noise",
+    "reason": "catalog notation mark attached to internal part number",
+    "count": null
+  },
+  {
+    "suffix": "W**",
+    "category": "noise",
+    "reason": "catalog notation marks / unresolved OCR artifact",
+    "count": null
+  },
+  {
+    "suffix": "H81#01",
+    "category": "noise",
+    "reason": "cup part number with wildcard placeholder",
+    "count": null
+  },
+  {
+    "suffix": "H90#09",
+    "category": "noise",
+    "reason": "cup part number with wildcard placeholder",
+    "count": null
+  }
+]

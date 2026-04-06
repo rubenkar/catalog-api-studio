@@ -1,0 +1,208 @@
+[
+    {
+        "id": 1,
+        "code": "METALS",
+        "image_url": "/media/aab687eb_1754774700_45f3a768_686530b8.png",
+        "description": null,
+        "translations": {
+            "en": {
+                "name": "Metals",
+                "description": "Metallic materials including steel, aluminum, copper, and other alloys"
+            },
+            "ru": {
+                "name": "Металлы",
+                "description": "Металлические материалы, включая сталь, алюминий, медь и другие сплавы"
+            },
+            "de": {
+                "name": "Metalle",
+                "description": "Metallische Materialien einschließlich Stahl, Aluminium, Kupfer und andere Legierungen"
+            },
+            "es": {
+                "name": "Metales",
+                "description": "Materiales metálicos incluyendo acero, aluminio, cobre y otras aleaciones"
+            }
+        }
+    },
+    {
+        "id": 2,
+        "code": "WOODS",
+        "image_url": "/media/42da16a4_1754774804_d2d2e17b_3e97c907.png",
+        "description": null,
+        "translations": {
+            "en": {
+                "name": "Woods",
+                "description": "Natural and engineered wood materials including hardwood, softwood, and composite lumber"
+            },
+            "ru": {
+                "name": "Древесина",
+                "description": "Натуральные и инженерные древесные материалы, включая твердую, мягкую древесину и композитные пиломатериалы"
+            },
+            "de": {
+                "name": "Hölzer",
+                "description": "Natürliche und technische Holzmaterialien einschließlich Hart-, Weichholz und Verbundholz"
+            },
+            "es": {
+                "name": "Maderas",
+                "description": "Materiales de madera natural e ingeniería incluyendo madera dura, blanda y compuesta"
+            }
+        }
+    },
+    {
+        "id": 3,
+        "code": "PLASTICS",
+        "image_url": null,
+        "description": null,
+        "translations": {
+            "en": {
+                "name": "Plastics",
+                "description": "Synthetic polymer materials including thermoplastics, thermosets, and elastomers"
+            },
+            "ru": {
+                "name": "Пластики",
+                "description": "Синтетические полимерные материалы, включая термопластики, термореактивные пластики и эластомеры"
+            },
+            "de": {
+                "name": "Kunststoffe",
+                "description": "Synthetische Polymermaterialien einschließlich Thermoplaste, Duromere und Elastomere"
+            },
+            "es": {
+                "name": "Plásticos",
+                "description": "Materiales poliméricos sintéticos incluyendo termoplásticos, termoestables y elastómeros"
+            }
+        }
+    },
+    {
+        "id": 4,
+        "code": "CERAMICS",
+        "image_url": "/media/9c2b77c1_1754774822_905235af_8770c923.png",
+        "description": null,
+        "translations": {
+            "en": {
+                "name": "Ceramics",
+                "description": "Ceramic materials including porcelain, stoneware, earthenware, and technical ceramics"
+            },
+            "ru": {
+                "name": "Керамика",
+                "description": "Керамические материалы, включая фарфор, керамогранит, фаянс и техническую керамику"
+            },
+            "de": {
+                "name": "Keramik",
+                "description": "Keramische Materialien einschließlich Porzellan, Steinzeug, Steingut und technische Keramik"
+            },
+            "es": {
+                "name": "Cerámicas",
+                "description": "Materiales cerámicos incluyendo porcelana, gres, loza y cerámicas técnicas"
+            }
+        }
+    },
+    {
+        "id": 5,
+        "code": "GLASS",
+        "image_url": null,
+        "description": null,
+        "translations": {
+            "en": {
+                "name": "Glass",
+                "description": "Glass materials including sheet glass, tempered glass, laminated glass, and specialty glass"
+            },
+            "ru": {
+                "name": "Стекло",
+                "description": "Стеклянные материалы, включая листовое стекло, закаленное стекло, ламинированное стекло и специальное стекло"
+            },
+            "de": {
+                "name": "Glas",
+                "description": "Glasmaterialien einschließlich Flachglas, gehärtetes Glas, Verbundglas und Spezialglas"
+            },
+            "es": {
+                "name": "Vidrio",
+                "description": "Materiales de vidrio incluyendo vidrio plano, templado, laminado y vidrio especializado"
+            }
+        }
+    },
+    {
+        "id": 6,
+        "code": "RESINS",
+        "image_url": null,
+        "description": null,
+        "translations": {
+            "en": {
+                "name": "Resins",
+                "description": "Resin materials including epoxy, polyester, acrylic, and other synthetic resins"
+            },
+            "ru": {
+                "name": "Смолы",
+                "description": "Смолистые материалы, включая эпоксидные, полиэфирные, акриловые и другие синтетические смолы"
+            },
+            "de": {
+                "name": "Harze",
+                "description": "Harzmaterialien einschließlich Epoxid, Polyester, Acryl und andere synthetische Harze"
+            },
+            "es": {
+                "name": "Resinas",
+                "description": "Materiales de resina incluyendo epoxi, poliéster, acrílico y otras resinas sintéticas"
+            }
+        }
+    },
+    {
+        "id": 7,
+        "code": "STONE",
+        "image_url": null,
+        "description": null,
+        "translations": {
+            "en": {
+                "name": "Stone",
+                "description": "Natural and artificial stone materials including granite, marble, limestone, and engineered stone"
+            },
+            "ru": {
+                "name": "Камень",
+                "description": "Натуральные и искусственные каменные материалы, включая гранит, мрамор, известняк и искусственный камень"
+            },
+            "de": {
+                "name": "Stein",
+                "description": "Natürliche und künstliche Steinmaterialien einschließlich Granit, Marmor, Kalkstein und Kunststein"
+            },
+            "es": {
+                "name": "Piedra",
+                "description": "Materiales de piedra natural y artificial incluyendo granito, mármol, caliza y piedra artificial"
+            }
+        }
+    },
+    {
+        "id": 8,
+        "code": "GLUES",
+        "image_url": null,
+        "description": null,
+        "translations": {
+            "en": {
+                "name": "Glues",
+                "description": "Adhesive materials including structural adhesives, sealants, and bonding agents"
+            },
+            "ru": {
+                "name": "Клеи",
+                "description": "Клеящие материалы, включая структурные клеи, герметики и связующие агенты"
+            },
+            "de": {
+                "name": "Klebstoffe",
+                "description": "Klebematerialien einschließlich Strukturklebstoffe, Dichtmittel und Bindemittel"
+            },
+            "es": {
+                "name": "Pegamentos",
+                "description": "Materiales adhesivos incluyendo adhesivos estructurales, selladores y agentes adhesivos"
+            }
+        }
+    },
+    {
+        "id": 9,
+        "code": "RUBBERS",
+        "image_url": "/media/7dd340e8_1754775988_24f263b9_daa09838.png",
+        "description": null,
+        "translations": {
+            "en": {
+                "name": "Rubbers"
+            },
+            "ru": {
+                "name": "Резина/каучук"
+            }
+        }
+    }
+]
