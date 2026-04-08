@@ -32,12 +32,16 @@ def load_meta(catalog_path: Path) -> dict:
         "catalog": catalog_path.name,
         "next_id": 1,
         "objects": [],
+        "templates": [],
+        "template_config": {},
         "metadata": {},
     }
 
 
 def _migrate(meta: dict) -> dict:
     """Migrate legacy hidden_objects/type_overrides to unified objects list."""
+    meta.setdefault("templates", [])
+    meta.setdefault("template_config", {})
     if "objects" in meta:
         return meta
 

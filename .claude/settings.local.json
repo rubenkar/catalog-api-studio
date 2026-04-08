@@ -61,7 +61,25 @@
       "Bash(xargs grep:*)",
       "Bash(.venv/Scripts/python.exe -c \"import ast; ast.parse\\(open\\('app/ui/preview_view.py'\\).read\\(\\)\\); print\\('OK'\\)\")",
       "Bash(ruff check:*)",
-      "Read(//c/!dev/Catalog-API Studio/**)"
+      "Read(//c/!dev/Catalog-API Studio/**)",
+      "Bash(\"C:\\\\Users\\\\suz_i\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python312\\\\python.exe\" -c \"from app.services.template_analysis import analyze_templates; print\\('OK'\\)\")",
+      "Bash(\"C:\\\\Users\\\\suz_i\\\\AppData\\\\Local\\\\Python\\\\bin\\\\python.exe\" -c \"import fitz; print\\('fitz OK'\\)\")",
+      "Bash(gh search:*)",
+      "Bash(curl -s \"https://www.google.com/search?q=opencv+document+layout+analysis+bounding+boxes+classical+computer+vision+no+deep+learning\")",
+      "Bash(curl -s \"https://www.google.com/search?q=XY-cut+algorithm+document+segmentation+python+implementation\")",
+      "Bash(curl -s \"https://www.google.com/search?q=run+length+smearing+algorithm+RLSA+document+analysis+python\")",
+      "Bash(gh api:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:pypi.org)",
+      "WebFetch(domain:en.wikipedia.org)",
+      "WebFetch(domain:www.geeksforgeeks.org)",
+      "Bash(curl -s https://raw.githubusercontent.com/DS4SD/docling/main/README.md)",
+      "Bash(curl -s https://api.github.com/repos/DS4SD/docling)",
+      "Bash(curl -s https://raw.githubusercontent.com/DS4SD/docling/main/pyproject.toml)",
+      "Bash(curl -s https://raw.githubusercontent.com/docling-project/docling/main/pyproject.toml)",
+      "WebFetch(domain:docling-project.github.io)",
+      "WebFetch(domain:arxiv.org)",
+      "Bash(python3)"
     ]
   },
   "enabledMcpjsonServers": [

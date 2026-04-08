@@ -87,9 +87,9 @@ class ImportView(QWidget):
 
         # Import jobs table
         self.table = QTableWidget()
-        self.table.setColumnCount(5)
+        self.table.setColumnCount(6)
         self.table.setHorizontalHeaderLabels(
-            ["ID", "Filename", "Type", "Status", "Created"]
+            ["ID", "Filename", "Type", "Size", "Status", "Created"]
         )
         self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
@@ -165,6 +165,20 @@ class ImportView(QWidget):
                 self.table.setItem(row, 1, QTableWidgetItem(job.filename))
                 self.table.setItem(row, 2, QTableWidgetItem(job.file_type.upper()))
 
+                # File size
+                size_str = ""
+                try:
+                    size_bytes = Path(job.file_path).stat().st_size
+                    if size_bytes < 1024:
+                        size_str = f"{size_bytes} B"
+                    elif size_bytes < 1024 * 1024:
+                        size_str = f"{size_bytes / 1024:.1f} KB"
+                    else:
+                        size_str = f"{size_bytes / (1024 * 1024):.1f} MB"
+                except OSError:
+                    size_str = "—"
+                self.table.setItem(row, 3, QTableWidgetItem(size_str))
+
                 status_item = QTableWidgetItem(job.status)
                 color_map = {
                     "pending": "#888",
@@ -174,10 +188,10 @@ class ImportView(QWidget):
                 }
                 color = color_map.get(job.status, "#333")
                 status_item.setForeground(QColor(color))
-                self.table.setItem(row, 3, status_item)
+                self.table.setItem(row, 4, status_item)
 
                 self.table.setItem(
-                    row, 4, QTableWidgetItem(job.created_at.strftime("%Y-%m-%d %H:%M"))
+                    row, 5, QTableWidgetItem(job.created_at.strftime("%Y-%m-%d %H:%M"))
                 )
         finally:
             session.close()

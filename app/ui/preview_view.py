@@ -17,11 +17,13 @@ _DIM_PATTERN = re.compile(
     r'|^mm$'                   # unit
     r'|^M[0-9]+$'              # metric thread (M10, M14)
 )
-from PySide6.QtCore import QPoint, QPointF, QRectF, Qt, Signal
+from PySide6.QtCore import QPoint, QPointF, QRectF, QThread, Qt, Signal
 from PySide6.QtGui import QAction, QColor, QCursor, QFont, QImage, QPainter, QPen, QPixmap, QWheelEvent
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
+    QFrame,
+    QGridLayout,
     QHBoxLayout,
     QLabel,
     QMenu,
@@ -29,6 +31,7 @@ from PySide6.QtWidgets import (
     QScrollArea,
     QSlider,
     QSpinBox,
+    QSplitter,
     QToolButton,
     QVBoxLayout,
     QWidget,
@@ -50,6 +53,7 @@ BBOX_COLORS = {
     "photo": QColor(255, 87, 34, 80),        # deep orange
     "picture": QColor(255, 152, 0, 80),      # orange
     "drawing": QColor(156, 39, 176, 80),     # purple
+    "template": QColor(200, 0, 200, 40),     # magenta
     "unknown": QColor(158, 158, 158, 80),    # gray
 }
 
@@ -59,6 +63,7 @@ BBOX_BORDER_COLORS = {
     "photo": QColor(255, 87, 34, 160),
     "picture": QColor(255, 152, 0, 160),
     "drawing": QColor(156, 39, 176, 160),
+    "template": QColor(200, 0, 200, 160),
     "unknown": QColor(158, 158, 158, 160),
 }
 
@@ -97,10 +102,16 @@ class PageWidget(QWidget):
         self._zoom_factor: float = 1.0
         self._selected_idx: int = -1
         self._page_index: int = -1  # 0-based page number
+        self._page_size_pt: tuple[float, float] = (612, 792)  # (width, height) in PDF points
         self._visible_layers: dict[str, bool] = {
             "bbox": True, "table": True, "text": True,
             "photo": True, "picture": True, "drawing": True,
         }
+
+        # Cropping overlays (fractions 0..1)
+        self._crop_h_lines: list[float] = []
+        self._crop_v_lines: list[float] = []
+        self._crop_boxes: list[list[float]] = []
 
         # Drag state
         self._drag_mode: str = ""       # "move", "resize"
@@ -265,6 +276,9 @@ class PageWidget(QWidget):
         for i, bbox in enumerate(self._bboxes_pts):
             if bbox.get("hidden", False) and not self._show_hidden:
                 continue
+            bbox_type = bbox.get("type", "unknown")
+            if not self._visible_layers.get(bbox_type, True):
+                continue
             r = self._bbox_rect_px(bbox)
             if r and r.contains(click):
                 hits.append((i, r.width() * r.height()))
@@ -422,15 +436,16 @@ class PageWidget(QWidget):
         if self._show_bboxes and self._bboxes_pts:
             layers = self._visible_layers
             show_bbox = layers.get("bbox", True)
-
             # Layer 1: Bounding boxes — gray frame + semi-transparent gray fill
-            # "Bounding Box" toggle controls this layer for ALL objects
             if show_bbox:
                 bbox_fill = QColor(160, 160, 160, 40)
                 bbox_border_color = QColor(130, 130, 130, 200)
                 bbox_pen = QPen(bbox_border_color, 3)
                 for bbox in self._bboxes_pts:
                     if bbox.get("hidden", False):
+                        continue
+                    bbox_type = bbox.get("type", "unknown")
+                    if not layers.get(bbox_type, True):
                         continue
                     r = self._bbox_rect_px(bbox)
                     if not r:
@@ -453,7 +468,7 @@ class PageWidget(QWidget):
                 if not r:
                     continue
 
-                show_content = layers.get(bbox_type, True)
+                show_content = show_bbox and layers.get(bbox_type, False)
                 if show_content:
                     border = BBOX_BORDER_COLORS.get(bbox_type, BBOX_BORDER_COLORS["unknown"])
                     painter.setBrush(Qt.BrushStyle.NoBrush)
@@ -473,6 +488,32 @@ class PageWidget(QWidget):
                     painter.setBrush(QColor(255, 255, 255))
                     for hr in self._handle_rects(r):
                         painter.drawRect(hr)
+
+        # Cropping — solid white over cropped margins and template boxes
+        if self._crop_h_lines or self._crop_v_lines or self._crop_boxes:
+            page_w_pt, page_h_pt = self._page_size_pt
+            white = QColor(255, 255, 255)
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(white)
+            h_sorted = sorted(self._crop_h_lines)
+            v_sorted = sorted(self._crop_v_lines)
+            if h_sorted:
+                ty = int(h_sorted[0] * page_h_pt * zf) + h
+                painter.drawRect(QRectF(0, h, self.width(), ty - h))
+                by = int(h_sorted[-1] * page_h_pt * zf) + h
+                painter.drawRect(QRectF(0, by, self.width(), self.height() - by))
+            if v_sorted:
+                lx = int(v_sorted[0] * page_w_pt * zf)
+                painter.drawRect(QRectF(0, h, lx, page_h_pt * zf))
+                rx = int(v_sorted[-1] * page_w_pt * zf)
+                painter.drawRect(QRectF(rx, h, self.width() - rx, page_h_pt * zf))
+            # Template boxes — solid white
+            for box in self._crop_boxes:
+                bx0 = int(box[0] * page_w_pt * zf)
+                by0 = int(box[1] * page_h_pt * zf) + h
+                bx1 = int(box[2] * page_w_pt * zf)
+                by1 = int(box[3] * page_h_pt * zf) + h
+                painter.drawRect(QRectF(bx0, by0, bx1 - bx0, by1 - by0))
 
         painter.end()
 
@@ -526,8 +567,740 @@ class PageSpreadWidget(QWidget):
         layout.addWidget(self.right_page)
 
 
+# ---------------------------------------------------------------------------
+# Cropping dialog — semi-manual template definition via rulers and guide lines
+# ---------------------------------------------------------------------------
+
+RULER_SIZE = 20  # px width/height of rulers
+
+
+class CropPreviewWidget(QWidget):
+    """Page preview with rulers, guide lines, and drawable rectangles."""
+
+    lines_changed = Signal()  # emitted when any line/box added/moved/deleted
+
+    HANDLE = 6  # half-size of resize handles
+
+    def __init__(self, parent=None) -> None:
+        super().__init__(parent)
+        self._pixmap: QPixmap | None = None
+        self._page_w_pt: float = 612
+        self._page_h_pt: float = 792
+        self._h_lines: list[float] = []  # fractions [0..1] of page height
+        self._v_lines: list[float] = []  # fractions [0..1] of page width
+        # Boxes: list of [x0, y0, x1, y1] in fractions [0..1]
+        self._boxes: list[list[float]] = []
+        self._selected_box: int = -1
+
+        # Drag state
+        self._dragging: str = ""  # "h", "v", "box_new", "box_move", "box_resize"
+        self._drag_idx: int = -1
+        self._drag_pos: float = 0.0
+        # For box drawing/moving
+        self._box_drag_start: tuple[float, float] = (0, 0)
+        self._box_drag_cur: tuple[float, float] = (0, 0)
+        self._box_drag_handle: int = -1  # 0-7 resize handle, -1 = move
+        self._box_drag_orig: list[float] = []
+        self.setMouseTracking(True)
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self.setMinimumSize(200, 200)
+
+    def set_page(self, pixmap: QPixmap, page_w_pt: float, page_h_pt: float) -> None:
+        self._pixmap = pixmap
+        self._page_w_pt = page_w_pt
+        self._page_h_pt = page_h_pt
+        self.update()
+
+    def h_lines(self) -> list[float]:
+        return sorted(self._h_lines)
+
+    def v_lines(self) -> list[float]:
+        return sorted(self._v_lines)
+
+    def boxes(self) -> list[list[float]]:
+        return list(self._boxes)
+
+    def _pos_to_frac(self, px_x: float, px_y: float) -> tuple[float, float]:
+        ix, iy, iw, ih = self._img_rect()
+        fx = max(0.0, min(1.0, (px_x - ix) / iw)) if iw else 0.0
+        fy = max(0.0, min(1.0, (px_y - iy) / ih)) if ih else 0.0
+        return fx, fy
+
+    def _frac_to_px(self, fx: float, fy: float) -> tuple[int, int]:
+        ix, iy, iw, ih = self._img_rect()
+        return int(ix + fx * iw), int(iy + fy * ih)
+
+    def _box_rect_px(self, box: list[float]) -> QRectF:
+        x0, y0 = self._frac_to_px(box[0], box[1])
+        x1, y1 = self._frac_to_px(box[2], box[3])
+        return QRectF(x0, y0, x1 - x0, y1 - y0)
+
+    def _box_handles(self, r: QRectF) -> list[QRectF]:
+        s = self.HANDLE
+        cx, cy = r.center().x(), r.center().y()
+        return [
+            QRectF(r.left() - s, r.top() - s, 2*s, 2*s),
+            QRectF(cx - s, r.top() - s, 2*s, 2*s),
+            QRectF(r.right() - s, r.top() - s, 2*s, 2*s),
+            QRectF(r.right() - s, cy - s, 2*s, 2*s),
+            QRectF(r.right() - s, r.bottom() - s, 2*s, 2*s),
+            QRectF(cx - s, r.bottom() - s, 2*s, 2*s),
+            QRectF(r.left() - s, r.bottom() - s, 2*s, 2*s),
+            QRectF(r.left() - s, cy - s, 2*s, 2*s),
+        ]
+
+    def _img_rect(self) -> tuple[int, int, int, int]:
+        """Return (x, y, w, h) of the page image area (inside rulers)."""
+        if not self._pixmap:
+            return (RULER_SIZE, RULER_SIZE, self.width() - 2 * RULER_SIZE, self.height() - 2 * RULER_SIZE)
+        r = RULER_SIZE
+        avail_w = self.width() - 2 * r
+        avail_h = self.height() - 2 * r
+        scale = min(avail_w / self._pixmap.width(), avail_h / self._pixmap.height())
+        iw = int(self._pixmap.width() * scale)
+        ih = int(self._pixmap.height() * scale)
+        ix = r + (avail_w - iw) // 2
+        iy = r + (avail_h - ih) // 2
+        return (ix, iy, iw, ih)
+
+    def paintEvent(self, event) -> None:
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        r = RULER_SIZE
+        w, h = self.width(), self.height()
+
+        # Background
+        p.fillRect(0, 0, w, h, QColor(60, 60, 60))
+
+        # Rulers
+        ruler_color = QColor(200, 200, 200)
+        p.fillRect(r, 0, w - 2 * r, r, ruler_color)       # top
+        p.fillRect(r, h - r, w - 2 * r, r, ruler_color)    # bottom
+        p.fillRect(0, r, r, h - 2 * r, ruler_color)        # left
+        p.fillRect(w - r, r, r, h - 2 * r, ruler_color)    # right
+
+        # Page image
+        ix, iy, iw, ih = self._img_rect()
+        if self._pixmap:
+            scaled = self._pixmap.scaled(iw, ih, Qt.AspectRatioMode.KeepAspectRatio,
+                                         Qt.TransformationMode.SmoothTransformation)
+            p.drawPixmap(ix, iy, scaled)
+
+        # Red mask: area between ruler and first/last lines
+        h_sorted = sorted(self._h_lines)
+        v_sorted = sorted(self._v_lines)
+        mask_color = QColor(200, 0, 0, 60)
+
+        if h_sorted:
+            # Top mask: ruler → first h_line
+            top_y = iy + int(h_sorted[0] * ih)
+            p.fillRect(ix, iy, iw, top_y - iy, mask_color)
+            # Bottom mask: last h_line → bottom
+            bot_y = iy + int(h_sorted[-1] * ih)
+            p.fillRect(ix, bot_y, iw, iy + ih - bot_y, mask_color)
+
+        if v_sorted:
+            # Left mask: ruler → first v_line
+            left_x = ix + int(v_sorted[0] * iw)
+            p.fillRect(ix, iy, left_x - ix, ih, mask_color)
+            # Right mask: last v_line → right
+            right_x = ix + int(v_sorted[-1] * iw)
+            p.fillRect(right_x, iy, ix + iw - right_x, ih, mask_color)
+
+        # Draw guide lines
+        line_pen = QPen(QColor(0, 120, 255), 2, Qt.PenStyle.DashLine)
+        p.setPen(line_pen)
+        for frac in self._h_lines:
+            ly = iy + int(frac * ih)
+            p.drawLine(ix, ly, ix + iw, ly)
+        for frac in self._v_lines:
+            lx = ix + int(frac * iw)
+            p.drawLine(lx, iy, lx, iy + ih)
+
+        # Drag preview for lines
+        if self._dragging == "h":
+            ly = iy + int(self._drag_pos * ih)
+            p.setPen(QPen(QColor(255, 200, 0), 2))
+            p.drawLine(ix, ly, ix + iw, ly)
+        elif self._dragging == "v":
+            lx = ix + int(self._drag_pos * iw)
+            p.setPen(QPen(QColor(255, 200, 0), 2))
+            p.drawLine(lx, iy, lx, iy + ih)
+
+        # Draw boxes
+        for i, box in enumerate(self._boxes):
+            br = self._box_rect_px(box)
+            is_sel = (i == self._selected_box)
+            # Fill
+            p.setBrush(QColor(200, 0, 0, 40))
+            p.setPen(QPen(QColor(0, 180, 0, 200) if is_sel else QColor(0, 120, 200, 180), 2))
+            p.drawRect(br)
+            # Handles on selected
+            if is_sel:
+                p.setPen(QPen(QColor(80, 80, 80), 1))
+                p.setBrush(QColor(255, 255, 255))
+                for hr in self._box_handles(br):
+                    p.drawRect(hr)
+
+        # Box drawing preview
+        if self._dragging == "box_new":
+            x0, y0 = self._frac_to_px(*self._box_drag_start)
+            x1, y1 = self._frac_to_px(*self._box_drag_cur)
+            p.setBrush(QColor(200, 0, 0, 30))
+            p.setPen(QPen(QColor(0, 120, 200), 2, Qt.PenStyle.DashLine))
+            p.drawRect(QRectF(min(x0, x1), min(y0, y1), abs(x1-x0), abs(y1-y0)))
+
+        p.end()
+
+    def mousePressEvent(self, event) -> None:
+        pos = event.position()
+        ix, iy, iw, ih = self._img_rect()
+        r = RULER_SIZE
+        x, y = pos.x(), pos.y()
+        in_image = ix <= x <= ix + iw and iy <= y <= iy + ih
+
+        # 1. Check resize handles on selected box
+        if self._selected_box >= 0 and self._selected_box < len(self._boxes):
+            br = self._box_rect_px(self._boxes[self._selected_box])
+            for hi, hr in enumerate(self._box_handles(br)):
+                if hr.contains(pos):
+                    self._dragging = "box_resize"
+                    self._drag_idx = self._selected_box
+                    self._box_drag_handle = hi
+                    self._box_drag_orig = list(self._boxes[self._selected_box])
+                    self._box_drag_start = (x, y)
+                    return
+
+        # 2. Check click on existing box (select it)
+        for i in range(len(self._boxes) - 1, -1, -1):  # top-most first
+            br = self._box_rect_px(self._boxes[i])
+            if br.contains(pos):
+                self._selected_box = i
+                self._dragging = "box_move"
+                self._drag_idx = i
+                self._box_drag_orig = list(self._boxes[i])
+                self._box_drag_start = self._pos_to_frac(x, y)
+                self.update()
+                return
+
+        # 3. Check existing line drag
+        for i, frac in enumerate(self._h_lines):
+            ly = iy + int(frac * ih)
+            if abs(y - ly) < 6 and ix <= x <= ix + iw:
+                self._dragging = "h"
+                self._drag_idx = i
+                self._drag_pos = frac
+                self._selected_box = -1
+                self.update()
+                return
+        for i, frac in enumerate(self._v_lines):
+            lx = ix + int(frac * iw)
+            if abs(x - lx) < 6 and iy <= y <= iy + ih:
+                self._dragging = "v"
+                self._drag_idx = i
+                self._drag_pos = frac
+                self._selected_box = -1
+                self.update()
+                return
+
+        # 4. Drag from ruler → new line
+        if y < r and ix <= x <= ix + iw:
+            self._dragging = "h"
+            self._drag_idx = -1
+            self._drag_pos = 0.0
+            self._selected_box = -1
+        elif y > self.height() - r and ix <= x <= ix + iw:
+            self._dragging = "h"
+            self._drag_idx = -1
+            self._drag_pos = 1.0
+            self._selected_box = -1
+        elif x < r and iy <= y <= iy + ih:
+            self._dragging = "v"
+            self._drag_idx = -1
+            self._drag_pos = 0.0
+            self._selected_box = -1
+        elif x > self.width() - r and iy <= y <= iy + ih:
+            self._dragging = "v"
+            self._drag_idx = -1
+            self._drag_pos = 1.0
+            self._selected_box = -1
+        elif in_image:
+            # 5. Start drawing new box
+            self._dragging = "box_new"
+            self._selected_box = -1
+            self._box_drag_start = self._pos_to_frac(x, y)
+            self._box_drag_cur = self._box_drag_start
+        else:
+            self._selected_box = -1
+
+        self.update()
+
+    def mouseMoveEvent(self, event) -> None:
+        if not self._dragging:
+            return
+        pos = event.position()
+        x, y = pos.x(), pos.y()
+        ix, iy, iw, ih = self._img_rect()
+
+        if self._dragging == "h" and ih > 0:
+            self._drag_pos = max(0.0, min(1.0, (y - iy) / ih))
+        elif self._dragging == "v" and iw > 0:
+            self._drag_pos = max(0.0, min(1.0, (x - ix) / iw))
+        elif self._dragging == "box_new":
+            self._box_drag_cur = self._pos_to_frac(x, y)
+        elif self._dragging == "box_move" and self._drag_idx >= 0:
+            fx, fy = self._pos_to_frac(x, y)
+            sx, sy = self._box_drag_start
+            dx, dy = fx - sx, fy - sy
+            orig = self._box_drag_orig
+            bw, bh = orig[2] - orig[0], orig[3] - orig[1]
+            nx0 = max(0.0, min(1.0 - bw, orig[0] + dx))
+            ny0 = max(0.0, min(1.0 - bh, orig[1] + dy))
+            self._boxes[self._drag_idx] = [nx0, ny0, nx0 + bw, ny0 + bh]
+        elif self._dragging == "box_resize" and self._drag_idx >= 0:
+            fx, fy = self._pos_to_frac(x, y)
+            box = list(self._box_drag_orig)
+            h = self._box_drag_handle
+            # TL=0, T=1, TR=2, R=3, BR=4, B=5, BL=6, L=7
+            if h in (0, 6, 7): box[0] = min(fx, box[2] - 0.01)
+            if h in (0, 1, 2): box[1] = min(fy, box[3] - 0.01)
+            if h in (2, 3, 4): box[2] = max(fx, box[0] + 0.01)
+            if h in (4, 5, 6): box[3] = max(fy, box[1] + 0.01)
+            self._boxes[self._drag_idx] = [max(0, v) for v in box]
+
+        self.update()
+
+    def mouseReleaseEvent(self, event) -> None:
+        if not self._dragging:
+            return
+        pos = event.position()
+        r = RULER_SIZE
+
+        if self._dragging in ("h", "v"):
+            on_ruler = (pos.y() < r or pos.y() > self.height() - r or
+                        pos.x() < r or pos.x() > self.width() - r)
+            lines = self._h_lines if self._dragging == "h" else self._v_lines
+            if on_ruler:
+                if 0 <= self._drag_idx < len(lines):
+                    lines.pop(self._drag_idx)
+            else:
+                if 0 <= self._drag_idx < len(lines):
+                    lines[self._drag_idx] = self._drag_pos
+                else:
+                    lines.append(self._drag_pos)
+
+        elif self._dragging == "box_new":
+            sx, sy = self._box_drag_start
+            ex, ey = self._box_drag_cur
+            x0, x1 = min(sx, ex), max(sx, ex)
+            y0, y1 = min(sy, ey), max(sy, ey)
+            if (x1 - x0) > 0.01 and (y1 - y0) > 0.01:
+                self._boxes.append([x0, y0, x1, y1])
+                self._selected_box = len(self._boxes) - 1
+
+        # box_move and box_resize already updated in mouseMoveEvent
+
+        self._dragging = ""
+        self._drag_idx = -1
+        self._box_drag_handle = -1
+        self.update()
+        self.lines_changed.emit()
+
+
+class CroppingDialog(QWidget):
+    """Semi-manual cropping dialog: preview with rulers + page thumbnails.
+
+    Supports 1-page mode (single template) and 2-page mode (left/right mirrored templates).
+    """
+
+    accepted = Signal(dict)   # emitted on OK with cropping data
+    cancelled = Signal()      # emitted on Cancel
+
+    def __init__(self, doc: "fitz.Document", page_count: int,
+                 file_path: "Path | None" = None, parent=None) -> None:
+        super().__init__(parent, Qt.WindowType.Window)
+        self.setWindowTitle("Cropping — Template Definition")
+        self.resize(1200, 700)
+
+        self._doc = doc
+        self._page_count = page_count
+        self._file_path = file_path
+        self._current_page: int = 0
+        self._two_page_mode: bool = False
+        self._first_is_cover: bool = False
+        self._mirrored: bool = False
+
+        root = QVBoxLayout(self)
+        root.setContentsMargins(4, 2, 4, 4)
+        root.setSpacing(2)
+
+        # Toolbar (compact)
+        toolbar = QHBoxLayout()
+        toolbar.setContentsMargins(0, 0, 0, 0)
+        self._mode_btn = QPushButton("1-page template")
+        self._mode_btn.setCheckable(True)
+        self._mode_btn.setFixedWidth(140)
+        self._mode_btn.setFixedHeight(24)
+        self._mode_btn.clicked.connect(self._toggle_mode)
+        toolbar.addWidget(self._mode_btn)
+        self._cover_cb = QCheckBox("1st page is cover")
+        self._cover_cb.setStyleSheet("font-size: 10px;")
+        self._cover_cb.hide()
+        self._cover_cb.toggled.connect(self._on_cover_toggled)
+        toolbar.addWidget(self._cover_cb)
+        self._mirror_cb = QCheckBox("Mirrored")
+        self._mirror_cb.setStyleSheet("font-size: 10px;")
+        self._mirror_cb.hide()
+        self._mirror_cb.toggled.connect(self._on_mirror_toggled)
+        toolbar.addWidget(self._mirror_cb)
+        self._mode_label = QLabel("")
+        self._mode_label.setStyleSheet("color: #888; font-size: 10px;")
+        toolbar.addWidget(self._mode_label)
+        toolbar.addStretch()
+
+        cancel_btn = QPushButton("Cancel")
+        cancel_btn.setFixedWidth(70)
+        cancel_btn.setFixedHeight(24)
+        cancel_btn.clicked.connect(self._on_cancel)
+        toolbar.addWidget(cancel_btn)
+        ok_btn = QPushButton("OK")
+        ok_btn.setFixedWidth(70)
+        ok_btn.setFixedHeight(24)
+        ok_btn.setStyleSheet("font-weight: bold;")
+        ok_btn.clicked.connect(self._on_ok)
+        toolbar.addWidget(ok_btn)
+
+        root.addLayout(toolbar)
+
+        self._splitter = QSplitter(Qt.Orientation.Horizontal)
+        root.addWidget(self._splitter, stretch=1)
+
+        # Preview panel (holds 1 or 2 CropPreviewWidgets)
+        self._preview_container = QWidget()
+        self._preview_layout = QHBoxLayout(self._preview_container)
+        self._preview_layout.setContentsMargins(0, 0, 0, 0)
+        self._preview_layout.setSpacing(4)
+
+        self._preview_left = CropPreviewWidget()
+        self._preview_left.lines_changed.connect(self._on_lines_changed)
+        self._preview_layout.addWidget(self._preview_left)
+
+        self._preview_right = CropPreviewWidget()
+        self._preview_right.lines_changed.connect(self._on_lines_changed)
+        self._preview_right.hide()  # hidden in 1-page mode
+
+        self._preview_layout.addWidget(self._preview_right)
+        self._splitter.addWidget(self._preview_container)
+
+        right_scroll = QScrollArea()
+        right_scroll.setWidgetResizable(True)
+        right_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        right_container = QWidget()
+        self._grid = QGridLayout(right_container)
+        self._grid.setSpacing(4)
+        self._grid.setContentsMargins(4, 4, 4, 4)
+
+        self._thumb_labels: list[QLabel] = []
+        self._thumb_pixmaps: list[QPixmap] = []
+
+        for pi in range(self._page_count):
+            row, col = pi // 2, pi % 2
+            lbl = QLabel()
+            lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            lbl.setStyleSheet("border: 2px solid #444; background: #222;")
+            lbl.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+            lbl.mousePressEvent = lambda e, p=pi: self._on_thumb_click(p)
+            self._grid.addWidget(lbl, row, col)
+            self._thumb_labels.append(lbl)
+
+        right_scroll.setWidget(right_container)
+        self._splitter.addWidget(right_scroll)
+        self._splitter.setSizes([800, 300])
+
+        # Restore saved cropping, render thumbnails and initial preview
+        self._load_cropping()
+        self._render_thumbnails()
+        self._load_preview(self._current_page)
+
+    def _toggle_mode(self) -> None:
+        self._two_page_mode = not self._two_page_mode
+        if self._two_page_mode:
+            self._mode_btn.setText("2-page template")
+            self._mode_label.setText("Left = odd pages, Right = even pages")
+            self._cover_cb.show()
+            self._mirror_cb.show()
+            self._preview_right.show()
+        else:
+            self._mode_btn.setText("1-page template")
+            self._mode_label.setText("")
+            self._cover_cb.hide()
+            self._mirror_cb.hide()
+            self._preview_right.hide()
+        self._load_preview(self._current_page)
+        self._on_lines_changed()  # updates thumbs + saves
+
+    def _on_cover_toggled(self, checked: bool) -> None:
+        self._first_is_cover = checked
+        self._rebuild_thumbs_grid()
+        self._on_lines_changed()
+
+    def _on_mirror_toggled(self, checked: bool) -> None:
+        self._mirrored = checked
+        if checked:
+            self._apply_mirror()
+        self._on_lines_changed()
+
+    def _apply_mirror(self) -> None:
+        """Copy left template to right, mirroring horizontal positions."""
+        # h_lines stay the same (top/bottom are symmetric)
+        self._preview_right._h_lines = list(self._preview_left._h_lines)
+        # v_lines: mirror (1.0 - x)
+        self._preview_right._v_lines = [1.0 - v for v in self._preview_left._v_lines]
+        # boxes: mirror x coordinates
+        self._preview_right._boxes = [
+            [1.0 - b[2], b[1], 1.0 - b[0], b[3]] for b in self._preview_left._boxes
+        ]
+        self._preview_right.update()
+
+    def _rebuild_thumbs_grid(self) -> None:
+        """Reposition thumbnails in grid based on cover setting."""
+        # Remove all from grid (don't delete widgets)
+        for lbl in self._thumb_labels:
+            self._grid.removeWidget(lbl)
+        # Re-add with offset
+        offset = 1 if (self._two_page_mode and self._first_is_cover) else 0
+        for pi in range(self._page_count):
+            shifted = pi + offset
+            row, col = shifted // 2, shifted % 2
+            self._grid.addWidget(self._thumb_labels[pi], row, col)
+
+    def _is_left_page(self, page_idx: int) -> bool:
+        """Determine if a page uses the left template."""
+        if not self._two_page_mode:
+            return True
+        shifted = page_idx + (1 if self._first_is_cover else 0)
+        return shifted % 2 == 0  # even shifted index = left column
+
+    def _preview_for_page(self, page_idx: int) -> CropPreviewWidget:
+        """Return the appropriate preview widget for a given page index."""
+        if not self._two_page_mode:
+            return self._preview_left
+        return self._preview_left if self._is_left_page(page_idx) else self._preview_right
+
+    def _render_page_pixmap(self, page_idx: int, dpi: int = 100) -> QPixmap:
+        page = self._doc[page_idx]
+        mat = fitz.Matrix(dpi / 72.0, dpi / 72.0)
+        pix = page.get_pixmap(matrix=mat)
+        img = QImage(pix.samples, pix.width, pix.height, pix.stride,
+                     QImage.Format.Format_RGB888)
+        return QPixmap.fromImage(img)
+
+    def _render_thumbnails(self) -> None:
+        self._thumb_pixmaps.clear()
+        for pi in range(self._page_count):
+            pix = self._render_page_pixmap(pi, dpi=48)
+            self._thumb_pixmaps.append(pix)
+            self._update_thumb(pi)
+
+    def _update_thumb(self, pi: int) -> None:
+        """Update a single thumbnail with crop mask from its corresponding template."""
+        if pi >= len(self._thumb_pixmaps) or pi >= len(self._thumb_labels):
+            return
+        pix = self._thumb_pixmaps[pi]
+        lbl = self._thumb_labels[pi]
+        preview = self._preview_for_page(pi)
+
+        thumb_w = 140
+        scaled = pix.scaledToWidth(thumb_w, Qt.TransformationMode.FastTransformation)
+
+        result = QPixmap(scaled)
+        painter = QPainter(result)
+        iw, ih = result.width(), result.height()
+        mask_color = QColor(200, 0, 0, 80)
+
+        h_lines = preview.h_lines()
+        v_lines = preview.v_lines()
+
+        if h_lines:
+            top_y = int(h_lines[0] * ih)
+            painter.fillRect(0, 0, iw, top_y, mask_color)
+            bot_y = int(h_lines[-1] * ih)
+            painter.fillRect(0, bot_y, iw, ih - bot_y, mask_color)
+        if v_lines:
+            left_x = int(v_lines[0] * iw)
+            painter.fillRect(0, 0, left_x, ih, mask_color)
+            right_x = int(v_lines[-1] * iw)
+            painter.fillRect(right_x, 0, iw - right_x, ih, mask_color)
+
+        for box in preview.boxes():
+            bx0, by0 = int(box[0] * iw), int(box[1] * ih)
+            bx1, by1 = int(box[2] * iw), int(box[3] * ih)
+            painter.fillRect(bx0, by0, bx1 - bx0, by1 - by0, mask_color)
+
+        # Page number + side label
+        painter.setPen(QColor(255, 255, 255))
+        font = QFont("Consolas", 8, QFont.Weight.Bold)
+        painter.setFont(font)
+        side = ""
+        if self._two_page_mode:
+            side = " L" if self._is_left_page(pi) else " R"
+        painter.drawText(3, 12, f"P.{pi + 1}{side}")
+        painter.end()
+
+        border = "2px solid #0af" if pi == self._current_page else "2px solid #444"
+        lbl.setStyleSheet(f"border: {border}; background: #222;")
+        lbl.setPixmap(result)
+
+    def _page_pair(self, page_idx: int) -> tuple[int, int]:
+        """Return (left_page, right_page) indices for a spread pair.
+
+        With cover: page 0 alone (right), then pairs (1,2), (3,4), ...
+        Without cover: pairs (0,1), (2,3), (4,5), ...
+        """
+        offset = 1 if self._first_is_cover else 0
+        shifted = page_idx + offset
+        # Find the pair start (even shifted index)
+        pair_start_shifted = (shifted // 2) * 2
+        left_pi = pair_start_shifted - offset
+        right_pi = pair_start_shifted - offset + 1
+        return (left_pi, right_pi)
+
+    def _load_preview(self, page_idx: int) -> None:
+        old_page = self._current_page
+        self._current_page = page_idx
+
+        if not self._two_page_mode:
+            # Single mode: load clicked page into left preview
+            pix = self._render_page_pixmap(page_idx, dpi=150)
+            page = self._doc[page_idx]
+            self._preview_left.set_page(pix, page.rect.width, page.rect.height)
+        else:
+            # 2-page mode: load the paired spread
+            left_pi, right_pi = self._page_pair(page_idx)
+
+            if 0 <= left_pi < self._page_count:
+                pix = self._render_page_pixmap(left_pi, dpi=150)
+                pg = self._doc[left_pi]
+                self._preview_left.set_page(pix, pg.rect.width, pg.rect.height)
+
+            if 0 <= right_pi < self._page_count:
+                pix = self._render_page_pixmap(right_pi, dpi=150)
+                pg = self._doc[right_pi]
+                self._preview_right.set_page(pix, pg.rect.width, pg.rect.height)
+
+        # Update thumb borders — highlight both pages of the pair
+        highlight = set()
+        if self._two_page_mode:
+            lp, rp = self._page_pair(page_idx)
+            if 0 <= lp < self._page_count:
+                highlight.add(lp)
+            if 0 <= rp < self._page_count:
+                highlight.add(rp)
+        else:
+            highlight.add(page_idx)
+
+        for pi in set([old_page, page_idx]) | highlight:
+            if 0 <= pi < len(self._thumb_labels):
+                border = "2px solid #0af" if pi in highlight else "2px solid #444"
+                self._thumb_labels[pi].setStyleSheet(f"border: {border}; background: #222;")
+
+    def _on_thumb_click(self, page_idx: int) -> None:
+        self._load_preview(page_idx)
+
+    def _on_ok(self) -> None:
+        """Save cropping data and close."""
+        self._save_cropping()
+        data = self._build_cropping_data()
+        self.accepted.emit(data)
+        self.close()
+
+    def _on_cancel(self) -> None:
+        """Discard changes and close."""
+        self.cancelled.emit()
+        self.close()
+
+    def _build_cropping_data(self) -> dict:
+        """Build cropping data dict for consumption by main window."""
+        return {
+            "two_page": self._two_page_mode,
+            "first_is_cover": self._first_is_cover,
+            "mirrored": self._mirrored,
+            "left": {
+                "h_lines": self._preview_left._h_lines,
+                "v_lines": self._preview_left._v_lines,
+                "boxes": self._preview_left._boxes,
+            },
+            "right": {
+                "h_lines": self._preview_right._h_lines,
+                "v_lines": self._preview_right._v_lines,
+                "boxes": self._preview_right._boxes,
+            },
+        }
+
+    def _on_lines_changed(self) -> None:
+        """Update all thumbnails when guide lines/boxes change."""
+        if self._mirrored:
+            self._apply_mirror()
+        for pi in range(self._page_count):
+            self._update_thumb(pi)
+
+    def _save_cropping(self) -> None:
+        """Persist cropping data to catalog meta."""
+        if not self._file_path:
+            return
+        meta = load_meta(self._file_path)
+        meta["cropping"] = {
+            "two_page": self._two_page_mode,
+            "first_is_cover": self._first_is_cover,
+            "mirrored": self._mirrored,
+            "left": {
+                "h_lines": self._preview_left._h_lines,
+                "v_lines": self._preview_left._v_lines,
+                "boxes": self._preview_left._boxes,
+            },
+            "right": {
+                "h_lines": self._preview_right._h_lines,
+                "v_lines": self._preview_right._v_lines,
+                "boxes": self._preview_right._boxes,
+            },
+        }
+        save_meta(self._file_path, meta)
+
+    def _load_cropping(self) -> None:
+        """Restore cropping data from catalog meta."""
+        if not self._file_path:
+            return
+        meta = load_meta(self._file_path)
+        crop = meta.get("cropping")
+        if not crop:
+            return
+        self._two_page_mode = crop.get("two_page", False)
+        self._first_is_cover = crop.get("first_is_cover", False)
+        self._mirrored = crop.get("mirrored", False)
+        if self._two_page_mode:
+            self._mode_btn.setText("2-page template")
+            self._mode_btn.setChecked(True)
+            self._preview_right.show()
+            self._cover_cb.show()
+            self._cover_cb.setChecked(self._first_is_cover)
+            self._mirror_cb.show()
+            self._mirror_cb.setChecked(self._mirrored)
+            self._mode_label.setText("Left = odd pages, Right = even pages")
+            self._rebuild_thumbs_grid()
+        left = crop.get("left", {})
+        self._preview_left._h_lines = left.get("h_lines", [])
+        self._preview_left._v_lines = left.get("v_lines", [])
+        self._preview_left._boxes = left.get("boxes", [])
+        right = crop.get("right", {})
+        self._preview_right._h_lines = right.get("h_lines", [])
+        self._preview_right._v_lines = right.get("v_lines", [])
+        self._preview_right._boxes = right.get("boxes", [])
+
+
 class PreviewView(QWidget):
     """PDF catalog preview with 2-page spread, zoom, continuous scroll, bounding boxes."""
+
+    progress = Signal(str)  # "operation 45% 0.3s" or "" to clear
 
     def __init__(self) -> None:
         super().__init__()
@@ -542,8 +1315,25 @@ class PreviewView(QWidget):
         self._stats_cache: dict[int, str] = {}
         self._catalog_meta: dict = {}
         self._show_hidden = False
+        self._first_is_cover: bool = False
 
+
+
+        self._op_start: float = 0.0
         self._setup_ui()
+
+    def _emit_progress(self, op: str, current: int, total: int) -> None:
+        """Emit progress signal — skip if template worker owns the header."""
+        import time
+        elapsed = time.perf_counter() - self._op_start
+        pct = int(current / total * 100) if total > 0 else 0
+        self.progress.emit(f"{op} {pct}% {elapsed:.1f}s")
+
+    def _emit_done(self) -> None:
+        """Clear progress — but don't overwrite if template worker is active."""
+        import time
+        elapsed = time.perf_counter() - self._op_start
+        self.progress.emit(f"done {elapsed:.1f}s")
 
     def _setup_ui(self) -> None:
         layout = QVBoxLayout(self)
@@ -627,12 +1417,18 @@ class PreviewView(QWidget):
                 act.toggled.connect(self._on_bbox_filter_changed)
                 filter_menu.addAction(act)
                 self.bbox_filter_actions[type_key] = act
+
         self.bbox_filter_btn.setMenu(filter_menu)
         toolbar.addWidget(self.bbox_filter_btn)
 
         self.clear_bbox_btn = QPushButton("Clear && Re-detect")
         self.clear_bbox_btn.clicked.connect(self._clear_and_redetect)
         toolbar.addWidget(self.clear_bbox_btn)
+
+
+        self.crop_btn = QPushButton("Cropping")
+        self.crop_btn.clicked.connect(self._open_cropping_dialog)
+        toolbar.addWidget(self.crop_btn)
 
         layout.addLayout(toolbar)
 
@@ -662,6 +1458,11 @@ class PreviewView(QWidget):
         self._stats_cache.clear()
         self._catalog_meta = load_meta(file_path)
 
+        # Load cropping settings
+        crop = self._catalog_meta.get("cropping", {})
+        self._first_is_cover = crop.get("first_is_cover", False)
+        self._cropping_data = crop
+
         try:
             self._doc = fitz.open(str(file_path))
             self._page_count = len(self._doc)
@@ -685,7 +1486,10 @@ class PreviewView(QWidget):
         return self._base_dpi * self._zoom / 72.0
 
     def _render_all_spreads(self) -> None:
-        """Render all page spreads (2 pages per row)."""
+        """Render all page spreads (2 pages per row) with progress."""
+        import time
+        self._op_start = time.perf_counter()
+
         # Clear existing
         for spread in self._spreads:
             self.pages_layout.removeWidget(spread)
@@ -696,35 +1500,66 @@ class PreviewView(QWidget):
             return
 
         zf = self._current_zoom_factor()
-        dpi = zf * 72.0  # keep exact same factor for pixmap and bboxes
+        dpi = zf * 72.0
 
-        # Create spreads: pages 0-1, 2-3, 4-5, etc.
-        page_idx = 0
-        while page_idx < self._page_count:
+        cur_layers = {
+            key: act.isChecked()
+            for key, act in self.bbox_filter_actions.items()
+        }
+
+        # Build list of spread pairs: [(left_page_idx or -1, right_page_idx or -1), ...]
+        spread_pairs: list[tuple[int, int]] = []
+        if self._first_is_cover and self._page_count > 0:
+            # First spread: blank left, page 0 on right (cover)
+            spread_pairs.append((-1, 0))
+            pi = 1
+        else:
+            pi = 0
+        while pi < self._page_count:
+            left_pi = pi
+            right_pi = pi + 1 if pi + 1 < self._page_count else -1
+            spread_pairs.append((left_pi, right_pi))
+            pi += 2
+
+        total_spreads = len(spread_pairs)
+        for spread_num, (left_pi, right_pi) in enumerate(spread_pairs):
+            self._emit_progress("Render", spread_num, total_spreads)
             spread = PageSpreadWidget()
 
             # Left page
-            left_pixmap = self._render_page(page_idx, dpi)
-            spread.left_page._page_index = page_idx
-            spread.left_page.set_pixmap(left_pixmap)
-            spread.left_page.set_show_bboxes(True)
-            spread.left_page.set_show_hidden(self._show_hidden)
-            spread.left_page.hide_requested.connect(self._on_hide_object)
-            spread.left_page.selection_changed.connect(self._on_page_selection)
-
-            spread.left_page.type_changed.connect(self._on_type_changed)
-            spread.left_page.bbox_modified.connect(self._on_bbox_modified)
-            if page_idx in self._bboxes_cache:
-                spread.left_page.set_bboxes(
-                    self._bboxes_cache[page_idx], zf
-                )
-            if page_idx in self._stats_cache:
-                spread.left_page.set_page_stats(self._stats_cache[page_idx])
+            if left_pi >= 0:
+                left_pixmap = self._render_page(left_pi, dpi)
+                spread.left_page._page_index = left_pi
+                page = self._doc[left_pi]
+                spread.left_page._page_size_pt = (page.rect.width, page.rect.height)
+                spread.left_page.set_pixmap(left_pixmap)
+                spread.left_page.set_show_bboxes(True)
+                spread.left_page.set_show_hidden(self._show_hidden)
+                spread.left_page.hide_requested.connect(self._on_hide_object)
+                spread.left_page.selection_changed.connect(self._on_page_selection)
+                spread.left_page.type_changed.connect(self._on_type_changed)
+                spread.left_page.bbox_modified.connect(self._on_bbox_modified)
+                spread.left_page.set_visible_layers(cur_layers)
+                if left_pi in self._bboxes_cache:
+                    spread.left_page.set_bboxes(self._bboxes_cache[left_pi], zf)
+                if left_pi in self._stats_cache:
+                    spread.left_page.set_page_stats(self._stats_cache[left_pi])
+            else:
+                # Blank left page (cover mode)
+                if right_pi >= 0:
+                    ref_pix = self._render_page(right_pi, dpi)
+                    blank = QPixmap(ref_pix.size())
+                else:
+                    blank = QPixmap(100, 100)
+                blank.fill(QColor(240, 240, 240))
+                spread.left_page.set_pixmap(blank)
 
             # Right page
-            if page_idx + 1 < self._page_count:
-                right_pixmap = self._render_page(page_idx + 1, dpi)
-                spread.right_page._page_index = page_idx + 1
+            if right_pi >= 0:
+                right_pixmap = self._render_page(right_pi, dpi)
+                spread.right_page._page_index = right_pi
+                rpage = self._doc[right_pi]
+                spread.right_page._page_size_pt = (rpage.rect.width, rpage.rect.height)
                 spread.right_page.set_pixmap(right_pixmap)
                 spread.right_page.set_show_bboxes(True)
                 spread.right_page.set_show_hidden(self._show_hidden)
@@ -732,29 +1567,29 @@ class PreviewView(QWidget):
                 spread.right_page.selection_changed.connect(self._on_page_selection)
                 spread.right_page.type_changed.connect(self._on_type_changed)
                 spread.right_page.bbox_modified.connect(self._on_bbox_modified)
-                if page_idx + 1 in self._bboxes_cache:
-                    spread.right_page.set_bboxes(
-                        self._bboxes_cache[page_idx + 1], zf
-                    )
-                if page_idx + 1 in self._stats_cache:
-                    spread.right_page.set_page_stats(self._stats_cache[page_idx + 1])
+                if right_pi in self._bboxes_cache:
+                    spread.right_page.set_bboxes(self._bboxes_cache[right_pi], zf)
+                if right_pi in self._stats_cache:
+                    spread.right_page.set_page_stats(self._stats_cache[right_pi])
             else:
-                # Odd page count — blank right side
-                blank = QPixmap(left_pixmap.size())
+                if left_pi >= 0:
+                    ref_pix = self._render_page(left_pi, dpi)
+                    blank = QPixmap(ref_pix.size())
+                else:
+                    blank = QPixmap(100, 100)
                 blank.fill(QColor(240, 240, 240))
                 spread.right_page.set_pixmap(blank)
 
-            # Apply current layer visibility to new spread
-            cur_layers = {
-                key: act.isChecked()
-                for key, act in self.bbox_filter_actions.items()
-            }
             spread.left_page.set_visible_layers(cur_layers)
             spread.right_page.set_visible_layers(cur_layers)
 
             self.pages_layout.addWidget(spread)
             self._spreads.append(spread)
-            page_idx += 2
+
+        # Restore overlays after re-creating spreads
+        if hasattr(self, "_cropping_data") and self._cropping_data:
+            self._apply_cropping_to_spreads()
+        self._emit_done()
 
     def _render_page(self, page_num: int, dpi: int) -> QPixmap:
         """Render a single page to QPixmap."""
@@ -825,30 +1660,72 @@ class PreviewView(QWidget):
                 break
 
         # Lazy bbox detection on scroll
-        if True:
-            self._detect_visible_pages()
+        self._detect_visible_pages()
 
     def _clear_and_redetect(self) -> None:
         """Clear cached bboxes and saved metadata, then re-detect."""
         self._bboxes_cache.clear()
         self._stats_cache.clear()
-        # Clear saved metadata for this document so detection starts fresh
         if self._file_path:
             meta = load_meta(self._file_path)
             meta["objects"] = {}
             save_meta(self._file_path, meta)
             self._catalog_meta = meta
-        # Clear bboxes from all page widgets and repaint immediately
         for spread in self._spreads:
             spread.left_page.set_bboxes([], 1.0)
             spread.right_page.set_bboxes([], 1.0)
             spread.left_page.update()
             spread.right_page.update()
-        # Force repaint before detection starts
         from PySide6.QtWidgets import QApplication
         QApplication.processEvents()
-        # Re-detect
         self._detect_visible_pages()
+
+    def _open_cropping_dialog(self) -> None:
+        """Open the semi-manual cropping dialog."""
+        if not self._doc or self._page_count < 3:
+            return
+        dlg = CroppingDialog(self._doc, self._page_count,
+                             file_path=self._file_path, parent=self)
+        dlg.accepted.connect(self._on_cropping_accepted)
+        dlg.show()
+
+    def _on_cropping_accepted(self, data: dict) -> None:
+        """Apply cropping from dialog to main view."""
+        self._first_is_cover = data.get("first_is_cover", False)
+        self._cropping_data = data
+        self._catalog_meta["cropping"] = data
+        if self._file_path:
+            save_meta(self._file_path, self._catalog_meta)
+        # Re-render spreads with updated cover/crop settings
+        self._render_all_spreads()
+        self._apply_cropping_to_spreads()
+
+    def _cropping_for_page(self, page_idx: int) -> dict:
+        """Return the cropping side data (h_lines, v_lines, boxes) for a page."""
+        data = getattr(self, "_cropping_data", None)
+        if not data:
+            data = self._catalog_meta.get("cropping", {})
+        if not data:
+            return {}
+        two_page = data.get("two_page", False)
+        cover = data.get("first_is_cover", False)
+        if not two_page:
+            return data.get("left", {})
+        shifted = page_idx + (1 if cover else 0)
+        return data.get("left", {}) if shifted % 2 == 0 else data.get("right", {})
+
+    def _apply_cropping_to_spreads(self) -> None:
+        """Apply cropping overlays to all page widgets."""
+        for spread in self._spreads:
+            for pw in (spread.left_page, spread.right_page):
+                pi = pw._page_index
+                if pi < 0:
+                    continue
+                side = self._cropping_for_page(pi)
+                pw._crop_h_lines = side.get("h_lines", [])
+                pw._crop_v_lines = side.get("v_lines", [])
+                pw._crop_boxes = side.get("boxes", [])
+                pw.update()
 
     def _on_bbox_filter_changed(self, _checked: bool = False) -> None:
         """Update visible layers on all page widgets."""
@@ -889,22 +1766,31 @@ class PreviewView(QWidget):
         if not self._doc:
             return
 
+        import time
+
         current = self._get_current_page()
         # Current spread ± 2 pages (1 spread each side)
         start = max(0, current - 2)
         end = min(self._page_count, current + 4)  # +4 to cover 2 pages ahead
 
+        to_detect = [p for p in range(start, end) if p not in self._bboxes_cache]
+        if not to_detect:
+            return
+
+        self._op_start = time.perf_counter()
         detected_new = False
-        for page_num in range(start, end):
-            if page_num in self._bboxes_cache:
-                continue  # already detected
+        for step, page_num in enumerate(to_detect):
+            self._emit_progress("Detect", step, len(to_detect))
             try:
                 page = self._doc[page_num]
-                bboxes, stats = self._detect_native_page(page)
+                crop_side = self._cropping_for_page(page_num)
+                bboxes, stats = self._detect_native_page(page, crop_side)
                 # Merge with saved metadata (assigns IDs, preserves user edits)
                 if self._file_path:
                     bboxes = merge_detected(self._file_path, page_num, bboxes)
                     self._catalog_meta = load_meta(self._file_path)
+
+
                 self._bboxes_cache[page_num] = bboxes
                 self._stats_cache[page_num] = stats
                 detected_new = True
@@ -915,137 +1801,130 @@ class PreviewView(QWidget):
         if detected_new:
             self._apply_bboxes_to_spreads()
 
-    def _detect_native_page(self, page) -> tuple[list[dict], str]:
-        """Detect objects on a page using PyMuPDF.
+        self._emit_done()
 
-        Returns bboxes with 'pts' key = (x0, y0, x1, y1) in PDF points.
+    def _detect_native_page(
+        self, page, crop_side: dict | None = None,
+    ) -> tuple[list[dict], str]:
+        """Detect object bounding boxes via rasterization.
+
+        Renders the page to bitmap, finds connected content regions
+        within the cropping area.
+        Returns bboxes with 'pts' = (x0, y0, x1, y1) in PDF points.
+        Type recognition is a separate stage.
         """
+        import numpy as np
+
+        page_area = page.rect.width * page.rect.height
+
+        # Render at 72 DPI (1 pixel = 1 PDF point)
+        pix = page.get_pixmap(dpi=72)
+        img = np.frombuffer(pix.samples, dtype=np.uint8).reshape(
+            pix.height, pix.width, pix.n
+        )
+
+        # Grayscale → binary (content = dark pixels < 240)
+        gray = np.mean(img[:, :, :3], axis=2)
+        binary = (gray < 240).astype(np.uint8)
+
+        # Apply cropping mask — zero out pixels outside crop area
+        if crop_side:
+            h_lines = sorted(crop_side.get("h_lines", []))
+            v_lines = sorted(crop_side.get("v_lines", []))
+            h_img, w_img = binary.shape
+            # Horizontal crop: mask above first h_line and below last h_line
+            if h_lines:
+                top_px = int(h_lines[0] * h_img)
+                bot_px = int(h_lines[-1] * h_img)
+                binary[:top_px, :] = 0
+                binary[bot_px:, :] = 0
+            # Vertical crop: mask left of first v_line and right of last v_line
+            if v_lines:
+                left_px = int(v_lines[0] * w_img)
+                right_px = int(v_lines[-1] * w_img)
+                binary[:, :left_px] = 0
+                binary[:, right_px:] = 0
+            # Mask crop boxes (exclusion zones)
+            for box in crop_side.get("boxes", []):
+                bx0 = int(box[0] * w_img)
+                by0 = int(box[1] * h_img)
+                bx1 = int(box[2] * w_img)
+                by1 = int(box[3] * h_img)
+                binary[by0:by1, bx0:bx1] = 0
+
+        # Dilate to bridge small gaps (~2pt)
+        for _ in range(2):
+            padded = np.pad(binary, 1, mode="constant")
+            binary = (
+                padded[:-2, 1:-1] | padded[2:, 1:-1]
+                | padded[1:-1, :-2] | padded[1:-1, 2:]
+                | binary
+            ).astype(np.uint8)
+
+        # Connected components via flood fill
+        h_img, w_img = binary.shape
+        visited = np.zeros_like(binary, dtype=bool)
         bboxes: list[dict] = []
         obj_id = 0
 
-        # 1. Tables via find_tables() — lines-only mode (no header/footer/merges)
-        words = page.get_text("words")
-        table_fitz_rects: list[fitz.Rect] = []
-        try:
-            tables = page.find_tables()
-            for table in tables.tables:
-                tr = fitz.Rect(table.bbox)
-                # Grow table bbox to include borderless columns
-                y_words = [
-                    w for w in words
-                    if w[1] >= tr.y0 - 3 and w[3] <= tr.y1 + 3
-                ]
-                if y_words:
-                    tr = fitz.Rect(
-                        min(tr.x0, min(w[0] for w in y_words) - 2),
-                        tr.y0,
-                        max(tr.x1, max(w[2] for w in y_words) + 2),
-                        tr.y1,
-                    )
-                table_fitz_rects.append(tr)
+        for start_y in range(h_img):
+            for start_x in range(w_img):
+                if not binary[start_y, start_x] or visited[start_y, start_x]:
+                    continue
+                stack = [(start_y, start_x)]
+                visited[start_y, start_x] = True
+                min_x, min_y = start_x, start_y
+                max_x, max_y = start_x, start_y
+                count = 0
+                while stack:
+                    cy, cx = stack.pop()
+                    count += 1
+                    if cx < min_x: min_x = cx
+                    if cx > max_x: max_x = cx
+                    if cy < min_y: min_y = cy
+                    if cy > max_y: max_y = cy
+                    for dy, dx in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+                        ny, nx = cy + dy, cx + dx
+                        if (0 <= ny < h_img and 0 <= nx < w_img
+                                and binary[ny, nx] and not visited[ny, nx]):
+                            visited[ny, nx] = True
+                            stack.append((ny, nx))
 
-                # Extract raw line segments from PDF drawings
-                h_segs, v_segs = self._extract_table_lines(page, tr)
+                bw = max_x - min_x
+                bh = max_y - min_y
+                # Skip noise (<50 pixels) and tiny regions (<20pt)
+                if count < 50 or bw < 20 or bh < 20:
+                    continue
+                # Skip full-page frames (>80% of page)
+                if bw * bh > page_area * 0.8:
+                    continue
 
                 bboxes.append({
-                    "type": "table",
-                    "label": f"#{obj_id} table {table.row_count}x{table.col_count}",
-                    "pts": (tr.x0, tr.y0, tr.x1, tr.y1),
-                    "h_segments": h_segs,  # [(x0, x1, y), ...]
-                    "v_segments": v_segs,  # [(x, y0, y1), ...]
-                    "row_ys": [],
-                    "col_xs": [],
-                    "major_row_ys": [],
-                    "header_rows": 0,
-                    "footer_rows": 0,
-                    "mid_headings": [],
-                    "header_splits": [],
-                    "header_merges": [],
+                    "type": "unknown",
+                    "label": f"#{obj_id} {bw}x{bh}pt",
+                    "pts": (float(min_x), float(min_y),
+                            float(max_x), float(max_y)),
                 })
                 obj_id += 1
-        except Exception:
-            pass
 
-        # ── Page segmentation: collect ALL visual elements, cluster into objects ──
-        page_rect = page.rect
-        page_area = page_rect.width * page_rect.height
-
-        # Exclusion rects: tables + margin
-        exclude_rects = [
-            fitz.Rect(tr.x0 - 5, tr.y0 - 5, tr.x1 + 5, tr.y1 + 5)
-            for tr in table_fitz_rects
-        ]
-
-        # Collect all non-table elements: drawings, text words, images
-        elements: list[tuple[float, float, float, float]] = []
-
-        # Vector drawings (clip to page, skip fills/frames/strips)
-        for d in page.get_drawings():
-            r = d.get("rect")
-            if not r or (r.width < 1 and r.height < 1):
-                continue
-            # Skip large filled shapes (decorative backgrounds/bars)
-            # but keep small filled elements (dimension arrows, markers)
-            if d.get("fill") is not None:
-                cr_check = r & page_rect
-                if not cr_check.is_empty and cr_check.width * cr_check.height > 500:
+        # Remove nested bboxes (fully contained inside a larger one)
+        filtered: list[dict] = []
+        for i, a in enumerate(bboxes):
+            ap = a["pts"]
+            nested = False
+            for j, b in enumerate(bboxes):
+                if i == j:
                     continue
-            cr = r & page_rect
-            if cr.is_empty or cr.width < 1 or cr.height < 1:
-                continue
-            if cr.width * cr.height > page_area * 0.3:
-                continue
-            aspect = max(cr.width, cr.height) / max(min(cr.width, cr.height), 0.1)
-            if aspect > 15 and max(cr.width, cr.height) > 100:
-                continue
-            nr = fitz.Rect(cr.x0 - 1, cr.y0 - 1, cr.x1 + 1, cr.y1 + 1)
-            if any(tr.intersects(nr) for tr in exclude_rects):
-                continue
-            elements.append((cr.x0, cr.y0, cr.x1, cr.y1))
+                bp = b["pts"]
+                if (ap[0] >= bp[0] and ap[1] >= bp[1]
+                        and ap[2] <= bp[2] and ap[3] <= bp[3]):
+                    nested = True
+                    break
+            if not nested:
+                filtered.append(a)
+        bboxes = filtered
 
-        # Text words (exclude those inside tables)
-        for w in words:
-            wr = fitz.Rect(w[0], w[1], w[2], w[3])
-            if any(tr.contains(wr) for tr in exclude_rects):
-                continue
-            elements.append((w[0], w[1], w[2], w[3]))
-
-        # Embedded raster images
-        for img_info in page.get_images(full=True):
-            xref = img_info[0]
-            for rect in page.get_image_rects(xref):
-                elements.append((rect.x0, rect.y0, rect.x1, rect.y1))
-
-        # Cluster all elements into objects (gap=5pt)
-        object_clusters = self._cluster_rects(elements, gap=5)
-        object_clusters = [
-            c for c in object_clusters
-            if (c[2] - c[0]) > 20 and (c[3] - c[1]) > 20
-        ]
-
-        # Each cluster = one bounding box (no type recognition at this stage)
-        for c in object_clusters:
-            w, h = c[2] - c[0], c[3] - c[1]
-            bboxes.append({
-                "type": "unknown",
-                "label": f"#{obj_id} {w:.0f}x{h:.0f}pt",
-                "pts": (c[0], c[1], c[2], c[3]),
-            })
-            obj_id += 1
-
-        n_tables = sum(1 for b in bboxes if b["type"] == "table")
-        n_text = sum(1 for b in bboxes if b["type"] == "text")
-        n_photos = sum(1 for b in bboxes if b["type"] == "photo")
-        n_pictures = sum(1 for b in bboxes if b["type"] == "picture")
-        n_drawings = sum(1 for b in bboxes if b["type"] == "drawing")
-
-        stats = (
-            f"P{page.number + 1}  |  "
-            f"T:{n_tables}  Txt:{n_text}  "
-            f"Ph:{n_photos}  Pic:{n_pictures}  Drw:{n_drawings}  "
-            f"Total:{len(bboxes)}"
-        )
-
+        stats = f"P{page.number + 1}  |  Obj:{len(bboxes)}"
         return bboxes, stats
 
     @staticmethod

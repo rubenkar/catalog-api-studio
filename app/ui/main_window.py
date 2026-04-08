@@ -67,6 +67,11 @@ class MainWindow(QMainWindow):
         self._build_view_menu(menu_bar)
         top_bar.addWidget(menu_bar)
 
+        self.progress_label = QLabel("")
+        self.progress_label.setStyleSheet("color: #e8a020; font-size: 11px; font-weight: bold;")
+        self.progress_label.setMinimumWidth(160)
+        top_bar.addWidget(self.progress_label)
+
         top_bar.addStretch()
         build_time = _get_build_time()
         version_label = QLabel(f"v{APP_VERSION} | {build_time}")
@@ -99,6 +104,9 @@ class MainWindow(QMainWindow):
 
         # Connect import → preview
         self.import_view.preview_requested.connect(self._open_preview)
+
+        # Connect progress
+        self.preview_view.progress.connect(self._on_progress)
 
         # Refresh data when switching tabs
         self.tabs.currentChanged.connect(self._on_tab_changed)
@@ -148,6 +156,11 @@ class MainWindow(QMainWindow):
 
         self.preview_view.load_document(Path(file_path))
         self.tabs.setCurrentWidget(self.preview_view)
+
+    def _on_progress(self, text: str) -> None:
+        """Update progress label from preview operations."""
+        self.progress_label.setText(text)
+        self.progress_label.repaint()
 
     def _reload_app(self) -> None:
         """Save state and restart the application process."""
