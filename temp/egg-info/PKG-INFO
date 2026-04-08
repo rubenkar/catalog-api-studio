@@ -1,0 +1,31 @@
+Metadata-Version: 2.4
+Name: catalog-api-studio
+Version: 0.1.0
+Summary: Local desktop app for digitizing supplier catalogs into structured data, REST API, and smart search
+Requires-Python: >=3.11
+Requires-Dist: PySide6>=6.6
+Requires-Dist: fastapi>=0.110
+Requires-Dist: uvicorn[standard]>=0.27
+Requires-Dist: SQLAlchemy>=2.0
+Requires-Dist: pydantic>=2.5
+Requires-Dist: pydantic-settings>=2.1
+Requires-Dist: PyMuPDF>=1.24
+Requires-Dist: pdfplumber>=0.10
+Requires-Dist: Pillow>=10.0
+Requires-Dist: openpyxl>=3.1
+Requires-Dist: pandas>=2.1
+Requires-Dist: paddleocr>=2.7
+Requires-Dist: paddlepaddle>=2.6
+Requires-Dist: typesense>=0.20
+Requires-Dist: watchdog>=4.0
+Requires-Dist: flask>=3.0
+Requires-Dist: opencv-python-headless>=4.8
+Requires-Dist: numpy>=1.24
+Requires-Dist: beautifulsoup4>=4.12
+Requires-Dist: requests>=2.31
+Requires-Dist: lxml>=5.0
+Provides-Extra: dev
+Requires-Dist: ruff; extra == "dev"
+Requires-Dist: pytest; extra == "dev"
+Requires-Dist: pytest-asyncio; extra == "dev"
+Requires-Dist: httpx; extra == "dev"

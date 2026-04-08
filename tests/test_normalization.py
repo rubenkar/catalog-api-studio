@@ -1,6 +1,6 @@
 """Tests for normalization functions."""
 
-from catalog_api_studio.normalization.normalizer import Normalizer
+from app.normalization.normalizer import Normalizer
 
 
 def test_normalize_sku():

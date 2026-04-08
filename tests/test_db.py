@@ -1,6 +1,6 @@
 """Tests for database models and CRUD."""
 
-from catalog_api_studio.db.models import ImportJob, Product
+from app.db.models import ImportJob, Product
 
 
 def test_create_import_job(db_session):
@@ -47,7 +47,7 @@ def test_create_product(db_session):
 
 
 def test_product_service_get_brands(db_session):
-    from catalog_api_studio.services.product_service import ProductService
+    from app.services.product_service import ProductService
 
     for brand in ["SKF", "FAG", "NSK", "SKF"]:
         db_session.add(Product(brand=brand, name=f"{brand} bearing", confidence_score=0.5))
@@ -61,8 +61,8 @@ def test_product_service_get_brands(db_session):
 
 
 def test_product_update(db_session):
-    from catalog_api_studio.models.schemas import ProductUpdate
-    from catalog_api_studio.services.product_service import ProductService
+    from app.models.schemas import ProductUpdate
+    from app.services.product_service import ProductService
 
     product = Product(sku="TEST-001", name="Test", confidence_score=0.25)
     db_session.add(product)

@@ -1,0 +1,377 @@
+{
+    "meta": {
+      "catalog_code": "bearings",
+      "catalog_name": "Подшипники",
+      "total_products": 2921,
+      "note": "Полный JSON слишком большой для одного сообщения. Структура ниже соответствует файлу bearings_catalog_normalized_full.json."
+    },
+    "catalog": {
+      "code": "bearings",
+      "name": "Подшипники",
+      "children": [
+        {
+          "code": "ball_bearings",
+          "name": "Шариковые подшипники",
+          "children": [
+            {
+              "code": "deep_groove_ball_bearings",
+              "name": "Радиальные однорядные"
+            },
+            {
+              "code": "double_row_ball_bearings",
+              "name": "Радиальные двухрядные"
+            },
+            {
+              "code": "angular_contact_ball_single_row",
+              "name": "Радиально-упорные однорядные"
+            },
+            {
+              "code": "angular_contact_ball_double_row",
+              "name": "Радиально-упорные двухрядные"
+            },
+            {
+              "code": "self_aligning_ball_bearings",
+              "name": "Самоустанавливающиеся"
+            },
+            {
+              "code": "thrust_ball_bearings",
+              "name": "Упорные"
+            },
+            {
+              "code": "miniature_ball_bearings",
+              "name": "Миниатюрные"
+            }
+          ]
+        },
+        {
+          "code": "roller_bearings",
+          "name": "Роликовые подшипники",
+          "children": [
+            {
+              "code": "cylindrical_roller_bearings",
+              "name": "Цилиндрические роликовые"
+            },
+            {
+              "code": "tapered_roller_bearings",
+              "name": "Конические роликовые"
+            },
+            {
+              "code": "spherical_roller_bearings",
+              "name": "Сферические роликовые"
+            },
+            {
+              "code": "thrust_roller_bearings",
+              "name": "Упорные роликовые"
+            },
+            {
+              "code": "special_roller_bearings",
+              "name": "Специальные роликовые"
+            }
+          ]
+        },
+        {
+          "code": "needle_bearings",
+          "name": "Игольчатые подшипники",
+          "children": [
+            {
+              "code": "needle_bearings_without_inner_ring",
+              "name": "Игольчатые без внутреннего кольца"
+            },
+            {
+              "code": "needle_bearings_with_inner_ring",
+              "name": "Игольчатые с внутренним кольцом"
+            },
+            {
+              "code": "thrust_needle_bearings",
+              "name": "Игольчатые упорные"
+            },
+            {
+              "code": "needle_rollers_and_cages",
+              "name": "Игольчатые ролики и сепараторы"
+            },
+            {
+              "code": "needle_track_rollers",
+              "name": "Игольчатые опорные ролики"
+            }
+          ]
+        },
+        {
+          "code": "housed_bearing_units",
+          "name": "Подшипниковые узлы",
+          "children": [
+            {
+              "code": "bearing_inserts",
+              "name": "Вставки подшипниковые"
+            },
+            {
+              "code": "housed_bearings",
+              "name": "Корпусные подшипники"
+            },
+            {
+              "code": "assembled_bearing_units",
+              "name": "Подшипниковые узлы в сборе"
+            },
+            {
+              "code": "bearing_housings",
+              "name": "Корпуса под подшипники"
+            },
+            {
+              "code": "damping_rings",
+              "name": "Демпфирующие кольца"
+            }
+          ]
+        },
+        {
+          "code": "linear_bearings",
+          "name": "Линейные подшипники",
+          "children": [
+            {
+              "code": "linear_ball_bushings",
+              "name": "Шариковые втулки"
+            },
+            {
+              "code": "flanged_linear_ball_bushings",
+              "name": "Шариковые втулки с фланцем"
+            },
+            {
+              "code": "housed_linear_bearings",
+              "name": "Линейные подшипники в корпусе"
+            },
+            {
+              "code": "linear_guides",
+              "name": "Рельсовые направляющие"
+            },
+            {
+              "code": "shaft_supports",
+              "name": "Опоры валов"
+            }
+          ]
+        },
+        {
+          "code": "spherical_plain_bearings",
+          "name": "Шарнирные подшипники",
+          "children": [
+            {
+              "code": "ge_series",
+              "name": "Серия GE"
+            },
+            {
+              "code": "radial_spherical_plain_bearings",
+              "name": "Радиальные шарнирные"
+            },
+            {
+              "code": "thrust_spherical_plain_bearings",
+              "name": "Упорные шарнирные"
+            }
+          ]
+        },
+        {
+          "code": "track_rollers",
+          "name": "Опорные ролики",
+          "children": [
+            {
+              "code": "track_rollers_with_stud",
+              "name": "Опорные ролики с осью"
+            },
+            {
+              "code": "track_rollers_without_stud",
+              "name": "Опорные ролики без оси"
+            },
+            {
+              "code": "cam_followers",
+              "name": "Ролики кулачковые"
+            }
+          ]
+        },
+        {
+          "code": "overrunning_clutches",
+          "name": "Обгонные муфты",
+          "children": [
+            {
+              "code": "hf_series",
+              "name": "Серия HF"
+            },
+            {
+              "code": "hfl_series",
+              "name": "Серия HFL"
+            },
+            {
+              "code": "rc_series",
+              "name": "Серия RC"
+            },
+            {
+              "code": "csk_series",
+              "name": "Серия CSK"
+            }
+          ]
+        },
+        {
+          "code": "special_bearings",
+          "name": "Специальные подшипники",
+          "children": [
+            {
+              "code": "automotive_bearings",
+              "name": "Автомобильные подшипники"
+            },
+            {
+              "code": "air_conditioner_bearings",
+              "name": "Подшипники кондиционера"
+            },
+            {
+              "code": "electric_motor_bearings",
+              "name": "Подшипники для электродвигателей"
+            },
+            {
+              "code": "insulated_bearings",
+              "name": "Изолированные подшипники"
+            }
+          ]
+        },
+        {
+          "code": "bearing_accessories",
+          "name": "Комплектующие для подшипников",
+          "children": [
+            {
+              "code": "adapter_sleeves",
+              "name": "Втулки закрепительные"
+            },
+            {
+              "code": "withdrawal_sleeves",
+              "name": "Втулки стяжные"
+            },
+            {
+              "code": "locknuts",
+              "name": "Гайки"
+            },
+            {
+              "code": "lock_washers",
+              "name": "Шайбы"
+            },
+            {
+              "code": "seals",
+              "name": "Уплотнения"
+            },
+            {
+              "code": "bearing_housings_accessories",
+              "name": "Корпуса"
+            },
+            {
+              "code": "lubricants",
+              "name": "Смазки"
+            }
+          ]
+        }
+      ]
+    },
+    "flat_products": [
+      {
+        "id": 1,
+        "title": "Радиально-упорный шариковый подшипник-3206 B 2RSR TVH",
+        "article": "3206 B 2RSR TVH",
+        "manufacturer": "FAG",
+        "price": 4500,
+        "currency": "RUB",
+        "inner_diameter_mm": 30,
+        "outer_diameter_mm": 62,
+        "height_mm": 23.8,
+        "weight_g": 290,
+        "availability_status": null,
+        "in_stock": true,
+        "source_url": "https://alekspodshipnik.ru/katalog-produkczii/vidy-podshipnikov/sharikovyij/sharikovyij-radialno-upornyij-dvuxryadnyij/3206-b.2rsr.tvh(fag).html",
+        "images": [
+          "https://alekspodshipnik.ru/assets/images/products/12655/3306.jpg",
+          "https://alekspodshipnik.ru/assets/images/products/1164/64x64/210420151509.jpg",
+          "https://alekspodshipnik.ru/assets/images/products/1329/64x64/050320161929.jpg",
+          "https://alekspodshipnik.ru/assets/images/products/12649/64x64/5202.jpg",
+          "https://alekspodshipnik.ru/assets/images/products/12655/64x64/3306.jpg",
+          "https://alekspodshipnik.ru/assets/images/products/12658/64x64/220420122025.jpg"
+        ],
+        "normalized_category_path": [
+          "ball_bearings",
+          "angular_contact_ball_double_row"
+        ],
+        "source_category_path": [
+          "Виды подшипников",
+          "Шариковые подшипники",
+          "Подшипник шариковый радиально-упорный двухрядный"
+        ],
+        "attributes": {
+          "Фото": "Наименование"
+        }
+      },
+      {
+        "id": 7,
+        "title": "Однорядный шариковый радиальный подшипник 6207 ZZCM",
+        "article": "6207 ZZCM",
+        "manufacturer": "KOYO",
+        "price": 1140,
+        "currency": "RUB",
+        "inner_diameter_mm": 35,
+        "outer_diameter_mm": 72,
+        "height_mm": 17,
+        "weight_g": 290,
+        "availability_status": null,
+        "in_stock": true,
+        "source_url": "https://alekspodshipnik.ru/katalog-produkczii/vidy-podshipnikov/sharikovyij/sharikovyij-radialnyij-odnoryadnyij/6207-zzcm(koyo).html",
+        "images": [
+          "https://alekspodshipnik.ru/assets/images/products/13885/6000.jpg",
+          "https://alekspodshipnik.ru/assets/images/products/448/64x64/2rs.jpg",
+          "https://alekspodshipnik.ru/assets/images/products/2008/64x64/040520151129.jpg",
+          "https://alekspodshipnik.ru/assets/images/products/2213/64x64/110520152030.jpg",
+          "https://alekspodshipnik.ru/assets/images/products/13885/64x64/6000.jpg",
+          "https://alekspodshipnik.ru/assets/images/products/22147/64x64/12-rs.jpg",
+          "https://alekspodshipnik.ru/assets/images/products/195605/64x64/6305.jpg",
+          "https://alekspodshipnik.ru/assets/images/products/195609/64x64/12-rs.jpg",
+          "https://alekspodshipnik.ru/assets/images/products/195610/64x64/6000.jpg",
+          "https://alekspodshipnik.ru/assets/images/products/195611/64x64/6000.jpg",
+          "https://alekspodshipnik.ru/assets/images/products/196917/64x64/12-rs.jpg"
+        ],
+        "normalized_category_path": [
+          "ball_bearings",
+          "deep_groove_ball_bearings"
+        ],
+        "source_category_path": [
+          "Виды подшипников",
+          "Шариковые подшипники",
+          "Шариковый радиальный однорядный"
+        ],
+        "attributes": {
+          "Фото": "Наименование"
+        }
+      },
+      {
+        "id": 11,
+        "title": "Однорядный шариковый подшипник 6205 DDU CM",
+        "article": "6205 DDU CM",
+        "manufacturer": "NSK",
+        "price": 730,
+        "currency": "RUB",
+        "inner_diameter_mm": 25,
+        "outer_diameter_mm": 52,
+        "height_mm": 15,
+        "weight_g": 130,
+        "availability_status": null,
+        "in_stock": true,
+        "source_url": "https://alekspodshipnik.ru/katalog-produkczii/vidy-podshipnikov/sharikovyij/sharikovyij-radialnyij-odnoryadnyij/6205-ddu-cm(nsk).html",
+        "images": [
+          "https://alekspodshipnik.ru/assets/images/products/195611/6000.jpg",
+          "https://alekspodshipnik.ru/assets/images/products/443/64x64/6000.jpg",
+          "https://alekspodshipnik.ru/assets/images/products/13885/64x64/6000.jpg",
+          "https://alekspodshipnik.ru/assets/images/products/195610/64x64/6000.jpg",
+          "https://alekspodshipnik.ru/assets/images/products/195611/64x64/6000.jpg"
+        ],
+        "normalized_category_path": [
+          "ball_bearings",
+          "deep_groove_ball_bearings"
+        ],
+        "source_category_path": [
+          "Виды подшипников",
+          "Шариковые подшипники",
+          "Шариковый радиальный однорядный"
+        ],
+        "attributes": {
+          "Фото": "Наименование"
+        }
+      }
+    ]
+  }

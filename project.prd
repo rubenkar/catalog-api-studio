@@ -1,0 +1,491 @@
+# Product Requirements Document (PRD)
+## Project: Catalog API Studio
+### Version: MVP 1.0
+
+## 1. Product Overview
+
+**Catalog API Studio** is a local Python desktop application for digitizing supplier and manufacturer catalogs and transforming them into:
+
+- structured product data
+- REST API
+- smart search
+
+The product is intended for a **service business workflow**, not as a SaaS platform.  
+A single operator receives PDF/XLSX/CSV catalogs from a client, uploads them into the application, extracts product data, reviews and corrects uncertain records, and delivers an API and searchable product dataset to the client.
+
+---
+
+## 2. Business Context
+
+### 2.1 Market Problem
+Many suppliers and manufacturers still store their product catalogs in:
+- PDF
+- Excel
+- CSV
+- scanned documents
+
+These formats are inconvenient for:
+- ecommerce
+- ERP/CRM
+- dealer portals
+- API integrations
+- smart search by SKU, parameters, and alternatives
+
+### 2.2 Opportunity
+There is demand for a service that transforms such catalogs into:
+- clean structured data
+- API
+- searchable index
+- integration-ready digital product catalog
+
+### 2.3 Operating Model
+The product is used by **one specialist** as an internal tool for performing client projects.
+
+This is not a self-service client platform.  
+It is a production tool for a service business.
+
+---
+
+## 3. Product Goals
+
+### 3.1 Primary Goal
+Build a working MVP tool that enables one specialist to deliver projects involving:
+- catalog digitization
+- product data extraction and normalization
+- API creation
+- smart search creation
+
+### 3.2 MVP Goals
+The MVP must allow the operator to:
+
+1. upload a client catalog
+2. extract product data
+3. review problematic records
+4. manually correct uncertain fields
+5. save normalized results
+6. expose REST API
+7. search data through a built-in search interface
+
+### 3.3 MVP Success Definition
+The MVP is successful if it allows:
+- processing at least 1 real client catalog end-to-end
+- producing a usable product database
+- delivering a working API to the client
+- demonstrating search by SKU/name/brand/attributes
+- executing a project without rebuilding the system from scratch each time
+
+---
+
+## 4. Target Audience
+
+### Primary User
+**Single operator / service owner**
+- uploads documents
+- monitors extraction
+- fixes errors
+- exports results
+- uses API and search as client deliverables
+
+### Secondary Audience
+Indirect beneficiaries:
+- manufacturers
+- suppliers
+- distributors
+- B2B ecommerce companies
+- companies with ERP/CRM/PIM needs
+
+They are not the direct users of the MVP UI.
+
+---
+
+## 5. Core Use Cases
+
+### UC1 — Catalog Import
+The operator uploads:
+- PDF
+- XLSX
+- CSV
+
+The system stores the file and creates an import job.
+
+### UC2 — Data Extraction
+The system:
+- analyzes the document
+- extracts text/tables
+- identifies product rows
+- builds structured product records
+
+### UC3 — Review Uncertain Records
+The system shows:
+- confidence score
+- problematic records
+- low-confidence fields
+
+The operator manually corrects values.
+
+### UC4 — Normalization
+The system:
+- cleans text
+- standardizes SKU format
+- extracts brand
+- normalizes units
+- builds a basic attribute structure
+
+### UC5 — Search
+The operator or demo user can search by:
+- SKU
+- partial SKU
+- name
+- brand
+- category
+- attributes
+
+### UC6 — API
+The system exposes REST API for:
+- product list
+- product details
+- search
+- brands
+- categories
+- filters
+
+### UC7 — Export
+The operator can export data as:
+- JSON
+- CSV
+
+---
+
+## 6. MVP Scope
+
+## 6.1 In Scope
+
+### Interface
+- Python desktop UI
+- file upload screen
+- import list
+- document list
+- extraction results viewer
+- extracted rows viewer
+- manual field editing
+- search screen
+- API health/docs status
+
+### Input Formats
+- PDF
+- XLSX
+- CSV
+
+### PDF Processing
+Support 3 modes:
+- native extraction
+- bitmap fallback
+- hybrid merge
+
+### OCR / Layout / Tables
+Open-source stack:
+- PaddleOCR / PP-Structure
+- Surya
+- Docling (optional orchestration layer)
+
+### Data Extraction
+Minimum extracted fields:
+- source
+- sku
+- brand
+- name
+- category
+- description
+- attributes
+- unit
+- price
+- stock
+- documents
+- images
+
+### Normalization
+- text cleaning
+- SKU normalization
+- brand extraction
+- unit normalization
+- basic categorization
+- simple deduplication
+
+### Review Workflow
+- confidence score
+- uncertain-field flags
+- manual editing
+
+### Search
+- SKU search
+- partial SKU search
+- name search
+- brand search
+- category filters
+- attribute filters
+- autocomplete
+
+### API
+Minimum endpoints:
+- `GET /products`
+- `GET /products/{id}`
+- `GET /search?q=`
+- `GET /brands`
+- `GET /categories`
+- `GET /filters`
+- `GET /health`
+
+### Storage
+- SQLite for MVP or PostgreSQL-ready architecture
+- local file storage for documents and previews
+
+---
+
+## 6.2 Out of Scope
+
+- public SaaS client portal
+- multi-tenancy
+- billing
+- client accounts
+- advanced conversational AI assistant
+- perfect automatic recognition for all PDF types
+- advanced OEM/cross-reference engine
+- production-grade cluster deployment
+- enterprise permissions / SSO
+- full-scale PIM/MDM system
+- auto-training ML pipeline
+
+---
+
+## 7. Functional Requirements
+
+## 7.1 File Import
+The system must:
+- accept PDF/XLSX/CSV
+- store file and metadata
+- create an import job entity
+- display processing status
+
+## 7.2 PDF Processing
+The system must:
+- detect whether a native text layer exists
+- choose processing mode
+- render pages to bitmap when needed
+- store page previews
+
+## 7.3 OCR / Layout / Tables
+The system must:
+- extract text from pages
+- detect layout blocks
+- detect tables
+- reconstruct product rows at least at a basic level
+
+## 7.4 Product Extraction
+The system must build product-like records from extracted content.
+
+Minimum fields:
+- id
+- source_document
+- sku
+- brand
+- name
+- category
+- description
+- attributes
+- unit
+- price
+- stock
+- confidence_score
+
+## 7.5 Review
+The operator must be able to:
+- view extracted rows
+- open a record
+- edit fields
+- save corrections
+
+## 7.6 Search
+The system must:
+- index products
+- perform text search
+- filter by fields
+- support autocomplete
+
+## 7.7 API
+The system must:
+- return JSON
+- support filtering and pagination
+- publish OpenAPI docs
+
+## 7.8 Export
+The system must:
+- export selected products to CSV/JSON
+
+---
+
+## 8. Non-Functional Requirements
+
+### Performance
+- local operation on a standard workstation
+- acceptable processing of one small-to-medium catalog without freezing the UI
+- background tasks must not block the UI
+
+### Reliability
+- import errors must not crash the entire application
+- logging for errors and processing steps
+
+### Maintainability
+- modular architecture
+- type hints
+- pydantic models
+- testable services
+
+### Extensibility
+- replaceable OCR backend
+- pluggable LLM providers
+- migration path from SQLite to PostgreSQL
+- replaceable search engine
+
+### UX
+- practical operator-oriented interface
+- clear statuses
+- quick access to uncertain rows
+- minimal unnecessary complexity
+
+---
+
+## 9. AI Requirements
+
+AI is an auxiliary layer, not the sole extraction mechanism.
+
+### AI is used for:
+- difficult classification
+- attribute extraction from messy text
+- title normalization
+- matching similar records
+- resolving ambiguous cases
+
+### AI must not:
+- be the only extraction mechanism
+- block usage if no cloud service is configured
+- hard-lock the app to a single provider
+
+### Requirement
+The system must provide an abstraction layer for:
+- Claude API
+- OpenAI API
+- DeepSeek API
+- Qwen API
+
+---
+
+## 10. Technical Architecture
+
+## 10.1 Recommended Stack
+- Python 3.11+
+- PySide6 or PyQt6
+- FastAPI
+- SQLite for MVP, architecture ready for PostgreSQL
+- Typesense or OpenSearch for search
+- PaddleOCR / Surya / Docling
+- Pydantic
+- SQLAlchemy or SQLModel
+- background tasks / lightweight queue
+
+## 10.2 Suggested Module Structure
+- `app/ui`
+- `app/core`
+- `app/importers`
+- `app/pdf`
+- `app/ocr`
+- `app/layout`
+- `app/tables`
+- `app/extraction`
+- `app/normalization`
+- `app/review`
+- `app/search`
+- `app/api`
+- `app/db`
+- `app/models`
+- `app/services`
+- `app/config`
+- `tests`
+
+---
+
+## 11. MVP Deliverables
+
+## 11.1 Expected Deliverables
+- private GitHub repo
+- working project structure
+- desktop UI shell
+- PDF/XLSX/CSV import
+- basic database
+- extraction pipeline
+- review UI
+- search MVP
+- FastAPI endpoints
+- README
+- setup instructions
+- sample/demo data
+- basic tests
+
+## 11.2 Build Priority
+1. repo creation
+2. project structure
+3. UI shell
+4. file import
+5. database + models
+6. native extraction
+7. bitmap fallback
+8. OCR/layout/table extraction
+9. normalization
+10. review UI
+11. search
+12. API
+13. docs/tests
+
+---
+
+## 12. Success Metrics
+
+### Product Metrics
+- 1 real catalog processed end-to-end
+- >70% of product rows pass baseline extraction without full manual reconstruction
+- uncertain records available for manual correction
+- search returns products by SKU and name
+- API returns usable JSON
+
+### Business Metrics
+- tool enables completion of first real client project
+- reduces manual effort versus ad-hoc scripts
+- can be reused for future client projects
+
+---
+
+## 13. Risks
+
+### Technical Risks
+- difficult PDFs with poor layout
+- merged cells in tables
+- OCR errors
+- low-quality scanned documents
+
+### Product Risks
+- trying to build too broad an MVP
+- relying too heavily on AI too early
+- lack of human-in-the-loop workflow
+
+### Operational Risks
+- overly complex UI for a single operator
+- too large a stack for the first launch
+
+---
+
+## 14. Product Principles
+
+- MVP must be pragmatic
+- human-in-the-loop is mandatory
+- AI should be used selectively
+- the system must help deliver real client projects
+- architecture must allow future extension without overengineering the first version

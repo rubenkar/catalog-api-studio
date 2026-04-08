@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from catalog_api_studio.db.models import Base
+from app.db.models import Base
 
 
 @pytest.fixture

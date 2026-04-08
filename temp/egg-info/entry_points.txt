@@ -1,0 +1,2 @@
+[console_scripts]
+catalog-api-studio = catalog_api_studio.main:main

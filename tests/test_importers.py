@@ -3,7 +3,7 @@
 import tempfile
 from pathlib import Path
 
-from catalog_api_studio.importers.csv_importer import CSVImporter
+from app.importers.csv_importer import CSVImporter
 
 
 def test_csv_import():

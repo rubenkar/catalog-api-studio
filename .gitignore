@@ -35,6 +35,14 @@ data/previews/
 
 *.log
 
+# Images
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.webp
+
 # OS
 Thumbs.db
 .DS_Store

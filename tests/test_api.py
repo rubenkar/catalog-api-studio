@@ -3,8 +3,8 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from catalog_api_studio.db.engine import get_session, init_db
-from catalog_api_studio.db.models import Product
+from app.db.engine import get_session, init_db
+from app.db.models import Product
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -40,7 +40,7 @@ def setup_db():
 
 @pytest.fixture
 def client():
-    from catalog_api_studio.api.app import create_app
+    from app.api.app import create_app
 
     app = create_app()
     return TestClient(app)
