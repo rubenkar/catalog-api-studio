@@ -22,6 +22,7 @@ from PySide6.QtGui import QAction, QColor, QCursor, QFont, QImage, QPainter, QPe
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
+    QDialog,
     QFrame,
     QGridLayout,
     QHBoxLayout,
