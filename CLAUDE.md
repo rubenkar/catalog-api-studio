@@ -24,3 +24,6 @@
 - Run app: `python -m catalog_api_studio.main`
 - Run tests: `pytest`
 - Lint: `ruff check .`
+
+## Rules
+- Do NOT start/run the app after making changes — user will start it manually
