@@ -7,16 +7,17 @@ from datetime import datetime
 from pathlib import Path
 
 from PySide6.QtCore import QProcess, QSettings, Qt
-from PySide6.QtGui import QAction
+from PySide6.QtGui import QFont, QTextCursor, QColor, QTextCharFormat, QAction
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QMainWindow,
     QMenuBar,
+    QPlainTextEdit,
     QPushButton,
+    QSplitter,
     QTabWidget,
     QVBoxLayout,
-    QMessageBox,
     QWidget,
 )
 
@@ -67,11 +68,6 @@ class MainWindow(QMainWindow):
         self._build_view_menu(menu_bar)
         top_bar.addWidget(menu_bar)
 
-        self.progress_label = QLabel("")
-        self.progress_label.setStyleSheet("color: #e8a020; font-size: 11px; font-weight: bold;")
-        self.progress_label.setMinimumWidth(160)
-        top_bar.addWidget(self.progress_label)
-
         top_bar.addStretch()
         build_time = _get_build_time()
         version_label = QLabel(f"v{APP_VERSION} | {build_time}")
@@ -86,8 +82,13 @@ class MainWindow(QMainWindow):
 
         layout.addLayout(top_bar)
 
+        # Splitter: tabs on top, debug console on bottom
+        self._splitter = QSplitter(Qt.Orientation.Vertical)
+        self._splitter.setChildrenCollapsible(False)
+        layout.addWidget(self._splitter)
+
         self.tabs = QTabWidget()
-        layout.addWidget(self.tabs)
+        self._splitter.addWidget(self.tabs)
 
         # Create tabs
         self.import_view = ImportView()
@@ -101,6 +102,53 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.review_view, "Review")
         self.tabs.addTab(self.search_view, "Search")
         self.tabs.addTab(self.api_view, "API")
+
+        # --- Debug console bar (footer) ---
+        self._debug_bar = QWidget()
+        debug_layout = QVBoxLayout(self._debug_bar)
+        debug_layout.setContentsMargins(0, 0, 0, 0)
+        debug_layout.setSpacing(0)
+
+        # Toggle header
+        self._debug_toggle = QPushButton("▸ Console")
+        self._debug_toggle.setFixedHeight(20)
+        self._debug_toggle.setStyleSheet(
+            "QPushButton { background: #1e1e1e; color: #888; font-size: 10px; "
+            "border: none; text-align: left; padding-left: 6px; }"
+            "QPushButton:hover { color: #ccc; }"
+        )
+        self._debug_toggle.clicked.connect(self._toggle_debug_bar)
+        debug_layout.addWidget(self._debug_toggle)
+
+        self._debug_console = QPlainTextEdit()
+        self._debug_console.setReadOnly(True)
+        self._debug_console.setFont(QFont("Consolas", 9))
+        self._debug_console.setLineWrapMode(QPlainTextEdit.LineWrapMode.WidgetWidth)
+        self._debug_console.setMinimumHeight(150)  # Minimum height to show multiple lines
+        # Show vertical scrollbar always (visible)
+        self._debug_console.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
+        self._debug_console.setStyleSheet(
+            "QPlainTextEdit { background: #1e1e1e; color: #00cc66; "
+            "border: none; padding: 4px; }"
+        )
+
+        # Format for foreground tasks (cyan background)
+        self._format_fg = QTextCharFormat()
+        self._format_fg.setBackground(QColor(0, 180, 255, 100))  # Cyan with transparency
+
+        # Format for background tasks (brown background)
+        self._format_bg = QTextCharFormat()
+        self._format_bg.setBackground(QColor(180, 120, 0, 100))  # Brown with transparency
+
+        debug_layout.addWidget(self._debug_console, 1)  # stretch=1, fill available space
+
+        self._splitter.addWidget(self._debug_bar)
+
+        # Start collapsed: only toggle bar visible
+        self._debug_expanded = False
+        self._debug_console.setVisible(False)
+        # Will expand to 250px when toggled on
+        self._splitter.setSizes([1, 20])
 
         # Connect import → preview
         self.import_view.preview_requested.connect(self._open_preview)
@@ -158,9 +206,75 @@ class MainWindow(QMainWindow):
         self.tabs.setCurrentWidget(self.preview_view)
 
     def _on_progress(self, text: str) -> None:
-        """Update progress label from preview operations."""
-        self.progress_label.setText(text)
-        self.progress_label.repaint()
+        """Insert progress message at top of debug console (one message per line)."""
+        if not text:
+            return
+        from datetime import datetime
+        ts = datetime.now().strftime("%H:%M:%S.%f")[:-3]
+        # Clean text: replace embedded newlines with spaces to keep message on single line
+        clean_text = text.replace("\n", " ").replace("\r", " ").strip()
+        if not clean_text:
+            return
+
+        # Determine format based on task type
+        line = f"[{ts}] {clean_text}\n"
+        if "[foreground]" in clean_text:
+            fmt = self._format_fg
+        elif "[background]" in clean_text:
+            fmt = self._format_bg
+        else:
+            fmt = QTextCharFormat()  # Default format (no background)
+
+        # Check if scrollbar is at top (value near 0 = at top)
+        sb = self._debug_console.verticalScrollBar()
+        was_at_top = (sb.value() < 5)  # Small margin for floating point
+
+        # Save current scroll position
+        old_scroll_value = sb.value()
+        old_scroll_max = sb.maximum()
+
+        # Insert at top (beginning) with formatting
+        cursor = self._debug_console.textCursor()
+        cursor.movePosition(QTextCursor.MoveOperation.Start)
+        self._debug_console.setTextCursor(cursor)
+        cursor.insertText(line, fmt)
+
+        # Keep cursor at top for next insertion
+        cursor.movePosition(QTextCursor.MoveOperation.Start)
+        self._debug_console.setTextCursor(cursor)
+
+        # Restore scroll position
+        if was_at_top:
+            # If was at top, keep at top (value = 0)
+            sb.setValue(0)
+        else:
+            # If was scrolled down, maintain reading position by shifting down
+            # One new line added at top, so shift view down by line height
+            line_height = self._debug_console.fontMetrics().lineSpacing()
+            sb.setValue(old_scroll_value + line_height)
+
+        # Update toggle text with latest message (truncate if too long)
+        display_text = clean_text[:50] + "..." if len(clean_text) > 50 else clean_text
+        self._debug_toggle.setText(f"▾ Console — {display_text}" if self._debug_console.isVisible()
+                                   else f"▸ Console — {display_text}")
+
+    def _toggle_debug_bar(self) -> None:
+        """Expand/collapse the debug console."""
+        self._debug_expanded = not self._debug_expanded
+        self._debug_console.setVisible(self._debug_expanded)
+        total = sum(self._splitter.sizes())
+        if self._debug_expanded:
+            # Default to 250px (large footer), at least 150px (console minimum)
+            h = self._settings().value("debug/height", 250, type=int)
+            h = max(150, min(h, total - 100))
+            self._splitter.setSizes([total - h, h])
+        else:
+            # Collapsed: just show toggle button (20px)
+            self._splitter.setSizes([total - 20, 20])
+        arrow = "▾" if self._debug_expanded else "▸"
+        current = self._debug_toggle.text()
+        msg = current.split(" — ", 1)[1] if " — " in current else ""
+        self._debug_toggle.setText(f"{arrow} Console — {msg}" if msg else f"{arrow} Console")
 
     def _reload_app(self) -> None:
         """Save state and restart the application process."""
@@ -173,17 +287,7 @@ class MainWindow(QMainWindow):
         return QSettings("CatalogAPIStudio", "CatalogAPIStudio")
 
     def closeEvent(self, event) -> None:
-        """Ask for confirmation, then save window and document state on close."""
-        reply = QMessageBox.question(
-            self,
-            "Выход",
-            "Вы уверены, что хотите закрыть приложение?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No,
-        )
-        if reply != QMessageBox.StandardButton.Yes:
-            event.ignore()
-            return
+        """Save window and document state on close."""
         s = self._settings()
 
         # Window geometry
@@ -200,6 +304,15 @@ class MainWindow(QMainWindow):
         # Show filters (bbox, table, text, photo, picture, drawing)
         for key, act in self.preview_view.bbox_filter_actions.items():
             s.setValue(f"show/{key}", act.isChecked())
+
+        # Content filters
+        for key, cb in self.preview_view._content_checkboxes.items():
+            s.setValue(f"content/{key}", cb.isChecked())
+
+        # Debug bar
+        s.setValue("debug/expanded", self._debug_expanded)
+        if self._debug_expanded:
+            s.setValue("debug/height", self._splitter.sizes()[1])
 
         # View menu toggles
         s.setValue("show/hidden", self.show_hidden_action.isChecked())
@@ -222,12 +335,32 @@ class MainWindow(QMainWindow):
         tab_idx = s.value("window/tab", 0, type=int)
         self.tabs.setCurrentIndex(tab_idx)
 
+        # Debug bar
+        debug_expanded = s.value("debug/expanded")
+        if debug_expanded is not None:
+            expanded = debug_expanded == "true" or debug_expanded is True
+            self._debug_expanded = expanded
+            self._debug_console.setVisible(expanded)
+            self._debug_toggle.setText("▾ Console" if expanded else "▸ Console")
+            if expanded:
+                h = s.value("debug/height", 250, type=int)
+                total = sum(self._splitter.sizes())
+                h = max(150, min(h, total - 100))
+                self._splitter.setSizes([total - h, h])
+
         # Show filters
         for key, act in self.preview_view.bbox_filter_actions.items():
             saved = s.value(f"show/{key}")
             if saved is not None:
                 act.setChecked(saved == "true" or saved is True)
         self.preview_view._on_bbox_filter_changed()
+
+        # Content filters
+        for key, cb in self.preview_view._content_checkboxes.items():
+            saved = s.value(f"content/{key}")
+            if saved is not None:
+                cb.setChecked(saved == "true" or saved is True)
+        self.preview_view._on_content_filter_changed()
 
         # View menu toggles
         show_hidden = s.value("show/hidden")

@@ -17,7 +17,7 @@ _DIM_PATTERN = re.compile(
     r'|^mm$'                   # unit
     r'|^M[0-9]+$'              # metric thread (M10, M14)
 )
-from PySide6.QtCore import QPoint, QPointF, QRectF, QThread, Qt, Signal
+from PySide6.QtCore import QPoint, QPointF, QRectF, QThread, QTimer, Qt, Signal
 from PySide6.QtGui import QAction, QColor, QCursor, QFont, QImage, QPainter, QPen, QPixmap, QWheelEvent
 from PySide6.QtWidgets import (
     QCheckBox,
@@ -35,6 +35,7 @@ from PySide6.QtWidgets import (
     QToolButton,
     QVBoxLayout,
     QWidget,
+    QWidgetAction,
 )
 
 from app.services.catalog_meta import (
@@ -45,6 +46,96 @@ from app.services.catalog_meta import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Background PDF page renderer
+# ---------------------------------------------------------------------------
+
+class DetectWorker(QThread):
+    """Runs object detection for one page in a background thread."""
+
+    page_detected = Signal(int, list, str, list)  # page_idx, bboxes, stats, pdf_objects
+
+    def __init__(self, preview: "PreviewView", page_idx: int, parent=None):
+        super().__init__(parent)
+        self._preview = preview
+        self._page_idx = page_idx
+        self._cancelled = False
+
+    def cancel(self) -> None:
+        self._cancelled = True
+
+    def run(self) -> None:
+        try:
+            doc = fitz.open(str(self._preview._file_path))
+            # Apply same cropbox as main doc
+            main_doc = self._preview._doc
+            if main_doc:
+                for pi in range(len(doc)):
+                    if pi < len(main_doc):
+                        doc[pi].set_cropbox(main_doc[pi].rect)
+            page = doc[self._page_idx]
+            if self._cancelled:
+                doc.close()
+                return
+            bboxes, stats = self._preview._detect_native_page(page)
+            if self._cancelled:
+                doc.close()
+                return
+            pdf_objects = self._preview._extract_pdf_objects(page)
+            doc.close()
+            if not self._cancelled:
+                self.page_detected.emit(self._page_idx, bboxes, stats, pdf_objects)
+        except Exception as e:
+            logger.error("DetectWorker page %d failed: %s", self._page_idx, e)
+
+
+class PageRenderWorker(QThread):
+    """Renders PDF pages in a background thread.
+
+    Emits *page_ready* with (page_index, QImage, dpi) for each completed page.
+    The caller must convert QImage → QPixmap on the main thread.
+    """
+
+    page_ready = Signal(int, QImage, float)  # page_idx, image, dpi
+    all_done = Signal()
+
+    def __init__(self, doc_path: str, requests: list[tuple[int, float]], parent=None):
+        super().__init__(parent)
+        self._doc_path = doc_path
+        self._requests = requests  # [(page_idx, dpi), ...]
+        self._cancelled = False
+
+    def cancel(self) -> None:
+        self._cancelled = True
+
+    def run(self) -> None:
+        try:
+            doc = fitz.open(self._doc_path)
+        except Exception:
+            return
+        try:
+            for page_idx, dpi in self._requests:
+                if self._cancelled:
+                    break
+                try:
+                    page = doc[page_idx]
+                    mat = fitz.Matrix(dpi / 72.0, dpi / 72.0)
+                    pix = page.get_pixmap(matrix=mat)
+                    img = QImage(
+                        pix.samples, pix.width, pix.height,
+                        pix.stride, QImage.Format.Format_RGB888,
+                    ).copy()  # .copy() — prevent dangling pointer after pix freed
+                    if not self._cancelled:
+                        self.page_ready.emit(page_idx, img, dpi)
+                except Exception as exc:
+                    logger.error("Background render page %d failed: %s", page_idx, exc)
+        finally:
+            doc.close()
+        if not self._cancelled:
+            self.all_done.emit()
+
 
 # Colors for different bounding box types
 BBOX_COLORS = {
@@ -91,6 +182,8 @@ class PageWidget(QWidget):
     type_changed = Signal(str, str)          # (obj_id, new_type)
     bbox_modified = Signal(str, tuple)       # (obj_id, new_pts)
     selection_changed = Signal(object)       # emits self when bbox selected
+    bbox_testbench = Signal(int)              # (page_index,)
+    object_stats_requested = Signal(dict, int, str)  # (bbox_dict, page_index, file_path)
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
@@ -102,11 +195,17 @@ class PageWidget(QWidget):
         self._zoom_factor: float = 1.0
         self._selected_idx: int = -1
         self._page_index: int = -1  # 0-based page number
+        self._file_path: Path | None = None  # path to PDF for rendering in dialogs
         self._page_size_pt: tuple[float, float] = (612, 792)  # (width, height) in PDF points
         self._visible_layers: dict[str, bool] = {
             "bbox": True, "table": True, "text": True,
             "photo": True, "picture": True, "drawing": True,
+            "template": False,
+            "pdf_objects": False,
+            "pdf_text": False, "pdf_image": False, "pdf_table": False,
         }
+        self._pdf_objects: list[dict] = []  # native PDF object rects
+        self._content_mask: dict[str, bool] = {}  # types to mask (hide content)
 
         # Cropping overlays (fractions 0..1)
         self._crop_h_lines: list[float] = []
@@ -132,6 +231,10 @@ class PageWidget(QWidget):
         self._selected_idx = -1
         self.update()
 
+    def set_file_path(self, file_path: Path) -> None:
+        """Set the PDF file path (needed for rendering in dialogs)."""
+        self._file_path = file_path
+
     def set_show_bboxes(self, show: bool) -> None:
         self._show_bboxes = show
         self.update()
@@ -147,6 +250,17 @@ class PageWidget(QWidget):
     def set_visible_layers(self, layers: dict[str, bool]) -> None:
         """Set which layers are visible: bbox, table, text, image, drawing."""
         self._visible_layers = layers
+        self.update()
+
+    def set_pdf_objects(self, objects: list[dict], zoom_factor: float) -> None:
+        """Set native PDF object rects (pts coords)."""
+        self._pdf_objects = objects
+        self._zoom_factor = zoom_factor
+        self.update()
+
+    def set_content_mask(self, mask: dict[str, bool]) -> None:
+        """Set which object types should have their content masked."""
+        self._content_mask = mask
         self.update()
 
     def _handle_rects(self, r: QRectF) -> list[QRectF]:
@@ -186,23 +300,44 @@ class PageWidget(QWidget):
         return (px.x() / zf, (px.y() - h) / zf)
 
     def contextMenuEvent(self, event) -> None:
-        """Right-click selects bbox under cursor (if any) and opens context menu."""
+        """Right-click: always offer Grow Test + bbox context menu if selected."""
+        click = event.pos()
+        x_pt, y_pt = self._px_to_pts(QPointF(click))
+
+        # Select bbox under cursor — selectable if bbox layer OR type layer visible
         if self._show_bboxes and self._bboxes_pts:
-            click = event.pos()
+            show_bbox = self._visible_layers.get("bbox", True)
             hits: list[tuple[int, float]] = []
             for i, bbox in enumerate(self._bboxes_pts):
                 if bbox.get("hidden", False) and not self._show_hidden:
+                    continue
+                bbox_type = bbox.get("type", "unknown")
+                type_visible = self._visible_layers.get(bbox_type, False)
+                if not show_bbox and not type_visible:
+                    continue
+                # Skip if content is hidden
+                if self._content_mask.get(bbox_type, False):
+                    continue
+                if bbox.get("is_template") and self._content_mask.get("template", False):
                     continue
                 r = self._bbox_rect_px(bbox)
                 if r and r.contains(QPoint(click.x(), click.y())):
                     hits.append((i, r.width() * r.height()))
             if hits:
-                hits.sort(key=lambda h: h[1])  # smallest first
+                hits.sort(key=lambda h: h[1])
                 self._selected_idx = hits[0][0]
                 self.update()
 
+        menu = QMenu(self)
+        testbench_action = menu.addAction("Bbox Testbench")
+        testbench_action.triggered.connect(
+            lambda: self.bbox_testbench.emit(self._page_index)
+        )
+        menu.addSeparator()
+
         if self._selected_idx < 0 or self._selected_idx >= len(self._bboxes_pts):
-            return super().contextMenuEvent(event)
+            menu.exec(event.globalPos())
+            return
         bbox = self._bboxes_pts[self._selected_idx]
         obj_id = bbox.get("id", "")
         if not obj_id:
@@ -273,11 +408,18 @@ class PageWidget(QWidget):
 
         # Otherwise: select bbox under cursor (cycle through overlapping)
         hits: list[tuple[int, float]] = []
+        show_bbox = self._visible_layers.get("bbox", True)
         for i, bbox in enumerate(self._bboxes_pts):
             if bbox.get("hidden", False) and not self._show_hidden:
                 continue
             bbox_type = bbox.get("type", "unknown")
-            if not self._visible_layers.get(bbox_type, True):
+            type_visible = self._visible_layers.get(bbox_type, False)
+            if not show_bbox and not type_visible:
+                continue
+            # Skip if content is hidden
+            if self._content_mask.get(bbox_type, False):
+                continue
+            if bbox.get("is_template") and self._content_mask.get("template", False):
                 continue
             r = self._bbox_rect_px(bbox)
             if r and r.contains(click):
@@ -378,6 +520,14 @@ class PageWidget(QWidget):
         self._drag_start_px = None
         self._drag_orig_pts = None
 
+    def mouseDoubleClickEvent(self, event) -> None:
+        """Double-click on bbox: open stats dialog."""
+        if self._selected_idx < 0 or self._selected_idx >= len(self._bboxes_pts):
+            return
+        bbox = self._bboxes_pts[self._selected_idx]
+        file_path = str(self._file_path) if self._file_path else ""
+        self.object_stats_requested.emit(bbox, self._page_index, file_path)
+
     def paintEvent(self, event) -> None:
         if not self._pixmap:
             return
@@ -400,6 +550,51 @@ class PageWidget(QWidget):
 
         # Draw page image below header
         painter.drawPixmap(0, h, self._pixmap)
+
+        # Content hiding — fill hidden object areas with white
+        if self._content_mask and self._bboxes_pts:
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(QColor(255, 255, 255))
+            for bbox in self._bboxes_pts:
+                bbox_type = bbox.get("type", "unknown")
+                is_tpl = bbox.get("is_template", False)
+                hide_by_type = self._content_mask.get(bbox_type, False)
+                hide_by_tpl = is_tpl and self._content_mask.get("template", False)
+                if not hide_by_type and not hide_by_tpl:
+                    continue
+                r = self._bbox_rect_px(bbox)
+                if not r:
+                    continue
+                painter.drawRect(r)
+
+        # Layer 0: Native PDF objects — dashed rectangles, colored by type
+        _PDF_OBJ_COLORS = {
+            "pdf_text":  QColor(76, 175, 80, 180),    # green
+            "pdf_image": QColor(255, 87, 34, 180),     # orange
+            "pdf_table": QColor(0, 120, 215, 180),     # blue
+        }
+        if self._visible_layers.get("pdf_objects", False) and self._pdf_objects:
+            font = QFont("Consolas", 7)
+            painter.setFont(font)
+            for obj in self._pdf_objects:
+                pdf_type = obj.get("pdf_type", "pdf_text")
+                if not self._visible_layers.get(pdf_type, True):
+                    continue
+                pts = obj.get("pts")
+                if not pts:
+                    continue
+                color = _PDF_OBJ_COLORS.get(pdf_type, QColor(150, 150, 150, 180))
+                fill = QColor(color)
+                fill.setAlpha(30)
+                x0, y0, x1, y1 = pts
+                r = QRectF(x0 * zf, y0 * zf + h, (x1 - x0) * zf, (y1 - y0) * zf)
+                painter.setBrush(fill)
+                painter.setPen(QPen(color, 2, Qt.PenStyle.DashLine))
+                painter.drawRect(r)
+                lbl = obj.get("label", "")
+                if lbl:
+                    painter.setPen(color)
+                    painter.drawText(int(r.x() + 2), int(r.y() + 10), lbl)
 
         # Mask hidden objects — solid fill over PDF content, always active
         for i, bbox in enumerate(self._bboxes_pts):
@@ -436,27 +631,56 @@ class PageWidget(QWidget):
         if self._show_bboxes and self._bboxes_pts:
             layers = self._visible_layers
             show_bbox = layers.get("bbox", True)
-            # Layer 1: Bounding boxes — gray frame + semi-transparent gray fill
+            # Layer 1: Bounding boxes — dark blue border, 80% transparent fill
             if show_bbox:
-                bbox_fill = QColor(160, 160, 160, 40)
-                bbox_border_color = QColor(130, 130, 130, 200)
-                bbox_pen = QPen(bbox_border_color, 3)
+                bbox_fill = QColor(20, 40, 80, 13)         # ~95% transparent dark blue
+                bbox_border = QColor(20, 40, 120, 220)    # dark blue
+                bbox_pen = QPen(bbox_border, 1)
+                label_font = QFont("Consolas", 8)
+                label_bg = QColor(20, 30, 60, 200)
+                label_fg = QColor(255, 255, 255)
+                show_template = layers.get("template", False)
                 for bbox in self._bboxes_pts:
                     if bbox.get("hidden", False):
                         continue
-                    bbox_type = bbox.get("type", "unknown")
-                    if not layers.get(bbox_type, True):
+                    if bbox.get("is_template") and not show_template:
                         continue
                     r = self._bbox_rect_px(bbox)
                     if not r:
                         continue
-                    painter.setBrush(bbox_fill)
+                    # Template objects: hatch fill
+                    if bbox.get("is_template"):
+                        hatch_color = QColor(180, 0, 180, 60)
+                        painter.setPen(QPen(QColor(180, 0, 180, 120), 1))
+                        painter.setBrush(Qt.BrushStyle.NoBrush)
+                        painter.drawRect(r)
+                        # Draw diagonal hatch lines
+                        painter.setPen(QPen(hatch_color, 1))
+                        step = 8
+                        rx, ry = int(r.x()), int(r.y())
+                        rw, rh = int(r.width()), int(r.height())
+                        painter.setClipRect(r)
+                        for d in range(-rh, rw, step):
+                            painter.drawLine(rx + d, ry, rx + d + rh, ry + rh)
+                        painter.setClipping(False)
+                    else:
+                        painter.setBrush(bbox_fill)
                     painter.setPen(bbox_pen)
                     painter.drawRect(r)
-                    # Label
-                    painter.setPen(QPen(bbox_border_color, 1))
+                    # Label on outer top side: dark background, white text
                     label = bbox.get("label", bbox.get("type", ""))
-                    painter.drawText(int(r.x() + 3), int(r.y() + 14), label)
+                    if label:
+                        painter.setFont(label_font)
+                        fm = painter.fontMetrics()
+                        tw = fm.horizontalAdvance(label) + 6
+                        th = fm.height() + 2
+                        lx = int(r.x())
+                        ly = int(r.y() - th)
+                        painter.setPen(Qt.PenStyle.NoPen)
+                        painter.setBrush(label_bg)
+                        painter.drawRect(lx, ly, tw, th)
+                        painter.setPen(label_fg)
+                        painter.drawText(lx + 3, ly + fm.ascent() + 1, label)
 
             # Layer 2: Content-type visualization (colored overlays, table grids)
             for i, bbox in enumerate(self._bboxes_pts):
@@ -468,7 +692,7 @@ class PageWidget(QWidget):
                 if not r:
                     continue
 
-                show_content = show_bbox and layers.get(bbox_type, False)
+                show_content = layers.get(bbox_type, False)
                 if show_content:
                     border = BBOX_BORDER_COLORS.get(bbox_type, BBOX_BORDER_COLORS["unknown"])
                     painter.setBrush(Qt.BrushStyle.NoBrush)
@@ -489,31 +713,7 @@ class PageWidget(QWidget):
                     for hr in self._handle_rects(r):
                         painter.drawRect(hr)
 
-        # Cropping — solid white over cropped margins and template boxes
-        if self._crop_h_lines or self._crop_v_lines or self._crop_boxes:
-            page_w_pt, page_h_pt = self._page_size_pt
-            white = QColor(255, 255, 255)
-            painter.setPen(Qt.PenStyle.NoPen)
-            painter.setBrush(white)
-            h_sorted = sorted(self._crop_h_lines)
-            v_sorted = sorted(self._crop_v_lines)
-            if h_sorted:
-                ty = int(h_sorted[0] * page_h_pt * zf) + h
-                painter.drawRect(QRectF(0, h, self.width(), ty - h))
-                by = int(h_sorted[-1] * page_h_pt * zf) + h
-                painter.drawRect(QRectF(0, by, self.width(), self.height() - by))
-            if v_sorted:
-                lx = int(v_sorted[0] * page_w_pt * zf)
-                painter.drawRect(QRectF(0, h, lx, page_h_pt * zf))
-                rx = int(v_sorted[-1] * page_w_pt * zf)
-                painter.drawRect(QRectF(rx, h, self.width() - rx, page_h_pt * zf))
-            # Template boxes — solid white
-            for box in self._crop_boxes:
-                bx0 = int(box[0] * page_w_pt * zf)
-                by0 = int(box[1] * page_h_pt * zf) + h
-                bx1 = int(box[2] * page_w_pt * zf)
-                by1 = int(box[3] * page_h_pt * zf) + h
-                painter.drawRect(QRectF(bx0, by0, bx1 - bx0, by1 - by0))
+        # Cropping is handled by PDF cropbox — no visual overlay needed
 
         painter.end()
 
@@ -601,6 +801,12 @@ class CropPreviewWidget(QWidget):
         self._box_drag_cur: tuple[float, float] = (0, 0)
         self._box_drag_handle: int = -1  # 0-7 resize handle, -1 = move
         self._box_drag_orig: list[float] = []
+        # Spread split mode
+        self._spread_mode: bool = False
+        self._split_pos: float = 0.5   # center of split
+        self._split_gap: float = 0.01  # half-gap width
+        self._dragging_split: bool = False
+
         self.setMouseTracking(True)
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.setMinimumSize(200, 200)
@@ -750,6 +956,26 @@ class CropPreviewWidget(QWidget):
             p.setPen(QPen(QColor(0, 120, 200), 2, Qt.PenStyle.DashLine))
             p.drawRect(QRectF(min(x0, x1), min(y0, y1), abs(x1-x0), abs(y1-y0)))
 
+        # Spread split lines + gap
+        if self._spread_mode:
+            left_edge = self._split_pos - self._split_gap
+            right_edge = self._split_pos + self._split_gap
+            lx_left = ix + int(left_edge * iw)
+            lx_right = ix + int(right_edge * iw)
+            # Gap fill
+            p.setPen(Qt.PenStyle.NoPen)
+            p.setBrush(QColor(255, 255, 255, 160))
+            p.drawRect(QRectF(lx_left, iy, lx_right - lx_left, ih))
+            # Split lines (red, solid)
+            split_pen = QPen(QColor(220, 0, 0), 2)
+            p.setPen(split_pen)
+            p.drawLine(lx_left, iy, lx_left, iy + ih)
+            p.drawLine(lx_right, iy, lx_right, iy + ih)
+            # Center marker
+            cx = ix + int(self._split_pos * iw)
+            p.setPen(QPen(QColor(220, 0, 0, 100), 1, Qt.PenStyle.DotLine))
+            p.drawLine(cx, iy, cx, iy + ih)
+
         p.end()
 
     def mousePressEvent(self, event) -> None:
@@ -758,6 +984,18 @@ class CropPreviewWidget(QWidget):
         r = RULER_SIZE
         x, y = pos.x(), pos.y()
         in_image = ix <= x <= ix + iw and iy <= y <= iy + ih
+
+        # 0. Check split line drag in spread mode
+        if self._spread_mode and in_image:
+            left_edge = self._split_pos - self._split_gap
+            right_edge = self._split_pos + self._split_gap
+            lx_l = ix + int(left_edge * iw)
+            lx_r = ix + int(right_edge * iw)
+            if abs(x - lx_l) < 8 or abs(x - lx_r) < 8:
+                self._dragging_split = True
+                self._dragging = "split"
+                self._drag_pos = self._split_pos
+                return
 
         # 1. Check resize handles on selected box
         if self._selected_box >= 0 and self._selected_box < len(self._boxes):
@@ -842,7 +1080,19 @@ class CropPreviewWidget(QWidget):
         x, y = pos.x(), pos.y()
         ix, iy, iw, ih = self._img_rect()
 
-        if self._dragging == "h" and ih > 0:
+        if self._dragging == "split" and iw > 0:
+            # Moving split line — adjust gap symmetrically
+            new_x = max(0.1, min(0.9, (x - ix) / iw))
+            # Which side was closer at press? Compute new gap from movement
+            old_gap = self._split_gap
+            old_center = self._split_pos
+            # The drag moves the edge; gap = distance from center to edge
+            delta = abs(new_x - old_center)
+            self._split_gap = max(0.005, delta)
+            self.update()
+            self.lines_changed.emit()
+            return
+        elif self._dragging == "h" and ih > 0:
             self._drag_pos = max(0.0, min(1.0, (y - iy) / ih))
         elif self._dragging == "v" and iw > 0:
             self._drag_pos = max(0.0, min(1.0, (x - ix) / iw))
@@ -876,6 +1126,13 @@ class CropPreviewWidget(QWidget):
         pos = event.position()
         r = RULER_SIZE
 
+        if self._dragging == "split":
+            self._dragging_split = False
+            self._dragging = ""
+            self.update()
+            self.lines_changed.emit()
+            return
+
         if self._dragging in ("h", "v"):
             on_ruler = (pos.y() < r or pos.y() > self.height() - r or
                         pos.x() < r or pos.x() > self.width() - r)
@@ -907,6 +1164,1381 @@ class CropPreviewWidget(QWidget):
         self.lines_changed.emit()
 
 
+def _scanline_v1_core(
+    binary, h: int, w: int, margin: int = 3, min_obj: int = 20,
+    skip_rects: list | None = None,
+) -> tuple[list[tuple[int, int, int, int]], list[tuple[int, int, int, int]]]:
+    """Shared scanline v1: grow-from-seed on binary image.
+
+    Returns (bboxes, artifacts). Skips skip_rects areas.
+    Full-page frames (>80% area) are erased and skipped.
+    """
+    page_area = h * w
+    all_scan = list(skip_rects or [])
+    bboxes: list[tuple[int, int, int, int]] = []
+    artifacts: list[tuple[int, int, int, int]] = []
+    y = 0
+    while y < h:
+        x = 0
+        while x < w:
+            skipped = False
+            for (bx0, by0, bx1, by1) in all_scan:
+                if bx0 - 2 <= x <= bx1 + 2 and by0 - 2 <= y <= by1 + 2:
+                    x = int(bx1) + 3; skipped = True; break
+            if skipped:
+                continue
+            if binary[y, x]:
+                gx0, gy0 = x, y
+                gx1, gy1 = min(w, x + 1), min(h, y + 1)
+                for _ in range(4000):
+                    grown = False
+                    t = max(0, gy0 - margin)
+                    if t < gy0 and binary[t:gy0, gx0:gx1].any():
+                        gy0 = max(0, gy0 - 1); grown = True
+                    b = min(h, gy1 + margin)
+                    if b > gy1 and binary[gy1:b, gx0:gx1].any():
+                        gy1 = min(h, gy1 + 1); grown = True
+                    l = max(0, gx0 - margin)
+                    if l < gx0 and binary[gy0:gy1, l:gx0].any():
+                        gx0 = max(0, gx0 - 1); grown = True
+                    r = min(w, gx1 + margin)
+                    if r > gx1 and binary[gy0:gy1, gx1:r].any():
+                        gx1 = min(w, gx1 + 1); grown = True
+                    if not grown:
+                        break
+                bw, bh = gx1 - gx0, gy1 - gy0
+                bt = (gx0, gy0, gx1, gy1)
+                if bw * bh > page_area * 0.8:
+                    bd = 4
+                    binary[gy0:gy0+bd, gx0:gx1] = 0
+                    binary[max(gy0, gy1-bd):gy1, gx0:gx1] = 0
+                    binary[gy0:gy1, gx0:gx0+bd] = 0
+                    binary[gy0:gy1, max(gx0, gx1-bd):gx1] = 0
+                    x += 1; continue
+                all_scan.append(bt)
+                if bw < min_obj and bh < min_obj:
+                    artifacts.append(bt)
+                else:
+                    bboxes.append(bt)
+                x = gx1 + 3
+            else:
+                x += 1
+        y += 1
+    # Remove nested
+    if len(bboxes) > 1:
+        keep = []
+        for i, a in enumerate(bboxes):
+            a_area = max((a[2]-a[0])*(a[3]-a[1]), 1)
+            nested = False
+            for j, b in enumerate(bboxes):
+                if i == j: continue
+                b_area = (b[2]-b[0])*(b[3]-b[1])
+                if b_area <= a_area: continue
+                ix0 = max(a[0],b[0]); iy0 = max(a[1],b[1])
+                ix1 = min(a[2],b[2]); iy1 = min(a[3],b[3])
+                if ix0<ix1 and iy0<iy1 and (ix1-ix0)*(iy1-iy0)/a_area >= 0.9:
+                    nested = True; break
+            if not nested:
+                keep.append(a)
+        bboxes = keep
+    return bboxes, artifacts
+
+
+class ScanlineTestDialog(QWidget):
+    """Debug dialog: object detection algorithm comparison bench."""
+
+    _ALGOS = [
+        "Scanline v1 (original)",
+        "Scanline v2 (visited + fast grow)",
+        "Scanline v3 (adaptive margin)",
+        "OpenCV CCA",
+        "OpenCV CCA + dilation",
+        "MSER text zones",
+        "Scanline + MSER split",
+        "PDF text + Scanline",
+        "Hybrid 2-pass",
+        "PDF objects only",
+    ]
+
+    def __init__(self, doc, page_idx: int, parent=None):
+        super().__init__(parent)
+        import numpy as np
+        self.setWindowTitle(f"Bbox Testbench — Page {page_idx+1}")
+        self.setWindowFlags(Qt.WindowType.Window)
+        self.resize(900, 750)
+
+        page = doc[page_idx]
+        self._page = page
+        self._dpi = 90
+        pix = page.get_pixmap(dpi=self._dpi)
+        self._page_img = np.frombuffer(pix.samples, dtype=np.uint8).reshape(
+            pix.height, pix.width, pix.n
+        ).copy()
+        self._h, self._w = pix.height, pix.width
+        self._scale = self._dpi / 72  # px per pt
+
+        gray = np.mean(self._page_img[:, :, :3], axis=2)
+        self._binary = (gray < 240).astype(np.uint8)
+
+        # Save unmasked binary for hybrid 2-pass
+        self._binary_raw = self._binary.copy()
+
+        # Extract native PDF text blocks and mask them from binary
+        self._pdf_text_blocks: list[tuple[int, int, int, int]] = []
+        blocks = page.get_text("blocks")
+        for b in blocks:
+            if b[6] == 0:  # text block
+                x0 = int(b[0] * self._scale)
+                y0 = int(b[1] * self._scale)
+                x1 = int(b[2] * self._scale)
+                y1 = int(b[3] * self._scale)
+                x0 = max(0, min(x0, self._w))
+                y0 = max(0, min(y0, self._h))
+                x1 = max(0, min(x1, self._w))
+                y1 = max(0, min(y1, self._h))
+                if x1 > x0 and y1 > y0:
+                    self._pdf_text_blocks.append((x0, y0, x1, y1))
+                    self._binary[y0:y1, x0:x1] = 0  # mask out text
+
+        # UI
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(4, 4, 4, 4)
+
+        top_bar = QHBoxLayout()
+        top_bar.addWidget(QLabel("Algorithm:"))
+        self._algo_combo = QComboBox()
+        self._algo_combo.addItems(self._ALGOS)
+        self._algo_combo.setFixedHeight(24)
+        self._algo_combo.currentIndexChanged.connect(self._on_algo_changed)
+        top_bar.addWidget(self._algo_combo)
+        self._merge_cb = QCheckBox("Merge rows")
+        self._merge_cb.setStyleSheet("font-size: 10px;")
+        self._merge_cb.toggled.connect(lambda: self._on_algo_changed(self._algo_combo.currentIndex()))
+        top_bar.addWidget(self._merge_cb)
+        self._show_bboxes_cb = QCheckBox("Bboxes")
+        self._show_bboxes_cb.setChecked(True)
+        self._show_bboxes_cb.setStyleSheet("font-size: 10px;")
+        self._show_bboxes_cb.toggled.connect(self._render)
+        top_bar.addWidget(self._show_bboxes_cb)
+        top_bar.addStretch()
+        layout.addLayout(top_bar)
+
+        self._info = QLabel()
+        self._info.setStyleSheet("font: 11px Consolas;")
+        layout.addWidget(self._info)
+
+        self._image_label = QLabel()
+        self._image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        scroll = QScrollArea()
+        scroll.setWidget(self._image_label)
+        scroll.setWidgetResizable(True)
+        layout.addWidget(scroll)
+
+        # Animation slider
+        anim_bar = QHBoxLayout()
+        self._anim_slider = QSlider(Qt.Orientation.Horizontal)
+        self._anim_slider.setMinimum(0)
+        self._anim_slider.setMaximum(0)
+        self._anim_slider.valueChanged.connect(self._on_anim_step)
+        anim_bar.addWidget(self._anim_slider)
+        self._anim_label = QLabel("—")
+        self._anim_label.setFixedWidth(120)
+        self._anim_label.setStyleSheet("font: 10px Consolas;")
+        anim_bar.addWidget(self._anim_label)
+        layout.addLayout(anim_bar)
+
+        self._step_label = QLabel()
+        self._step_label.setStyleSheet("font: 11px Consolas;")
+        layout.addWidget(self._step_label)
+
+        self._bboxes: list[tuple[int, int, int, int]] = []
+        self._artifacts: list[tuple[int, int, int, int]] = []
+        self._detection_steps: list[tuple[
+            list[tuple[int, int, int, int]],
+            list[tuple[int, int, int, int]],
+            int,
+        ]] = []  # (bboxes_so_far, artifacts_so_far, scan_y)
+        self._on_algo_changed(0)
+        self.show()
+
+    # ── Algorithm dispatcher ─────────────────────────────────────
+
+    def _on_algo_changed(self, idx: int) -> None:
+        import time
+        t0 = time.perf_counter()
+        runners = [
+            self._run_v1_original,
+            self._run_v2_visited_fast,
+            self._run_v3_adaptive,
+            lambda: self._run_opencv_cca(dilate=False),
+            lambda: self._run_opencv_cca(dilate=True),
+            self._run_mser_text,
+            self._run_scanline_mser_split,
+            self._run_pdf_text_scanline,
+            self._run_hybrid_2pass,
+        ]
+        self._bboxes, self._artifacts = runners[idx]()
+        if self._merge_cb.isChecked():
+            self._bboxes = self._merge_text_rows(self._bboxes)
+        elapsed_ms = (time.perf_counter() - t0) * 1000
+
+        extra = ""
+        if idx == 2:
+            extra = f"  margin={self._last_margin}"
+        self._info.setText(
+            f"Page: {self._w}x{self._h}px ({self._dpi} DPI)  "
+            f"Objects: {len(self._bboxes)}  Artifacts: {len(self._artifacts)}  "
+            f"Time: {elapsed_ms:.1f}ms{extra}"
+        )
+        # Update animation slider
+        n_steps = len(self._detection_steps)
+        if n_steps > 0:
+            self._anim_slider.setMaximum(n_steps - 1)
+            self._anim_slider.setValue(n_steps - 1)
+        else:
+            self._anim_slider.setMaximum(0)
+        self._render()
+
+    # ── v1: Original scanline (margin=3, 1px steps, O(n²) skip) ──
+
+    def _run_v1_original(self):
+        self._detection_steps = []
+        min_obj = int(10 * self._scale)
+        bboxes, artifacts = _scanline_v1_core(
+            self._binary, self._h, self._w, margin=3, min_obj=min_obj,
+        )
+        self._last_margin = 3
+        return bboxes, artifacts
+
+    def _grow_1px(self, cx: int, cy: int, margin: int = 3):
+        """Original grow: expand 1px per iteration."""
+        x0, y0 = cx, cy
+        x1, y1 = min(self._w, cx + 1), min(self._h, cy + 1)
+        for _ in range(4000):
+            grown = False
+            t = max(0, y0 - margin)
+            if t < y0 and self._binary[t:y0, x0:x1].any():
+                y0 = max(0, y0 - 1); grown = True
+            b = min(self._h, y1 + margin)
+            if b > y1 and self._binary[y1:b, x0:x1].any():
+                y1 = min(self._h, y1 + 1); grown = True
+            l = max(0, x0 - margin)
+            if l < x0 and self._binary[y0:y1, l:x0].any():
+                x0 = max(0, x0 - 1); grown = True
+            r = min(self._w, x1 + margin)
+            if r > x1 and self._binary[y0:y1, x1:r].any():
+                x1 = min(self._w, x1 + 1); grown = True
+            if not grown:
+                break
+        return (x0, y0, x1, y1)
+
+    # ── v2: Visited mask + fast grow (jump to content) ───────────
+
+    def _run_v2_visited_fast(self):
+        import numpy as np
+        min_obj = int(10 * self._scale)
+        visited = np.zeros((self._h, self._w), dtype=bool)
+        bboxes: list[tuple[int, int, int, int]] = []
+        artifacts: list[tuple[int, int, int, int]] = []
+
+        for y in range(self._h):
+            x = 0
+            while x < self._w:
+                if visited[y, x] or not self._binary[y, x]:
+                    x += 1
+                    continue
+                bbox = self._grow_fast(x, y, margin=3)
+                x0, y0, x1, y1 = bbox
+                visited[y0:y1, x0:x1] = True
+                if (x1 - x0) < min_obj and (y1 - y0) < min_obj:
+                    artifacts.append(bbox)
+                else:
+                    bboxes.append(bbox)
+                x = x1 + 1
+        self._last_margin = 3
+        return bboxes, artifacts
+
+    def _grow_fast(self, cx: int, cy: int, margin: int = 3):
+        """Fast grow: jump directly to the nearest/farthest content pixel."""
+        import numpy as np
+        x0, y0 = cx, cy
+        x1, y1 = min(self._w, cx + 1), min(self._h, cy + 1)
+        binary = self._binary
+        for _ in range(2000):
+            grown = False
+            # Top: check margin strip above, jump to topmost content row
+            t = max(0, y0 - margin)
+            if t < y0:
+                strip = binary[t:y0, x0:x1]
+                if strip.any():
+                    rows = np.where(strip.any(axis=1))[0]
+                    y0 = t + rows[0]; grown = True
+            # Bottom: jump to bottommost content row
+            b = min(self._h, y1 + margin)
+            if b > y1:
+                strip = binary[y1:b, x0:x1]
+                if strip.any():
+                    rows = np.where(strip.any(axis=1))[0]
+                    y1 = y1 + rows[-1] + 1; grown = True
+            # Left: jump to leftmost content column
+            l = max(0, x0 - margin)
+            if l < x0:
+                strip = binary[y0:y1, l:x0]
+                if strip.any():
+                    cols = np.where(strip.any(axis=0))[0]
+                    x0 = l + cols[0]; grown = True
+            # Right: jump to rightmost content column
+            r = min(self._w, x1 + margin)
+            if r > x1:
+                strip = binary[y0:y1, x1:r]
+                if strip.any():
+                    cols = np.where(strip.any(axis=0))[0]
+                    x1 = x1 + cols[-1] + 1; grown = True
+            if not grown:
+                break
+        return (x0, y0, x1, y1)
+
+    # ── v3: Adaptive margin from projection profile ──────────────
+
+    def _run_v3_adaptive(self):
+        import numpy as np
+        min_obj = int(10 * self._scale)
+        margin = self._compute_adaptive_margin()
+        self._last_margin = margin
+        visited = np.zeros((self._h, self._w), dtype=bool)
+        bboxes: list[tuple[int, int, int, int]] = []
+        artifacts: list[tuple[int, int, int, int]] = []
+
+        for y in range(self._h):
+            x = 0
+            while x < self._w:
+                if visited[y, x] or not self._binary[y, x]:
+                    x += 1
+                    continue
+                bbox = self._grow_fast(x, y, margin=margin)
+                x0, y0, x1, y1 = bbox
+                visited[y0:y1, x0:x1] = True
+                if (x1 - x0) < min_obj and (y1 - y0) < min_obj:
+                    artifacts.append(bbox)
+                else:
+                    bboxes.append(bbox)
+                x = x1 + 1
+        return bboxes, artifacts
+
+    def _compute_adaptive_margin(self) -> int:
+        """Derive margin from horizontal projection profile gaps (RLSA-inspired).
+
+        Computes median whitespace gap between content rows. Margin = ~40%
+        of that median, clamped to [2, 15]. Larger gaps on sparse pages
+        yield bigger margins; dense text pages yield smaller ones.
+        """
+        import numpy as np
+        h_proj = self._binary.sum(axis=1)
+        threshold = self._w * 0.01  # row is "empty" if <1% pixels dark
+        is_gap = h_proj < threshold
+        # Measure gap run lengths
+        gaps: list[int] = []
+        gap_len = 0
+        for v in is_gap:
+            if v:
+                gap_len += 1
+            else:
+                if gap_len > 2:
+                    gaps.append(gap_len)
+                gap_len = 0
+        if not gaps:
+            return 3
+        median_gap = int(np.median(gaps))
+        return max(2, min(int(median_gap * 0.4), 15))
+
+    # ── OpenCV CCA ───────────────────────────────────────────────
+
+    def _run_opencv_cca(self, dilate: bool = False):
+        import numpy as np
+        try:
+            import cv2
+        except ImportError:
+            logging.warning("OpenCV not installed — CCA unavailable")
+            self._last_margin = 0
+            return [], []
+        min_obj = int(10 * self._scale)
+        page_area = self._w * self._h
+
+        binary = (self._binary * 255).astype(np.uint8)
+        if dilate:
+            kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+            binary = cv2.dilate(binary, kernel, iterations=2)
+
+        n_labels, _labels, stats, _centroids = cv2.connectedComponentsWithStats(
+            binary, connectivity=8,
+        )
+
+        bboxes: list[tuple[int, int, int, int]] = []
+        artifacts: list[tuple[int, int, int, int]] = []
+        for i in range(1, n_labels):  # skip background
+            x = stats[i, cv2.CC_STAT_LEFT]
+            y = stats[i, cv2.CC_STAT_TOP]
+            w = stats[i, cv2.CC_STAT_WIDTH]
+            h = stats[i, cv2.CC_STAT_HEIGHT]
+            area = stats[i, cv2.CC_STAT_AREA]
+            if area < 50:
+                continue
+            if w * h > page_area * 0.8:
+                continue
+            bbox = (x, y, x + w, y + h)
+            if w < min_obj and h < min_obj:
+                artifacts.append(bbox)
+            else:
+                bboxes.append(bbox)
+        self._last_margin = 0
+        return bboxes, artifacts
+
+    # ── MSER text zone detection ───────────────────────────────
+
+    def _run_mser_text(self):
+        """Detect text regions via MSER + geometric filtering + row grouping.
+
+        MSER finds stable extremal regions (character candidates).
+        Filter by size/aspect → group into text lines → merge into zones.
+        Non-text objects detected via CCA on the remaining pixels.
+        """
+        import numpy as np
+        try:
+            import cv2
+        except ImportError:
+            logging.warning("OpenCV not installed — MSER unavailable")
+            self._last_margin = 0
+            return [], []
+
+        min_obj = int(10 * self._scale)
+        gray = (255 - self._binary * 255).astype(np.uint8)  # inverted: text=white bg
+        # Proper grayscale from page image
+        gray_img = np.mean(self._page_img[:, :, :3], axis=2).astype(np.uint8)
+
+        # MSER detection
+        mser = cv2.MSER_create()
+        mser.setDelta(5)
+        mser.setMinArea(20)
+        mser.setMaxArea(int(self._h * self._w * 0.01))
+        mser.setMaxVariation(0.25)
+        regions, _ = mser.detectRegions(gray_img)
+
+        # Extract bounding rects and filter for text-like shapes
+        char_bboxes: list[tuple[int, int, int, int]] = []
+        for region in regions:
+            x, y, w, h = cv2.boundingRect(region)
+            if w < 3 or h < 3:
+                continue
+            aspect = w / h
+            area = w * h
+            # Text characters: reasonable aspect ratio, not too large
+            if 0.1 < aspect < 10 and h < 80 and area < 3000:
+                char_bboxes.append((x, y, x + w, y + h))
+
+        if not char_bboxes:
+            self._last_margin = 0
+            return [], []
+
+        # Group characters into text lines by Y proximity
+        # Sort by vertical center
+        char_bboxes.sort(key=lambda b: (b[1] + b[3]) / 2)
+        heights = [b[3] - b[1] for b in char_bboxes]
+        med_h = max(int(np.median(heights)), 3)
+
+        # Row grouping
+        rows: list[list[tuple[int, int, int, int]]] = []
+        current_row = [char_bboxes[0]]
+        row_y0 = char_bboxes[0][1]
+        row_y1 = char_bboxes[0][3]
+        for b in char_bboxes[1:]:
+            b_cy = (b[1] + b[3]) / 2
+            if row_y0 - med_h * 0.5 <= b_cy <= row_y1 + med_h * 0.5:
+                current_row.append(b)
+                row_y0 = min(row_y0, b[1])
+                row_y1 = max(row_y1, b[3])
+            else:
+                rows.append(current_row)
+                current_row = [b]
+                row_y0 = b[1]
+                row_y1 = b[3]
+        rows.append(current_row)
+
+        # Merge chars within each row into text line bboxes
+        # Then merge close lines vertically into text zones
+        line_bboxes: list[tuple[int, int, int, int]] = []
+        for row in rows:
+            row.sort(key=lambda b: b[0])
+            # Merge horizontally close chars (gap < med_h * 2)
+            gx0, gy0, gx1, gy1 = row[0]
+            for b in row[1:]:
+                if b[0] - gx1 <= med_h * 2:
+                    gx0 = min(gx0, b[0])
+                    gy0 = min(gy0, b[1])
+                    gx1 = max(gx1, b[2])
+                    gy1 = max(gy1, b[3])
+                else:
+                    line_bboxes.append((gx0, gy0, gx1, gy1))
+                    gx0, gy0, gx1, gy1 = b
+            line_bboxes.append((gx0, gy0, gx1, gy1))
+
+        # Merge vertically adjacent lines (same column, gap < med_h)
+        merged = True
+        while merged:
+            merged = False
+            new_lines: list[list[int]] = [list(line_bboxes[0])]
+            for b in line_bboxes[1:]:
+                absorbed = False
+                for a in new_lines:
+                    # X overlap check
+                    ox = max(0, min(a[2], b[2]) - max(a[0], b[0]))
+                    min_w = min(a[2] - a[0], b[2] - b[0])
+                    if min_w > 0 and ox / min_w > 0.3:
+                        v_gap = max(b[1] - a[3], a[1] - b[3])
+                        if 0 <= v_gap <= med_h * 1.2:
+                            a[0] = min(a[0], b[0])
+                            a[1] = min(a[1], b[1])
+                            a[2] = max(a[2], b[2])
+                            a[3] = max(a[3], b[3])
+                            absorbed = True
+                            merged = True
+                            break
+                if not absorbed:
+                    new_lines.append(list(b))
+            line_bboxes = [tuple(l) for l in new_lines]
+
+        # Merge overlapping bboxes (IoU > 0 or containment)
+        changed = True
+        while changed:
+            changed = False
+            result: list[list[int]] = []
+            used_m: set[int] = set()
+            for i, a in enumerate(line_bboxes):
+                if i in used_m:
+                    continue
+                acc = list(a)
+                for j, b in enumerate(line_bboxes):
+                    if j <= i or j in used_m:
+                        continue
+                    # Check overlap
+                    ox0 = max(acc[0], b[0]); oy0 = max(acc[1], b[1])
+                    ox1 = min(acc[2], b[2]); oy1 = min(acc[3], b[3])
+                    if ox0 < ox1 and oy0 < oy1:
+                        acc[0] = min(acc[0], b[0])
+                        acc[1] = min(acc[1], b[1])
+                        acc[2] = max(acc[2], b[2])
+                        acc[3] = max(acc[3], b[3])
+                        used_m.add(j)
+                        changed = True
+                result.append(acc)
+            line_bboxes = [tuple(r) for r in result]
+
+        # Remove nested (>=80% area inside a larger bbox)
+        filtered: list[tuple[int, int, int, int]] = []
+        for i, a in enumerate(line_bboxes):
+            a_area = max((a[2] - a[0]) * (a[3] - a[1]), 1)
+            nested = False
+            for j, b in enumerate(line_bboxes):
+                if i == j:
+                    continue
+                b_area = (b[2] - b[0]) * (b[3] - b[1])
+                if b_area <= a_area:
+                    continue
+                ix0 = max(a[0], b[0]); iy0 = max(a[1], b[1])
+                ix1 = min(a[2], b[2]); iy1 = min(a[3], b[3])
+                if ix0 < ix1 and iy0 < iy1:
+                    inter = (ix1 - ix0) * (iy1 - iy0)
+                    if inter / a_area >= 0.8:
+                        nested = True
+                        break
+            if not nested:
+                filtered.append(a)
+        line_bboxes = filtered
+
+        # Separate into objects vs artifacts
+        bboxes: list[tuple[int, int, int, int]] = []
+        artifacts: list[tuple[int, int, int, int]] = []
+        for b in line_bboxes:
+            w, h = b[2] - b[0], b[3] - b[1]
+            if w < min_obj and h < min_obj:
+                artifacts.append(b)
+            else:
+                bboxes.append(b)
+
+        self._last_margin = 0
+        return bboxes, artifacts
+
+    # ── Combined: Scanline + MSER split ────────────────────────
+
+    def _run_scanline_mser_split(self):
+        """Scanline detects all, non-text excluded, MSER on remainder.
+
+        1. Scanline v1 → all bboxes
+        2. Classify non-text by density/shape (images, drawings, bars)
+        3. Mask out non-text areas from grayscale image
+        4. MSER on masked image → clean text zones
+        5. Result: non-text (red) + MSER text zones (green)
+        """
+        import numpy as np
+        import cv2
+
+        # Step 1: Scanline → all objects
+        scan_bboxes, scan_artifacts = self._run_v1_original()
+        binary = self._binary
+
+        # Step 2: Classify scanline bboxes as non-text by density/shape
+        nontext: list[tuple[int, int, int, int]] = []
+        for sb in scan_bboxes:
+            bw, bh = sb[2] - sb[0], sb[3] - sb[1]
+            region = binary[sb[1]:sb[3], sb[0]:sb[2]]
+            density = float(region.sum()) / max(region.size, 1)
+            aspect = bw / max(bh, 1)
+            # Non-text criteria:
+            #   - Dense + large square-ish block (image/drawing)
+            #   - Very dense horizontal bar (colored bar)
+            is_nontext = False
+            if bh > 35 and bw > 35 and aspect < 2.0 and density > 0.10:
+                is_nontext = True   # image / drawing
+            if bh < 25 and bw > 100 and density > 0.60:
+                is_nontext = True   # dense horizontal bar
+            if density > 0.70:
+                is_nontext = True   # very dense fill (any shape)
+            if is_nontext:
+                nontext.append(sb)
+
+        # Step 3: Mask out non-text areas from grayscale
+        gray_img = np.mean(self._page_img[:, :, :3], axis=2).astype(np.uint8)
+        masked = gray_img.copy()
+        for nt in nontext:
+            masked[nt[1]:nt[3], nt[0]:nt[2]] = 255  # white out
+
+        # Step 4: MSER on masked image → text zones only
+        mser = cv2.MSER_create()
+        mser.setDelta(5)
+        mser.setMinArea(20)
+        mser.setMaxArea(int(self._h * self._w * 0.01))
+        mser.setMaxVariation(0.25)
+        regions, _ = mser.detectRegions(masked)
+
+        # Extract char bboxes
+        char_bboxes: list[tuple[int, int, int, int]] = []
+        for region in regions:
+            x, y, w, h = cv2.boundingRect(region)
+            if w < 3 or h < 3:
+                continue
+            ar = w / h
+            if 0.1 < ar < 10 and h < 80 and w * h < 3000:
+                char_bboxes.append((x, y, x + w, y + h))
+
+        # Group chars → lines → paragraphs
+        text_bboxes: list[tuple[int, int, int, int]] = []
+        if char_bboxes:
+            char_bboxes.sort(key=lambda b: ((b[1] + b[3]) / 2, b[0]))
+            heights = [b[3] - b[1] for b in char_bboxes]
+            med_h = max(int(np.median(heights)), 3)
+
+            # Row grouping
+            rows: list[list[tuple[int, int, int, int]]] = []
+            cur_row = [char_bboxes[0]]
+            ry0, ry1 = char_bboxes[0][1], char_bboxes[0][3]
+            for b in char_bboxes[1:]:
+                bcy = (b[1] + b[3]) / 2
+                if ry0 - med_h * 0.5 <= bcy <= ry1 + med_h * 0.5:
+                    cur_row.append(b)
+                    ry0 = min(ry0, b[1]); ry1 = max(ry1, b[3])
+                else:
+                    rows.append(cur_row)
+                    cur_row = [b]; ry0 = b[1]; ry1 = b[3]
+            rows.append(cur_row)
+
+            # H-merge within rows (generous gap to bridge word spaces)
+            h_gap = max(med_h * 4, 20)
+            lines: list[tuple[int, int, int, int]] = []
+            for row in rows:
+                row.sort(key=lambda b: b[0])
+                gx0, gy0, gx1, gy1 = row[0]
+                for b in row[1:]:
+                    if b[0] - gx1 <= h_gap:
+                        gx0 = min(gx0, b[0]); gy0 = min(gy0, b[1])
+                        gx1 = max(gx1, b[2]); gy1 = max(gy1, b[3])
+                    else:
+                        lines.append((gx0, gy0, gx1, gy1))
+                        gx0, gy0, gx1, gy1 = b
+                lines.append((gx0, gy0, gx1, gy1))
+
+            # Expand-merge: similar-height bboxes expand L/R by own width,
+            # merge if overlapping with similar-sized neighbor → chains into lines
+            for _pass in range(10):
+                merged_any = False
+                lines.sort(key=lambda b: (b[0], b[1]))
+                new_lines: list[tuple[int, int, int, int]] = []
+                skip: set[int] = set()
+                for i in range(len(lines)):
+                    if i in skip:
+                        continue
+                    a = list(lines[i])
+                    aw, ah = a[2] - a[0], a[3] - a[1]
+                    # Expand horizontally by own width (capped to page)
+                    exp_x0 = max(0, a[0] - aw)
+                    exp_x1 = min(self._w, a[2] + aw)
+                    for j in range(i + 1, len(lines)):
+                        if j in skip:
+                            continue
+                        b = lines[j]
+                        bw, bh = b[2] - b[0], b[3] - b[1]
+                        # Similar height? (within 80% tolerance)
+                        if ah > 0 and bh > 0:
+                            ratio = min(ah, bh) / max(ah, bh)
+                            if ratio < 0.4:
+                                continue
+                        # Y overlap (same row)?
+                        oy = max(0, min(a[3], b[3]) - max(a[1], b[1]))
+                        if oy < min(ah, bh) * 0.4:
+                            continue
+                        # Does expanded A overlap with B?
+                        if exp_x0 <= b[2] and exp_x1 >= b[0]:
+                            a[0] = min(a[0], b[0])
+                            a[1] = min(a[1], b[1])
+                            a[2] = max(a[2], b[2])
+                            a[3] = max(a[3], b[3])
+                            aw, ah = a[2] - a[0], a[3] - a[1]
+                            exp_x0 = max(0, a[0] - aw)
+                            exp_x1 = min(self._w, a[2] + aw)
+                            skip.add(j)
+                            merged_any = True
+                    new_lines.append(tuple(a))
+                lines = new_lines
+                if not merged_any:
+                    break
+
+            # Remove overlap + nested
+            ch = True
+            while ch:
+                ch = False
+                res: list[list[int]] = []
+                us: set[int] = set()
+                for i, a in enumerate(lines):
+                    if i in us: continue
+                    acc = list(a)
+                    for j, b in enumerate(lines):
+                        if j <= i or j in us: continue
+                        if max(acc[0], b[0]) < min(acc[2], b[2]) and max(acc[1], b[1]) < min(acc[3], b[3]):
+                            acc[0] = min(acc[0], b[0]); acc[1] = min(acc[1], b[1])
+                            acc[2] = max(acc[2], b[2]); acc[3] = max(acc[3], b[3])
+                            us.add(j); ch = True
+                    res.append(acc)
+                lines = [tuple(r) for r in res]
+
+            min_obj = int(10 * self._scale)
+            text_bboxes = [b for b in lines if (b[2]-b[0]) >= min_obj or (b[3]-b[1]) >= min_obj]
+
+        self._text_bboxes = text_bboxes
+        self._nontext_bboxes = nontext
+        self._last_margin = 3
+        return text_bboxes + nontext, scan_artifacts
+
+    # ── Hybrid 2-pass: with and without PDF text mask ──────────
+
+    def _run_hybrid_2pass(self):
+        """Two-pass detection to handle tables spanning text areas.
+
+        Pass 1: masked binary (PDF text removed) → non-text objects
+        Pass 2: raw binary (no mask) → full connected components
+        Merge: pass-2 bbox covering multiple pass-1 bboxes → single table
+        Result: PDF text (green) + merged non-text (red)
+        """
+        import numpy as np
+
+        # Pass 1: scanline on masked binary (text removed)
+        pass1_bboxes, pass1_artifacts = self._run_v1_original()
+
+        # Pass 2: scanline on raw binary (with text)
+        orig = self._binary
+        self._binary = self._binary_raw.copy()
+        pass2_bboxes, _ = self._run_v1_original()
+        self._binary = orig
+
+        # For each pass-2 bbox: find how many pass-1 bboxes it contains
+        merged: list[tuple[int, int, int, int]] = []
+        used_p1: set[int] = set()
+
+        for p2 in pass2_bboxes:
+            contained: list[int] = []
+            for i, p1 in enumerate(pass1_bboxes):
+                if i in used_p1:
+                    continue
+                # Check if p1 is mostly inside p2 (>=70%)
+                p1_area = max((p1[2]-p1[0]) * (p1[3]-p1[1]), 1)
+                ix0 = max(p1[0], p2[0]); iy0 = max(p1[1], p2[1])
+                ix1 = min(p1[2], p2[2]); iy1 = min(p1[3], p2[3])
+                if ix0 < ix1 and iy0 < iy1:
+                    inter = (ix1-ix0) * (iy1-iy0)
+                    if inter / p1_area >= 0.7:
+                        contained.append(i)
+
+            if len(contained) >= 2:
+                # Multiple pass-1 bboxes inside one pass-2 → merge as table
+                merged.append(p2)
+                used_p1.update(contained)
+
+        # Keep unmerged pass-1 bboxes
+        remaining_p1 = [b for i, b in enumerate(pass1_bboxes) if i not in used_p1]
+
+        self._text_bboxes = list(self._pdf_text_blocks)
+        self._nontext_bboxes = remaining_p1 + merged
+        self._last_margin = 3
+        all_bboxes = self._text_bboxes + self._nontext_bboxes
+        return all_bboxes, pass1_artifacts
+
+    # ── PDF text blocks + Scanline for non-text ────────────────
+
+    def _run_pdf_text_scanline(self):
+        """Extract text blocks from PDF native layer, scanline for the rest.
+
+        1. page.get_text("blocks") → native text bboxes (green)
+        2. Mask text areas on binary image (white out)
+        3. Scanline v1 on masked image → non-text objects (red)
+        """
+        import numpy as np
+
+        # Step 1: Extract native PDF text blocks
+        blocks = self._page.get_text("blocks")
+        scale = self._dpi / 72  # pt → px
+        text_bboxes: list[tuple[int, int, int, int]] = []
+        for b in blocks:
+            # b = (x0, y0, x1, y1, text_or_img, block_no, block_type)
+            # block_type: 0=text, 1=image
+            if b[6] == 0:  # text block
+                x0 = int(b[0] * scale)
+                y0 = int(b[1] * scale)
+                x1 = int(b[2] * scale)
+                y1 = int(b[3] * scale)
+                # Clamp to page
+                x0 = max(0, min(x0, self._w))
+                y0 = max(0, min(y0, self._h))
+                x1 = max(0, min(x1, self._w))
+                y1 = max(0, min(y1, self._h))
+                if x1 > x0 and y1 > y0:
+                    text_bboxes.append((x0, y0, x1, y1))
+
+        # Step 2: Mask text areas on binary image
+        binary_masked = self._binary.copy()
+        for tb in text_bboxes:
+            binary_masked[tb[1]:tb[3], tb[0]:tb[2]] = 0  # clear text pixels
+
+        # Step 3: Scanline on masked binary → non-text only
+        orig_binary = self._binary
+        self._binary = binary_masked
+        nontext_bboxes, artifacts = self._run_v1_original()
+        self._binary = orig_binary  # restore
+
+        self._text_bboxes = text_bboxes
+        self._nontext_bboxes = nontext_bboxes
+        self._last_margin = 3
+        return text_bboxes + nontext_bboxes, artifacts
+
+    # ── Post-processing: merge letters/words into text rows ────
+
+    def _merge_text_rows(
+        self,
+        bboxes: list[tuple[int, int, int, int]],
+    ) -> list[tuple[int, int, int, int]]:
+        """Expand-merge: similar-height bboxes expand L/R, chain into lines.
+
+        For each small bbox: expand horizontally by own width (100%).
+        If expanded overlaps a similar-height neighbor on same row → merge.
+        Chains: A+B → AB+C → ABC+D → full text line.
+        Large/dense bboxes (images, tables) are kept as-is.
+        """
+        import numpy as np
+        if len(bboxes) < 2:
+            return bboxes
+
+        heights = [b[3] - b[1] for b in bboxes]
+        med_h = max(int(np.median(heights)), 3)
+
+        # Separate: small text-like vs large non-text
+        text: list[list[int]] = []
+        non_text: list[tuple[int, int, int, int]] = []
+        for b in bboxes:
+            bw, bh = b[2] - b[0], b[3] - b[1]
+            if bh <= med_h * 2.5 and bh < 60:
+                text.append(list(b))
+            else:
+                non_text.append(b)
+
+        if len(text) < 2:
+            return non_text + [tuple(t) for t in text]
+
+        # Expand-merge passes
+        for _pass in range(15):
+            merged_any = False
+            text.sort(key=lambda b: (b[0], b[1]))
+            new_text: list[list[int]] = []
+            skip: set[int] = set()
+            for i in range(len(text)):
+                if i in skip:
+                    continue
+                a = text[i]
+                aw, ah = a[2] - a[0], a[3] - a[1]
+                # Expand L/R by own width
+                exp_x0 = max(0, a[0] - aw)
+                exp_x1 = min(self._w, a[2] + aw)
+                for j in range(i + 1, len(text)):
+                    if j in skip:
+                        continue
+                    b = text[j]
+                    bh = b[3] - b[1]
+                    # Similar height? (within 60% tolerance)
+                    if ah > 0 and bh > 0:
+                        ratio = min(ah, bh) / max(ah, bh)
+                        if ratio < 0.4:
+                            continue
+                    # Same row? (Y overlap > 40% of smaller)
+                    oy = max(0, min(a[3], b[3]) - max(a[1], b[1]))
+                    if oy < min(ah, bh) * 0.4:
+                        continue
+                    # Expanded A overlaps B?
+                    if exp_x0 <= b[2] and exp_x1 >= b[0]:
+                        a[0] = min(a[0], b[0])
+                        a[1] = min(a[1], b[1])
+                        a[2] = max(a[2], b[2])
+                        a[3] = max(a[3], b[3])
+                        aw, ah = a[2] - a[0], a[3] - a[1]
+                        exp_x0 = max(0, a[0] - aw)
+                        exp_x1 = min(self._w, a[2] + aw)
+                        skip.add(j)
+                        merged_any = True
+                new_text.append(a)
+            text = new_text
+            if not merged_any:
+                break
+
+        return non_text + [tuple(t) for t in text]
+
+    # ── Rendering ────────────────────────────────────────────────
+
+    def _on_anim_step(self, step: int) -> None:
+        """Render at a specific detection step."""
+        if not self._detection_steps:
+            return
+        step = min(step, len(self._detection_steps) - 1)
+        bboxes, artifacts, scan_y = self._detection_steps[step]
+        self._anim_label.setText(
+            f"Step {step+1}/{len(self._detection_steps)}"
+        )
+        self._render_frame(bboxes, artifacts, scan_y)
+
+    def _render(self, _=None) -> None:
+        """Render final result (all bboxes)."""
+        is_split = self._algo_combo.currentIndex() in (6, 7, 8)
+        if is_split and hasattr(self, '_text_bboxes'):
+            self._render_frame(
+                self._text_bboxes, self._artifacts, -1,
+                nontext=self._nontext_bboxes,
+            )
+            self._step_label.setText(
+                f"Text: {len(self._text_bboxes)}  Non-text: {len(self._nontext_bboxes)}  "
+                f"Artifacts: {len(self._artifacts)}  "
+                f"PDF blocks: {len(self._pdf_text_blocks)}"
+            )
+        else:
+            self._render_frame(self._bboxes, self._artifacts, -1)
+            self._step_label.setText(
+                f"Objects: {len(self._bboxes)}  Artifacts: {len(self._artifacts)}  "
+                f"PDF blocks: {len(self._pdf_text_blocks)}"
+            )
+
+    def _render_frame(
+        self,
+        bboxes: list[tuple[int, int, int, int]],
+        artifacts: list[tuple[int, int, int, int]],
+        scan_y: int = -1,
+        nontext: list[tuple[int, int, int, int]] | None = None,
+    ) -> None:
+        vis = self._page_img.copy()
+        show = self._show_bboxes_cb.isChecked()
+
+        # PDF text blocks in blue
+        for (x0, y0, x1, y1) in self._pdf_text_blocks:
+            self._draw_rect(vis, x0, y0, x1, y1, [50, 100, 220], 1)
+
+        if show:
+            for (x0, y0, x1, y1) in bboxes:
+                self._draw_rect(vis, x0, y0, x1, y1, [0, 180, 0], 2)
+            if nontext:
+                for (x0, y0, x1, y1) in nontext:
+                    self._draw_rect(vis, x0, y0, x1, y1, [220, 50, 50], 2)
+            for (x0, y0, x1, y1) in artifacts:
+                self._draw_rect(vis, x0, y0, x1, y1, [160, 160, 160], 1)
+
+        # Scanline indicator (red horizontal line)
+        if 0 <= scan_y < self._h:
+            ch = vis.shape[2]
+            vis[scan_y, :] = [255, 0, 0] + [255] * (ch - 3)
+        h, w, ch = vis.shape
+        fmt = QImage.Format.Format_RGB888 if ch == 3 else QImage.Format.Format_RGBA8888
+        qimg = QImage(vis.data, w, h, w * ch, fmt)
+        self._image_label.setPixmap(QPixmap.fromImage(qimg))
+
+    def _draw_rect(self, vis, x0, y0, x1, y1, color, thickness):
+        ch = vis.shape[2]
+        c = color + [255] * (ch - 3)
+        for t in range(thickness):
+            if y0 + t < self._h:
+                vis[y0 + t, max(0, x0):min(self._w, x1)] = c
+            if y1 - 1 - t >= 0:
+                vis[y1 - 1 - t, max(0, x0):min(self._w, x1)] = c
+            if x0 + t < self._w:
+                vis[max(0, y0):min(self._h, y1), x0 + t] = c
+            if x1 - 1 - t >= 0:
+                vis[max(0, y0):min(self._h, y1), x1 - 1 - t] = c
+
+
+class BboxStatsWidget(QWidget):
+    """Custom widget displaying bbox preview with overlayed stats."""
+
+    def __init__(
+        self, bbox: dict, page_index: int, file_path: str
+    ) -> None:
+        super().__init__()
+        self._bbox = bbox
+        self._page_index = page_index
+        self._file_path = file_path
+        self._pixmap = QPixmap()
+        self._margin = 12
+        self._padding = 10
+        self._last_render_width = 0
+        self._nested_objects: list[dict] = []
+        self.setMinimumSize(600, 400)
+
+        # Generate stats text
+        self._stats_text = self._generate_stats_text()
+
+        # Initial render
+        self._render_at_optimal_dpi()
+
+    def resizeEvent(self, event) -> None:
+        """Re-render object at optimal DPI on resize."""
+        super().resizeEvent(event)
+        self._render_at_optimal_dpi()
+
+    def _generate_stats_text(self) -> str:
+        """Generate stats text including nested object count."""
+        lines = []
+
+        lines.append("═" * 50)
+        lines.append(f"PAGE: {self._page_index + 1}")
+        lines.append("═" * 50)
+        lines.append("")
+
+        # Basic info
+        bbox_type = self._bbox.get("type", "unknown")
+        bbox_label = self._bbox.get("label", "—")
+        lines.append(f"Type:        {bbox_type.upper()}")
+        lines.append(f"Label:       {bbox_label}")
+        lines.append("")
+
+        # Coordinates
+        pts = self._bbox.get("pts")
+        if pts:
+            x0, y0, x1, y1 = pts
+            width = x1 - x0
+            height = y1 - y0
+            lines.append("COORDINATES (PDF points)")
+            lines.append("─" * 50)
+            lines.append(f"X0:          {x0:.2f} pt")
+            lines.append(f"Y0:          {y0:.2f} pt")
+            lines.append(f"X1:          {x1:.2f} pt")
+            lines.append(f"Y1:          {y1:.2f} pt")
+            lines.append("")
+            lines.append("DIMENSIONS")
+            lines.append("─" * 50)
+            lines.append(f"Width:       {width:.2f} pt ({width/72*25.4:.2f} mm)")
+            lines.append(f"Height:      {height:.2f} pt ({height/72*25.4:.2f} mm)")
+            lines.append(f"Area:        {width*height:.0f} pt² ({width*height/72**2*25.4**2:.2f} mm²)")
+            lines.append("")
+
+        # Additional metadata
+        lines.append("METADATA")
+        lines.append("─" * 50)
+
+        if self._bbox.get("hidden"):
+            lines.append("Status:      HIDDEN")
+        else:
+            lines.append("Status:      VISIBLE")
+
+        if self._bbox.get("is_template"):
+            lines.append("Template:    YES")
+
+        if self._bbox.get("id"):
+            lines.append(f"ID:          {self._bbox['id']}")
+
+        # Content hash if present
+        if self._bbox.get("_chash"):
+            chash_hex = self._bbox["_chash"].hex()[:16]
+            lines.append(f"Content Hash: {chash_hex}...")
+
+        # Table-specific info
+        if bbox_type == "table":
+            h_segs = self._bbox.get("h_segments", [])
+            v_segs = self._bbox.get("v_segments", [])
+            if h_segs or v_segs:
+                lines.append("")
+                lines.append("TABLE STRUCTURE")
+                lines.append("─" * 50)
+                lines.append(f"Horizontal segments: {len(h_segs)}")
+                lines.append(f"Vertical segments:   {len(v_segs)}")
+
+        # Nested PDF objects
+        lines.append("")
+        lines.append("NESTED PDF OBJECTS")
+        lines.append("─" * 50)
+        total_nested = len(self._nested_objects)
+        text_count = sum(1 for o in self._nested_objects if o["type"] == "text")
+        img_count = sum(1 for o in self._nested_objects if o["type"] == "image")
+        table_count = sum(1 for o in self._nested_objects if o["type"] == "table")
+        lines.append(f"Total:       {total_nested}")
+        lines.append(f"Text:        {text_count}")
+        lines.append(f"Images:      {img_count}")
+        lines.append(f"Tables:      {table_count}")
+
+        lines.append("")
+        lines.append("═" * 50)
+
+        return "\n".join(lines)
+
+    def _render_at_optimal_dpi(self) -> None:
+        """Render bbox at optimal DPI with nested PDF objects highlighted."""
+        if not self._bbox or not self._file_path:
+            return
+
+        available_width = self.width() - 2 * self._margin
+        available_height = self.height() - 2 * self._margin
+
+        if available_width <= 0 or available_height <= 0:
+            return
+
+        # Only re-render if width changed significantly (>10px to avoid excessive re-renders)
+        if abs(available_width - self._last_render_width) < 10:
+            return
+
+        self._last_render_width = available_width
+
+        try:
+            doc = fitz.open(str(self._file_path))
+            if self._page_index >= len(doc):
+                doc.close()
+                return
+
+            page = doc[self._page_index]
+            pts = self._bbox.get("pts")
+            if not pts or len(pts) != 4:
+                doc.close()
+                return
+
+            x0, y0, x1, y1 = pts
+            bbox_width_pt = x1 - x0
+            bbox_height_pt = y1 - y0
+
+            if bbox_width_pt <= 0 or bbox_height_pt <= 0:
+                doc.close()
+                return
+
+            # Calculate optimal DPI to fill available width
+            dpi = (available_width * 72.0) / bbox_width_pt
+            # Cap DPI for performance (max 200 DPI)
+            dpi = min(dpi, 200.0)
+
+            # Render at calculated DPI
+            clip_rect = fitz.Rect(x0, y0, x1, y1)
+            mat = fitz.Matrix(dpi / 72.0, dpi / 72.0)
+            pix = page.get_pixmap(clip=clip_rect, matrix=mat)
+
+            # Convert to QPixmap
+            img_data = pix.tobytes("ppm")
+            qimg = QImage()
+            qimg.loadFromData(img_data, "PPM")
+            base_pixmap = QPixmap.fromImage(qimg)
+
+            # Now draw nested PDF objects on top
+            painter = QPainter(base_pixmap)
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+            # Extract PDF objects within this bbox
+            self._nested_objects = self._get_nested_pdf_objects(page, clip_rect)
+
+            # Draw bboxes for each PDF object
+            for obj in self._nested_objects:
+                obj_type = obj["type"]
+                obj_pts = obj["pts"]
+
+                # Transform to clipped coordinates
+                ox0, oy0, ox1, oy1 = obj_pts
+                # Translate to clip origin
+                ox0_rel = (ox0 - x0) * dpi / 72.0
+                oy0_rel = (oy0 - y0) * dpi / 72.0
+                ox1_rel = (ox1 - x0) * dpi / 72.0
+                oy1_rel = (oy1 - y0) * dpi / 72.0
+
+                # Color by type
+                if obj_type == "text":
+                    color = QColor(0, 200, 100, 180)  # Green
+                    thickness = 1
+                elif obj_type == "image":
+                    color = QColor(255, 150, 0, 180)  # Orange
+                    thickness = 2
+                elif obj_type == "table":
+                    color = QColor(0, 150, 255, 180)  # Blue
+                    thickness = 2
+                else:
+                    color = QColor(200, 200, 200, 150)  # Gray
+                    thickness = 1
+
+                pen = QPen(color, thickness)
+                pen.setStyle(Qt.PenStyle.SolidLine)
+                painter.setPen(pen)
+                painter.drawRect(
+                    int(ox0_rel), int(oy0_rel),
+                    int(ox1_rel - ox0_rel), int(oy1_rel - oy0_rel)
+                )
+
+            painter.end()
+            self._pixmap = base_pixmap
+
+            # Update stats text with nested objects count
+            self._stats_text = self._generate_stats_text()
+
+            doc.close()
+            self.update()
+
+        except Exception as e:
+            logger.error("Failed to render bbox: %s", e)
+
+    def _get_nested_pdf_objects(self, page, clip_rect: fitz.Rect) -> list[dict]:
+        """Extract all PDF objects (text, image, table) within clip region."""
+        objects = []
+        x0, y0, x1, y1 = clip_rect
+
+        # Extract text blocks
+        try:
+            text_dict = page.get_text("dict")
+            for block in text_dict.get("blocks", []):
+                if block.get("type") == 0:  # text block
+                    bbox = block.get("bbox")
+                    if bbox:
+                        bx0, by0, bx1, by1 = bbox
+                        # Check if intersects with clip rect
+                        if bx1 > x0 and bx0 < x1 and by1 > y0 and by0 < y1:
+                            objects.append({
+                                "type": "text",
+                                "pts": (bx0, by0, bx1, by1),
+                                "label": "text"
+                            })
+                elif block.get("type") == 1:  # image block
+                    bbox = block.get("bbox")
+                    if bbox:
+                        bx0, by0, bx1, by1 = bbox
+                        if bx1 > x0 and bx0 < x1 and by1 > y0 and by0 < y1:
+                            objects.append({
+                                "type": "image",
+                                "pts": (bx0, by0, bx1, by1),
+                                "label": "image"
+                            })
+        except Exception:
+            pass
+
+        # Extract tables
+        try:
+            tables = page.find_tables(clip=clip_rect)
+            for table in tables.tables:
+                bbox = table.bbox
+                if bbox:
+                    objects.append({
+                        "type": "table",
+                        "pts": tuple(bbox),
+                        "label": f"table {table.row_count}x{table.col_count}"
+                    })
+        except Exception:
+            pass
+
+        return objects
+
+    def paintEvent(self, event) -> None:
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+        # Fill background
+        painter.fillRect(self.rect(), QColor(240, 240, 240))
+
+        # Draw pixmap centered
+        if not self._pixmap.isNull():
+            x = (self.width() - self._pixmap.width()) // 2
+            y = (self.height() - self._pixmap.height()) // 2
+            painter.drawPixmap(x, y, self._pixmap)
+
+        # Draw semi-transparent overlay panel with stats (bottom-left)
+        padding = self._padding
+        max_text_width = 350
+
+        # Measure text
+        font = QFont("Consolas", 8)
+        painter.setFont(font)
+        fm = painter.fontMetrics()
+
+        lines = self._stats_text.split("\n")
+        line_height = fm.lineSpacing()
+        text_height = len(lines) * line_height + 2 * padding
+        text_width = min(max_text_width, max((fm.horizontalAdvance(line) for line in lines), default=100) + 2 * padding)
+
+        # Position: bottom-left
+        panel_x = self._margin
+        panel_y = self.height() - text_height - self._margin
+
+        # Draw semi-transparent background
+        panel_color = QColor(30, 30, 30, 220)
+        painter.fillRect(panel_x, panel_y, text_width, text_height, panel_color)
+
+        # Draw border
+        painter.setPen(QPen(QColor(100, 100, 100), 1))
+        painter.drawRect(panel_x, panel_y, text_width, text_height)
+
+        # Draw text
+        painter.setPen(QColor(200, 220, 200))
+        text_x = panel_x + padding
+        text_y = panel_y + padding + fm.ascent()
+
+        for line in lines:
+            painter.drawText(text_x, text_y, line)
+            text_y += line_height
+
+        painter.end()
+
+
+class BboxStatsDialog(QDialog):
+    """Modal dialog showing detailed stats for a selected bounding box."""
+
+    def __init__(self, bbox: dict, page_index: int, file_path: str, parent=None) -> None:
+        super().__init__(parent)
+        self.setWindowTitle("Object Statistics")
+        self.setModal(True)
+        self.setMinimumWidth(700)
+        self.setMinimumHeight(600)
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(12, 12, 12, 12)
+        layout.setSpacing(8)
+
+        # Custom widget with adaptive rendering
+        stats_widget = BboxStatsWidget(bbox, page_index, file_path)
+
+        layout.addWidget(stats_widget, 1)
+
+        # Close button
+        close_btn = QPushButton("Close")
+        close_btn.clicked.connect(self.accept)
+        layout.addWidget(close_btn)
+
+
 class CroppingDialog(QWidget):
     """Semi-manual cropping dialog: preview with rulers + page thumbnails.
 
@@ -926,9 +2558,11 @@ class CroppingDialog(QWidget):
         self._page_count = page_count
         self._file_path = file_path
         self._current_page: int = 0
-        self._two_page_mode: bool = False
+        self._mode: str = "1-page"  # "1-page", "2-page", "spread"
         self._first_is_cover: bool = False
         self._mirrored: bool = False
+        self._split_pos: float = 0.5   # center split position (fraction 0..1) for spread mode
+        self._split_gap: float = 0.01  # half-gap width (fraction) for spread mode
 
         root = QVBoxLayout(self)
         root.setContentsMargins(4, 2, 4, 4)
@@ -937,12 +2571,12 @@ class CroppingDialog(QWidget):
         # Toolbar (compact)
         toolbar = QHBoxLayout()
         toolbar.setContentsMargins(0, 0, 0, 0)
-        self._mode_btn = QPushButton("1-page template")
-        self._mode_btn.setCheckable(True)
-        self._mode_btn.setFixedWidth(140)
-        self._mode_btn.setFixedHeight(24)
-        self._mode_btn.clicked.connect(self._toggle_mode)
-        toolbar.addWidget(self._mode_btn)
+        self._mode_combo = QComboBox()
+        self._mode_combo.addItems(["1-page", "2-page", "2-page spread"])
+        self._mode_combo.setFixedWidth(130)
+        self._mode_combo.setFixedHeight(24)
+        self._mode_combo.currentTextChanged.connect(self._on_mode_changed)
+        toolbar.addWidget(self._mode_combo)
         self._cover_cb = QCheckBox("1st page is cover")
         self._cover_cb.setStyleSheet("font-size: 10px;")
         self._cover_cb.hide()
@@ -958,6 +2592,11 @@ class CroppingDialog(QWidget):
         toolbar.addWidget(self._mode_label)
         toolbar.addStretch()
 
+        reset_btn = QPushButton("Reset")
+        reset_btn.setFixedWidth(70)
+        reset_btn.setFixedHeight(24)
+        reset_btn.clicked.connect(self._on_reset)
+        toolbar.addWidget(reset_btn)
         cancel_btn = QPushButton("Cancel")
         cancel_btn.setFixedWidth(70)
         cancel_btn.setFixedHeight(24)
@@ -1022,22 +2661,33 @@ class CroppingDialog(QWidget):
         self._render_thumbnails()
         self._load_preview(self._current_page)
 
-    def _toggle_mode(self) -> None:
-        self._two_page_mode = not self._two_page_mode
-        if self._two_page_mode:
-            self._mode_btn.setText("2-page template")
+    def _on_mode_changed(self, text: str) -> None:
+        mode_map = {"1-page": "1-page", "2-page": "2-page", "2-page spread": "spread"}
+        self._mode = mode_map.get(text, "1-page")
+
+        if self._mode == "2-page":
             self._mode_label.setText("Left = odd pages, Right = even pages")
             self._cover_cb.show()
             self._mirror_cb.show()
             self._preview_right.show()
+            self._preview_left._spread_mode = False
+        elif self._mode == "spread":
+            self._mode_label.setText("Split each PDF page into left + right")
+            self._cover_cb.hide()
+            self._mirror_cb.hide()
+            self._preview_right.hide()
+            self._preview_left._spread_mode = True
+            self._preview_left._split_pos = self._split_pos
+            self._preview_left._split_gap = self._split_gap
         else:
-            self._mode_btn.setText("1-page template")
             self._mode_label.setText("")
             self._cover_cb.hide()
             self._mirror_cb.hide()
             self._preview_right.hide()
+            self._preview_left._spread_mode = False
+
         self._load_preview(self._current_page)
-        self._on_lines_changed()  # updates thumbs + saves
+        self._on_lines_changed()
 
     def _on_cover_toggled(self, checked: bool) -> None:
         self._first_is_cover = checked
@@ -1068,7 +2718,7 @@ class CroppingDialog(QWidget):
         for lbl in self._thumb_labels:
             self._grid.removeWidget(lbl)
         # Re-add with offset
-        offset = 1 if (self._two_page_mode and self._first_is_cover) else 0
+        offset = 1 if ((self._mode == "2-page") and self._first_is_cover) else 0
         for pi in range(self._page_count):
             shifted = pi + offset
             row, col = shifted // 2, shifted % 2
@@ -1076,14 +2726,14 @@ class CroppingDialog(QWidget):
 
     def _is_left_page(self, page_idx: int) -> bool:
         """Determine if a page uses the left template."""
-        if not self._two_page_mode:
+        if not (self._mode == "2-page"):
             return True
         shifted = page_idx + (1 if self._first_is_cover else 0)
         return shifted % 2 == 0  # even shifted index = left column
 
     def _preview_for_page(self, page_idx: int) -> CropPreviewWidget:
         """Return the appropriate preview widget for a given page index."""
-        if not self._two_page_mode:
+        if not (self._mode == "2-page"):
             return self._preview_left
         return self._preview_left if self._is_left_page(page_idx) else self._preview_right
 
@@ -1142,7 +2792,7 @@ class CroppingDialog(QWidget):
         font = QFont("Consolas", 8, QFont.Weight.Bold)
         painter.setFont(font)
         side = ""
-        if self._two_page_mode:
+        if (self._mode == "2-page"):
             side = " L" if self._is_left_page(pi) else " R"
         painter.drawText(3, 12, f"P.{pi + 1}{side}")
         painter.end()
@@ -1169,7 +2819,7 @@ class CroppingDialog(QWidget):
         old_page = self._current_page
         self._current_page = page_idx
 
-        if not self._two_page_mode:
+        if not (self._mode == "2-page"):
             # Single mode: load clicked page into left preview
             pix = self._render_page_pixmap(page_idx, dpi=150)
             page = self._doc[page_idx]
@@ -1190,7 +2840,7 @@ class CroppingDialog(QWidget):
 
         # Update thumb borders — highlight both pages of the pair
         highlight = set()
-        if self._two_page_mode:
+        if (self._mode == "2-page"):
             lp, rp = self._page_pair(page_idx)
             if 0 <= lp < self._page_count:
                 highlight.add(lp)
@@ -1214,6 +2864,25 @@ class CroppingDialog(QWidget):
         self.accepted.emit(data)
         self.close()
 
+    def _on_reset(self) -> None:
+        """Clear all cropping lines and boxes."""
+        self._preview_left._h_lines.clear()
+        self._preview_left._v_lines.clear()
+        self._preview_left._boxes.clear()
+        self._preview_left.update()
+        self._preview_right._h_lines.clear()
+        self._preview_right._v_lines.clear()
+        self._preview_right._boxes.clear()
+        self._preview_right.update()
+        # Emit empty cropping data to reset cropbox
+        self.accepted.emit({
+            "two_page": self._two_page_mode,
+            "first_is_cover": self._first_is_cover,
+            "mirrored": False,
+            "left": {"h_lines": [], "v_lines": [], "boxes": []},
+            "right": {"h_lines": [], "v_lines": [], "boxes": []},
+        })
+
     def _on_cancel(self) -> None:
         """Discard changes and close."""
         self.cancelled.emit()
@@ -1222,9 +2891,12 @@ class CroppingDialog(QWidget):
     def _build_cropping_data(self) -> dict:
         """Build cropping data dict for consumption by main window."""
         return {
-            "two_page": self._two_page_mode,
+            "mode": self._mode,
+            "two_page": self._mode == "2-page",
             "first_is_cover": self._first_is_cover,
             "mirrored": self._mirrored,
+            "split_pos": self._split_pos,
+            "split_gap": self._split_gap,
             "left": {
                 "h_lines": self._preview_left._h_lines,
                 "v_lines": self._preview_left._v_lines,
@@ -1250,7 +2922,7 @@ class CroppingDialog(QWidget):
             return
         meta = load_meta(self._file_path)
         meta["cropping"] = {
-            "two_page": self._two_page_mode,
+            "two_page": (self._mode == "2-page"),
             "first_is_cover": self._first_is_cover,
             "mirrored": self._mirrored,
             "left": {
@@ -1274,19 +2946,25 @@ class CroppingDialog(QWidget):
         crop = meta.get("cropping")
         if not crop:
             return
-        self._two_page_mode = crop.get("two_page", False)
+        self._mode = crop.get("mode", "2-page" if crop.get("two_page") else "1-page")
         self._first_is_cover = crop.get("first_is_cover", False)
         self._mirrored = crop.get("mirrored", False)
-        if self._two_page_mode:
-            self._mode_btn.setText("2-page template")
-            self._mode_btn.setChecked(True)
-            self._preview_right.show()
-            self._cover_cb.show()
+        self._split_pos = crop.get("split_pos", 0.5)
+        self._split_gap = crop.get("split_gap", 0.01)
+
+        # Restore combo selection (triggers _on_mode_changed)
+        mode_labels = {"1-page": "1-page", "2-page": "2-page", "spread": "2-page spread"}
+        self._mode_combo.blockSignals(True)
+        self._mode_combo.setCurrentText(mode_labels.get(self._mode, "1-page"))
+        self._mode_combo.blockSignals(False)
+        # Apply mode UI
+        self._on_mode_changed(self._mode_combo.currentText())
+
+        if self._mode == "2-page":
             self._cover_cb.setChecked(self._first_is_cover)
-            self._mirror_cb.show()
             self._mirror_cb.setChecked(self._mirrored)
-            self._mode_label.setText("Left = odd pages, Right = even pages")
             self._rebuild_thumbs_grid()
+
         left = crop.get("left", {})
         self._preview_left._h_lines = left.get("h_lines", [])
         self._preview_left._v_lines = left.get("v_lines", [])
@@ -1309,31 +2987,40 @@ class PreviewView(QWidget):
         self._page_count = 0
         self._zoom = 1.0
         self._base_dpi = 150
+        # Pan mode (space + drag)
+        self._pan_active = False
+        self._pan_dragging = False
+        self._pan_start: QPoint | None = None
+        self._pan_scroll_start: tuple[int, int] = (0, 0)
         self._spreads: list[PageSpreadWidget] = []
         # Bboxes stored in PDF points (zoom-independent)
         self._bboxes_cache: dict[int, list[dict]] = {}
         self._stats_cache: dict[int, str] = {}
+        self._pdf_objects_cache: dict[int, list[dict]] = {}
         self._catalog_meta: dict = {}
         self._show_hidden = False
         self._first_is_cover: bool = False
 
-
+        # --- Pixmap cache & background renderer ---
+        # page_idx → (QPixmap, dpi_at_which_it_was_rendered)
+        self._pixmap_cache: dict[int, tuple[QPixmap, float]] = {}
+        self._render_worker: PageRenderWorker | None = None
+        self._target_dpi: float = 0.0  # DPI that we want visible pages at
 
         self._op_start: float = 0.0
         self._setup_ui()
 
-    def _emit_progress(self, op: str, current: int, total: int) -> None:
-        """Emit progress signal — skip if template worker owns the header."""
+    def _emit_progress(self, msg: str) -> None:
+        """Emit progress with elapsed time."""
         import time
         elapsed = time.perf_counter() - self._op_start
-        pct = int(current / total * 100) if total > 0 else 0
-        self.progress.emit(f"{op} {pct}% {elapsed:.1f}s")
+        self.progress.emit(f"{msg}  {elapsed:.1f}s")
 
-    def _emit_done(self) -> None:
-        """Clear progress — but don't overwrite if template worker is active."""
+    def _emit_done(self, op: str = "") -> None:
+        """Emit completion message."""
         import time
         elapsed = time.perf_counter() - self._op_start
-        self.progress.emit(f"done {elapsed:.1f}s")
+        self.progress.emit(f"{op} done {elapsed:.1f}s" if op else f"done {elapsed:.1f}s")
 
     def _setup_ui(self) -> None:
         layout = QVBoxLayout(self)
@@ -1398,28 +3085,98 @@ class PreviewView(QWidget):
         self.bbox_filter_btn.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         filter_menu = QMenu(self.bbox_filter_btn)
         self.bbox_filter_actions: dict[str, QAction] = {}
+        self._filter_checkboxes: dict[str, QCheckBox] = {}
+        _PDF_SUB_TYPES = [("pdf_text", "Text"), ("pdf_image", "Image"), ("pdf_table", "Table")]
         for label, type_key in [("Bounding Box", "bbox"),
                                 ("Tables", "table"), ("Text", "text"),
                                 ("Photos", "photo"), ("Pictures", "picture"),
-                                ("Drawings", "drawing")]:
+                                ("Drawings", "drawing"),
+                                ("Template", "template"),
+                                ("PDF Objects", "pdf_objects")]:
+            # Widget with checkbox + "Only" button
+            widget = QWidget()
+            row = QHBoxLayout(widget)
+            row.setContentsMargins(4, 1, 4, 1)
+            cb = QCheckBox(label)
+            cb.setChecked(type_key not in ("pdf_objects", "template"))  # off by default
+            cb.toggled.connect(self._on_bbox_filter_changed)
+            row.addWidget(cb)
+            row.addStretch()
+            only_btn = QPushButton("Only")
+            only_btn.setFixedSize(36, 18)
+            only_btn.setStyleSheet("font-size: 9px; padding: 0;")
+            only_btn.clicked.connect(lambda _=False, k=type_key: self._on_show_only(k))
+            row.addWidget(only_btn)
+            wa = QWidgetAction(filter_menu)
+            wa.setDefaultWidget(widget)
+            filter_menu.addAction(wa)
+            # Store checkbox for filter state
+            self._filter_checkboxes[type_key] = cb
+            # Wrap as QAction-like for compatibility
+            act = type("_CbProxy", (), {
+                "isChecked": cb.isChecked,
+                "setChecked": cb.setChecked,
+            })()
+            self.bbox_filter_actions[type_key] = act
             if type_key == "bbox":
-                act = QAction(label, filter_menu)
-                act.setCheckable(True)
-                act.setChecked(True)
-                act.toggled.connect(self._on_bbox_filter_changed)
-                filter_menu.addAction(act)
-                self.bbox_filter_actions[type_key] = act
                 filter_menu.addSeparator()
-            else:
-                act = QAction(label, filter_menu)
-                act.setCheckable(True)
-                act.setChecked(True)
-                act.toggled.connect(self._on_bbox_filter_changed)
-                filter_menu.addAction(act)
-                self.bbox_filter_actions[type_key] = act
+            if type_key == "template":
+                filter_menu.addSeparator()
+            # Add PDF sub-type checkboxes indented under "PDF Objects"
+            if type_key == "pdf_objects":
+                for sub_key, sub_label in _PDF_SUB_TYPES:
+                    sw = QWidget()
+                    sr = QHBoxLayout(sw)
+                    sr.setContentsMargins(20, 1, 4, 1)  # indented
+                    scb = QCheckBox(sub_label)
+                    scb.setChecked(False)
+                    scb.toggled.connect(self._on_bbox_filter_changed)
+                    sr.addWidget(scb)
+                    sr.addStretch()
+                    swa = QWidgetAction(filter_menu)
+                    swa.setDefaultWidget(sw)
+                    filter_menu.addAction(swa)
+                    self._filter_checkboxes[sub_key] = scb
+                    sub_act = type("_CbProxy", (), {
+                        "isChecked": scb.isChecked,
+                        "setChecked": scb.setChecked,
+                    })()
+                    self.bbox_filter_actions[sub_key] = sub_act
 
         self.bbox_filter_btn.setMenu(filter_menu)
         toolbar.addWidget(self.bbox_filter_btn)
+
+        # Content visibility dropdown — hide/show actual object content
+        self.content_filter_btn = QToolButton()
+        self.content_filter_btn.setText("Content ▾")
+        self.content_filter_btn.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+        content_menu = QMenu(self.content_filter_btn)
+        self._content_checkboxes: dict[str, QCheckBox] = {}
+        for label, type_key in [("Tables", "table"), ("Text", "text"),
+                                ("Photos", "photo"), ("Pictures", "picture"),
+                                ("Drawings", "drawing"),
+                                ("Template", "template")]:
+            cw = QWidget()
+            cr = QHBoxLayout(cw)
+            cr.setContentsMargins(4, 1, 4, 1)
+            ccb = QCheckBox(label)
+            ccb.setChecked(False)  # not hidden by default
+            ccb.toggled.connect(self._on_content_filter_changed)
+            cr.addWidget(ccb)
+            cr.addStretch()
+            cwa = QWidgetAction(content_menu)
+            cwa.setDefaultWidget(cw)
+            content_menu.addAction(cwa)
+            self._content_checkboxes[type_key] = ccb
+        self.content_filter_btn.setMenu(content_menu)
+        toolbar.addWidget(self.content_filter_btn)
+
+        self._detect_method_combo = QComboBox()
+        self._detect_method_combo.addItems(ScanlineTestDialog._ALGOS)
+        self._detect_method_combo.setCurrentIndex(8)  # Hybrid 2-pass default
+        self._detect_method_combo.setFixedHeight(24)
+        self._detect_method_combo.setFixedWidth(180)
+        toolbar.addWidget(self._detect_method_combo)
 
         self.clear_bbox_btn = QPushButton("Clear && Re-detect")
         self.clear_bbox_btn.clicked.connect(self._clear_and_redetect)
@@ -1448,14 +3205,89 @@ class PreviewView(QWidget):
         self.scroll_area.setWidget(self.pages_container)
         layout.addWidget(self.scroll_area)
 
+        # Install event filter for pan mode on scroll viewport
+        self.scroll_area.viewport().installEventFilter(self)
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+
+    def keyPressEvent(self, event) -> None:
+        if event.key() == Qt.Key.Key_Space and not event.isAutoRepeat():
+            self._pan_active = True
+            self.scroll_area.viewport().setCursor(QCursor(Qt.CursorShape.OpenHandCursor))
+        super().keyPressEvent(event)
+
+    def keyReleaseEvent(self, event) -> None:
+        if event.key() == Qt.Key.Key_Space and not event.isAutoRepeat():
+            self._pan_active = False
+            self._pan_dragging = False
+            self.scroll_area.viewport().unsetCursor()
+        super().keyReleaseEvent(event)
+
+    def eventFilter(self, obj, event) -> bool:
+        """Handle pan via Space+drag or middle mouse drag on scroll viewport."""
+        if obj is not self.scroll_area.viewport():
+            return False
+
+        etype = event.type()
+
+        # Middle button press → start pan
+        if etype == event.Type.MouseButtonPress and event.button() == Qt.MouseButton.MiddleButton:
+            self._pan_dragging = True
+            self._pan_start = event.globalPosition().toPoint()
+            self._pan_scroll_start = (
+                self.scroll_area.horizontalScrollBar().value(),
+                self.scroll_area.verticalScrollBar().value(),
+            )
+            self.scroll_area.viewport().setCursor(QCursor(Qt.CursorShape.ClosedHandCursor))
+            return True
+
+        # Space held + left click → start pan
+        if etype == event.Type.MouseButtonPress and self._pan_active and event.button() == Qt.MouseButton.LeftButton:
+            self._pan_dragging = True
+            self._pan_start = event.globalPosition().toPoint()
+            self._pan_scroll_start = (
+                self.scroll_area.horizontalScrollBar().value(),
+                self.scroll_area.verticalScrollBar().value(),
+            )
+            self.scroll_area.viewport().setCursor(QCursor(Qt.CursorShape.ClosedHandCursor))
+            return True
+
+        # Drag
+        if etype == event.Type.MouseMove and self._pan_dragging and self._pan_start:
+            delta = event.globalPosition().toPoint() - self._pan_start
+            self.scroll_area.horizontalScrollBar().setValue(
+                self._pan_scroll_start[0] - delta.x()
+            )
+            self.scroll_area.verticalScrollBar().setValue(
+                self._pan_scroll_start[1] - delta.y()
+            )
+            return True
+
+        # Release
+        if etype == event.Type.MouseButtonRelease and self._pan_dragging:
+            self._pan_dragging = False
+            self._pan_start = None
+            if self._pan_active:
+                self.scroll_area.viewport().setCursor(QCursor(Qt.CursorShape.OpenHandCursor))
+            else:
+                self.scroll_area.viewport().unsetCursor()
+            return True
+
+        return False
+
     def load_document(self, file_path: Path) -> None:
         """Load a PDF document for preview."""
+        self.progress.emit(f"Loading {file_path.name}...")
         if self._doc:
             self._doc.close()
 
+        self._cancel_render_worker()
+        self._cancel_detect_worker()
+        self._detect_method_idx = self._detect_method_combo.currentIndex()
         self._file_path = file_path
         self._bboxes_cache.clear()
         self._stats_cache.clear()
+        self._pdf_objects_cache.clear()
+        self._pixmap_cache.clear()
         self._catalog_meta = load_meta(file_path)
 
         # Load cropping settings
@@ -1466,6 +3298,9 @@ class PreviewView(QWidget):
         try:
             self._doc = fitz.open(str(file_path))
             self._page_count = len(self._doc)
+            # Apply saved cropbox if cropping data exists
+            if crop and (crop.get("left") or crop.get("right")):
+                self._apply_pdf_cropbox()
         except Exception as e:
             logger.error("Failed to open PDF: %s", e)
             self.file_label.setText(f"Error: {e}")
@@ -1476,21 +3311,45 @@ class PreviewView(QWidget):
         self.page_spin.setValue(1)
         self.page_count_label.setText(f"/ {self._page_count}")
 
-        self._fit_to_width()
-        if True:
-            self._detect_visible_pages()
+        self._fit_to_width()   # sets self._zoom, calls _set_zoom → _update_spreads_zoom (no-op: no spreads yet)
+        self._rebuild_spreads()  # create spread widgets + kick off background render
+        self._detect_visible_pages()
         logger.info("Loaded document: %s (%d pages)", file_path.name, self._page_count)
 
     def _current_zoom_factor(self) -> float:
         """Current points-to-pixels conversion factor."""
         return self._base_dpi * self._zoom / 72.0
 
-    def _render_all_spreads(self) -> None:
-        """Render all page spreads (2 pages per row) with progress."""
-        import time
-        self._op_start = time.perf_counter()
+    # ------------------------------------------------------------------
+    # Spread layout helpers
+    # ------------------------------------------------------------------
 
-        # Clear existing
+    def _build_spread_pairs(self) -> list[tuple[int, int]]:
+        """Return [(left_page_idx | -1, right_page_idx | -1), ...]."""
+        pairs: list[tuple[int, int]] = []
+        if self._first_is_cover and self._page_count > 0:
+            pairs.append((-1, 0))
+            pi = 1
+        else:
+            pi = 0
+        while pi < self._page_count:
+            right = pi + 1 if pi + 1 < self._page_count else -1
+            pairs.append((pi, right))
+            pi += 2
+        return pairs
+
+    # ------------------------------------------------------------------
+    # Rebuild spreads (structure only — called on load / cover toggle)
+    # ------------------------------------------------------------------
+
+    def _rebuild_spreads(self) -> None:
+        """Create spread widgets with correct page assignments.
+
+        The first spread is rendered synchronously so the user sees content
+        immediately.  Remaining visible pages are rendered in a background
+        thread; off-screen pages get a correctly-sized placeholder.
+        """
+        # Tear down old widgets
         for spread in self._spreads:
             self.pages_layout.removeWidget(spread)
             spread.deleteLater()
@@ -1500,135 +3359,319 @@ class PreviewView(QWidget):
             return
 
         zf = self._current_zoom_factor()
-        dpi = zf * 72.0
+        target_dpi = zf * 72.0
+        cur_layers = {k: a.isChecked() for k, a in self.bbox_filter_actions.items()}
+        cur_content_mask = {k: cb.isChecked() for k, cb in self._content_checkboxes.items()}
+        spread_pairs = self._build_spread_pairs()
 
-        cur_layers = {
-            key: act.isChecked()
-            for key, act in self.bbox_filter_actions.items()
-        }
+        import time
+        self._op_start = time.perf_counter()
 
-        # Build list of spread pairs: [(left_page_idx or -1, right_page_idx or -1), ...]
-        spread_pairs: list[tuple[int, int]] = []
-        if self._first_is_cover and self._page_count > 0:
-            # First spread: blank left, page 0 on right (cover)
-            spread_pairs.append((-1, 0))
-            pi = 1
-        else:
-            pi = 0
-        while pi < self._page_count:
-            left_pi = pi
-            right_pi = pi + 1 if pi + 1 < self._page_count else -1
-            spread_pairs.append((left_pi, right_pi))
-            pi += 2
+        # Synchronously render the first spread for instant feedback
+        first_sync_pages = set()
+        if spread_pairs:
+            lp, rp = spread_pairs[0]
+            if lp >= 0:
+                first_sync_pages.add(lp)
+            if rp >= 0:
+                first_sync_pages.add(rp)
+        for pi in first_sync_pages:
+            self._emit_progress(f"Render p.{pi+1} sync @ {int(target_dpi)} DPI")
+            self._render_page_sync(pi, target_dpi)
 
         total_spreads = len(spread_pairs)
-        for spread_num, (left_pi, right_pi) in enumerate(spread_pairs):
-            self._emit_progress("Render", spread_num, total_spreads)
+        for si, (left_pi, right_pi) in enumerate(spread_pairs):
+            pages_str = f"p.{left_pi+1}" if left_pi >= 0 else ""
+            if right_pi >= 0:
+                pages_str += f"+{right_pi+1}" if pages_str else f"p.{right_pi+1}"
+            self._emit_progress(f"Layout spread {si+1}/{total_spreads} ({pages_str})")
             spread = PageSpreadWidget()
 
-            # Left page
+            # --- helper: configure one PageWidget side ---
+            def _setup_page(pw: "PageWidget", pi: int) -> None:
+                page = self._doc[pi]
+                pw._page_index = pi
+                pw._page_size_pt = (page.rect.width, page.rect.height)
+                pw.set_pixmap(self._pixmap_for_page(pi, zf))
+                pw.set_show_bboxes(True)
+                pw.set_show_hidden(self._show_hidden)
+                pw.set_file_path(self._file_path)
+                pw.hide_requested.connect(self._on_hide_object)
+                pw.selection_changed.connect(self._on_page_selection)
+                pw.type_changed.connect(self._on_type_changed)
+                pw.bbox_modified.connect(self._on_bbox_modified)
+                pw.bbox_testbench.connect(self._on_bbox_testbench)
+                pw.object_stats_requested.connect(self._on_object_stats_requested)
+                pw.set_visible_layers(cur_layers)
+                pw.set_content_mask(cur_content_mask)
+                if pi in self._bboxes_cache:
+                    pw.set_bboxes(self._bboxes_cache[pi], zf)
+                if pi in self._pdf_objects_cache:
+                    pw.set_pdf_objects(self._pdf_objects_cache[pi], zf)
+                if pi in self._stats_cache:
+                    pw.set_page_stats(self._stats_cache[pi])
+
+            def _blank_like(ref_pi: int) -> QPixmap:
+                if ref_pi >= 0:
+                    p = self._doc[ref_pi]
+                    w = int(p.rect.width * zf)
+                    h = int(p.rect.height * zf)
+                else:
+                    w, h = 100, 100
+                blank = QPixmap(w, h)
+                blank.fill(QColor(240, 240, 240))
+                return blank
+
             if left_pi >= 0:
-                left_pixmap = self._render_page(left_pi, dpi)
-                spread.left_page._page_index = left_pi
-                page = self._doc[left_pi]
-                spread.left_page._page_size_pt = (page.rect.width, page.rect.height)
-                spread.left_page.set_pixmap(left_pixmap)
-                spread.left_page.set_show_bboxes(True)
-                spread.left_page.set_show_hidden(self._show_hidden)
-                spread.left_page.hide_requested.connect(self._on_hide_object)
-                spread.left_page.selection_changed.connect(self._on_page_selection)
-                spread.left_page.type_changed.connect(self._on_type_changed)
-                spread.left_page.bbox_modified.connect(self._on_bbox_modified)
-                spread.left_page.set_visible_layers(cur_layers)
-                if left_pi in self._bboxes_cache:
-                    spread.left_page.set_bboxes(self._bboxes_cache[left_pi], zf)
-                if left_pi in self._stats_cache:
-                    spread.left_page.set_page_stats(self._stats_cache[left_pi])
+                _setup_page(spread.left_page, left_pi)
             else:
-                # Blank left page (cover mode)
-                if right_pi >= 0:
-                    ref_pix = self._render_page(right_pi, dpi)
-                    blank = QPixmap(ref_pix.size())
-                else:
-                    blank = QPixmap(100, 100)
-                blank.fill(QColor(240, 240, 240))
-                spread.left_page.set_pixmap(blank)
+                spread.left_page.set_pixmap(_blank_like(right_pi))
 
-            # Right page
             if right_pi >= 0:
-                right_pixmap = self._render_page(right_pi, dpi)
-                spread.right_page._page_index = right_pi
-                rpage = self._doc[right_pi]
-                spread.right_page._page_size_pt = (rpage.rect.width, rpage.rect.height)
-                spread.right_page.set_pixmap(right_pixmap)
-                spread.right_page.set_show_bboxes(True)
-                spread.right_page.set_show_hidden(self._show_hidden)
-                spread.right_page.hide_requested.connect(self._on_hide_object)
-                spread.right_page.selection_changed.connect(self._on_page_selection)
-                spread.right_page.type_changed.connect(self._on_type_changed)
-                spread.right_page.bbox_modified.connect(self._on_bbox_modified)
-                if right_pi in self._bboxes_cache:
-                    spread.right_page.set_bboxes(self._bboxes_cache[right_pi], zf)
-                if right_pi in self._stats_cache:
-                    spread.right_page.set_page_stats(self._stats_cache[right_pi])
+                _setup_page(spread.right_page, right_pi)
             else:
-                if left_pi >= 0:
-                    ref_pix = self._render_page(left_pi, dpi)
-                    blank = QPixmap(ref_pix.size())
-                else:
-                    blank = QPixmap(100, 100)
-                blank.fill(QColor(240, 240, 240))
-                spread.right_page.set_pixmap(blank)
-
-            spread.left_page.set_visible_layers(cur_layers)
-            spread.right_page.set_visible_layers(cur_layers)
+                spread.right_page.set_pixmap(_blank_like(left_pi))
 
             self.pages_layout.addWidget(spread)
             self._spreads.append(spread)
 
-        # Restore overlays after re-creating spreads
-        if hasattr(self, "_cropping_data") and self._cropping_data:
-            self._apply_cropping_to_spreads()
-        self._emit_done()
+        # Cropping is applied via PDF cropbox, no visual overlay needed
+        self._emit_done("Layout")
 
-    def _render_page(self, page_num: int, dpi: int) -> QPixmap:
-        """Render a single page to QPixmap."""
+        # Kick off background render for remaining visible pages
+        self._schedule_hires_render()
+
+    # ------------------------------------------------------------------
+    # Pixmap helpers
+    # ------------------------------------------------------------------
+
+    def _pixmap_for_page(self, page_idx: int, zf: float) -> QPixmap:
+        """Return the best available pixmap for *page_idx* at zoom-factor *zf*.
+
+        If we already have a cached render (possibly at a different DPI),
+        scale it to the expected size so the layout is immediate.
+        """
+        target_w = int(self._doc[page_idx].rect.width * zf)
+        target_h = int(self._doc[page_idx].rect.height * zf)
+
+        cached = self._pixmap_cache.get(page_idx)
+        if cached:
+            pix, _cached_dpi = cached
+            if pix.width() == target_w and pix.height() == target_h:
+                return pix
+            # Scale existing render to target size (fast, may be slightly blurry)
+            return pix.scaled(
+                target_w, target_h,
+                Qt.AspectRatioMode.IgnoreAspectRatio,
+                Qt.TransformationMode.SmoothTransformation,
+            )
+
+        # No cache at all — grey placeholder
+        blank = QPixmap(target_w, target_h)
+        blank.fill(QColor(245, 245, 245))
+        return blank
+
+    def _render_page_sync(self, page_num: int, dpi: float) -> QPixmap:
+        """Render a single page synchronously (used for initial load)."""
         page = self._doc[page_num]
         zoom_factor = dpi / 72.0
         mat = fitz.Matrix(zoom_factor, zoom_factor)
         pix = page.get_pixmap(matrix=mat)
-
         img = QImage(pix.samples, pix.width, pix.height, pix.stride, QImage.Format.Format_RGB888)
-        return QPixmap.fromImage(img)
+        qpix = QPixmap.fromImage(img)
+        self._pixmap_cache[page_num] = (qpix, dpi)
+        return qpix
 
-    def _set_zoom(self, zoom: float) -> None:
-        """Set zoom level and re-render."""
+    # ------------------------------------------------------------------
+    # Visible-page detection
+    # ------------------------------------------------------------------
+
+    def _visible_page_indices(self) -> list[int]:
+        """Return page indices whose spread widgets are in/near the viewport."""
+        if not self._spreads:
+            return []
+        vp = self.scroll_area.viewport()
+        vp_top = self.scroll_area.verticalScrollBar().value()
+        vp_bot = vp_top + vp.height()
+        margin = vp.height()  # pre-render 1 viewport ahead/behind
+        indices: list[int] = []
+        for spread in self._spreads:
+            sy = spread.mapTo(self.pages_container, QPoint(0, 0)).y()
+            sh = spread.height()
+            if sy + sh < vp_top - margin:
+                continue
+            if sy > vp_bot + margin:
+                break
+            for pw in (spread.left_page, spread.right_page):
+                pi = getattr(pw, "_page_index", -1)
+                if pi >= 0:
+                    indices.append(pi)
+        return indices
+
+    # ------------------------------------------------------------------
+    # Background hi-res rendering
+    # ------------------------------------------------------------------
+
+    def _cancel_render_worker(self) -> None:
+        if self._render_worker is not None:
+            self._render_worker.cancel()
+            self._render_worker.page_ready.disconnect(self._on_page_rendered)
+            self._render_worker.all_done.disconnect(self._on_render_done)
+            self._render_worker = None
+
+    def _cancel_detect_worker(self) -> None:
+        if hasattr(self, "_detect_worker") and self._detect_worker is not None:
+            self._detect_worker.cancel()
+            self._detect_worker = None
+        if hasattr(self, "_detect_timer"):
+            self._detect_timer.stop()
+
+    def _schedule_hires_render(self) -> None:
+        """Queue background rendering for visible pages at the correct DPI."""
+        if not self._doc or not self._file_path:
+            return
+        self._cancel_render_worker()
+
+        target_dpi = self._current_zoom_factor() * 72.0
+        self._target_dpi = target_dpi
+
+        visible = self._visible_page_indices()
+        # Only request pages whose cache doesn't already match target DPI
+        requests: list[tuple[int, float]] = []
+        for pi in visible:
+            cached = self._pixmap_cache.get(pi)
+            if cached and abs(cached[1] - target_dpi) < 1.0:
+                continue  # already sharp
+            requests.append((pi, target_dpi))
+
+        if not requests:
+            return
+
+        worker = PageRenderWorker(str(self._file_path), requests, parent=self)
+        worker.page_ready.connect(self._on_page_rendered)
+        worker.all_done.connect(self._on_render_done)
+        self._render_worker = worker
+        worker.start()
+
+    def _on_page_rendered(self, page_idx: int, image: QImage, dpi: float) -> None:
+        """Slot: background worker delivered a rendered page."""
+        # Stale result? (user changed zoom while rendering)
+        if abs(dpi - self._target_dpi) > 1.0:
+            return
+
+        self.progress.emit(f"HiRes p.{page_idx+1} @ {int(dpi)} DPI")
+        qpix = QPixmap.fromImage(image)
+        self._pixmap_cache[page_idx] = (qpix, dpi)
+
+        # Push to the correct PageWidget
+        zf = self._current_zoom_factor()
+        for spread in self._spreads:
+            for pw in (spread.left_page, spread.right_page):
+                if getattr(pw, "_page_index", -1) == page_idx:
+                    pw.set_pixmap(qpix)
+                    if page_idx in self._bboxes_cache:
+                        pw.set_bboxes(self._bboxes_cache[page_idx], zf)
+                    return
+
+    def _on_render_done(self) -> None:
+        """All queued pages rendered."""
+        self._render_worker = None
+        self.progress.emit("")
+
+    # ------------------------------------------------------------------
+    # Zoom — instant scale + deferred hi-res
+    # ------------------------------------------------------------------
+
+    def _update_spreads_zoom(self) -> None:
+        """Instantly rescale cached pixmaps to new zoom & update bboxes."""
+        if not self._doc:
+            return
+        self.progress.emit(f"Zoom {int(self._zoom * 100)}%")
+        zf = self._current_zoom_factor()
+        for spread in self._spreads:
+            for pw in (spread.left_page, spread.right_page):
+                pi = getattr(pw, "_page_index", -1)
+                if pi >= 0:
+                    pw.set_pixmap(self._pixmap_for_page(pi, zf))
+                    if pi in self._bboxes_cache:
+                        pw.set_bboxes(self._bboxes_cache[pi], zf)
+                else:
+                    # Blank page — resize to match sibling
+                    sibling = spread.right_page if pw is spread.left_page else spread.left_page
+                    spi = getattr(sibling, "_page_index", -1)
+                    if spi >= 0:
+                        p = self._doc[spi]
+                        w = int(p.rect.width * zf)
+                        h = int(p.rect.height * zf)
+                    else:
+                        w, h = 100, 100
+                    blank = QPixmap(w, h)
+                    blank.fill(QColor(240, 240, 240))
+                    pw.set_pixmap(blank)
+
+    def _set_zoom(self, zoom: float, anchor: QPointF | None = None) -> None:
+        """Set zoom level — instantly rescale, then render sharp in background.
+
+        *anchor* is the position in the **viewport** that should stay fixed
+        (typically the mouse cursor).  If ``None``, the viewport centre is used.
+        """
         zoom = max(0.25, min(4.0, zoom))
+        if abs(zoom - self._zoom) < 0.001:
+            return
+
+        old_zoom = self._zoom
         self._zoom = zoom
 
         self.zoom_slider.blockSignals(True)
         self.zoom_slider.setValue(int(zoom * 100))
         self.zoom_slider.blockSignals(False)
-
         self.zoom_label.setText(f"{int(zoom * 100)}%")
-        self._render_all_spreads()
+
+        # --- anchor-aware scroll adjustment ---
+        vbar = self.scroll_area.verticalScrollBar()
+        hbar = self.scroll_area.horizontalScrollBar()
+        vp = self.scroll_area.viewport()
+
+        if anchor is None:
+            anchor = QPointF(vp.width() / 2.0, vp.height() / 2.0)
+
+        # Content-space position of the anchor before zoom
+        cx_before = hbar.value() + anchor.x()
+        cy_before = vbar.value() + anchor.y()
+
+        ratio = zoom / old_zoom
+
+        # 1) Instant: scale cached pixmaps to new size
+        self._update_spreads_zoom()
+
+        # 2) Adjust scroll so anchor stays under the cursor
+        hbar.setValue(int(cx_before * ratio - anchor.x()))
+        vbar.setValue(int(cy_before * ratio - anchor.y()))
+
+        # 3) Deferred: re-render visible pages at correct DPI in background
+        self._schedule_hires_render()
+
+    # Keep old name as alias for callers that still reference it
+    def _render_all_spreads(self) -> None:
+        self._pixmap_cache.clear()
+        self._rebuild_spreads()
 
     def _fit_to_width(self) -> None:
-        """Calculate zoom to fit 2-page spread within scroll area width."""
+        """Calculate zoom to fit a single page width, then center current page."""
         if not self._doc or self._page_count == 0:
             return
 
-        page = self._doc[0]
+        current = self._get_current_page()
+        page = self._doc[current]
         page_width_pt = page.rect.width  # points (72 dpi)
-        # Overhead: spread margins (10+10) + page spacing (8) + scrollbar (~18)
-        # + PageWidget internal margins/rounding
         scrollbar_w = self.scroll_area.verticalScrollBar().width() if self.scroll_area.verticalScrollBar().isVisible() else 18
-        spread_overhead = 10 + 10 + 8 + scrollbar_w + 4  # 4px safety
-        available_width = self.scroll_area.viewport().width() - spread_overhead
-        two_page_base_px = 2 * (page_width_pt * self._base_dpi / 72.0)
-        if two_page_base_px > 0:
-            new_zoom = available_width / two_page_base_px
+        overhead = 10 + 10 + scrollbar_w + 4  # spread margins + safety
+        available_width = self.scroll_area.viewport().width() - overhead
+        one_page_base_px = page_width_pt * self._base_dpi / 72.0
+        if one_page_base_px > 0:
+            new_zoom = available_width / one_page_base_px
             self._set_zoom(new_zoom)
+            self._scroll_to_page(current + 1)
 
     def _scroll_to_page(self, page_num: int) -> None:
         """Scroll to show the spread containing the given page."""
@@ -1662,22 +3705,30 @@ class PreviewView(QWidget):
         # Lazy bbox detection on scroll
         self._detect_visible_pages()
 
+        # Render newly-visible pages at correct DPI
+        self._schedule_hires_render()
+
     def _clear_and_redetect(self) -> None:
-        """Clear cached bboxes and saved metadata, then re-detect."""
+        """Clear caches and re-detect. Visible pages first, rest in background."""
+        # Capture selected method before detection starts
+        self._detect_method_idx = self._detect_method_combo.currentIndex()
+        self._cancel_detect_worker()
         self._bboxes_cache.clear()
         self._stats_cache.clear()
+        self._pdf_objects_cache.clear()
         if self._file_path:
             meta = load_meta(self._file_path)
-            meta["objects"] = {}
+            meta["objects"] = []
             save_meta(self._file_path, meta)
             self._catalog_meta = meta
+        # Clear all visible bboxes and repaint
+        zf = self._current_zoom_factor()
         for spread in self._spreads:
-            spread.left_page.set_bboxes([], 1.0)
-            spread.right_page.set_bboxes([], 1.0)
-            spread.left_page.update()
-            spread.right_page.update()
-        from PySide6.QtWidgets import QApplication
-        QApplication.processEvents()
+            for pw in (spread.left_page, spread.right_page):
+                pw.set_bboxes([], zf)
+                pw.set_pdf_objects([], zf)
+                pw.update()
+        # Kick off lazy background detection for visible pages
         self._detect_visible_pages()
 
     def _open_cropping_dialog(self) -> None:
@@ -1690,15 +3741,196 @@ class PreviewView(QWidget):
         dlg.show()
 
     def _on_cropping_accepted(self, data: dict) -> None:
-        """Apply cropping from dialog to main view."""
+        """Apply real PDF cropping, transform object coordinates, re-render."""
+        old_crop_data = getattr(self, "_cropping_data", {}) or {}
+        new_crop_data = data
+
         self._first_is_cover = data.get("first_is_cover", False)
         self._cropping_data = data
         self._catalog_meta["cropping"] = data
+
+        # Transform saved object coordinates from old crop space → new crop space
+        if self._doc and self._file_path:
+            self._transform_objects_for_crop(old_crop_data, new_crop_data)
+
         if self._file_path:
             save_meta(self._file_path, self._catalog_meta)
-        # Re-render spreads with updated cover/crop settings
+
+        # Apply real PDF cropbox
+        if self._doc:
+            self._apply_pdf_cropbox()
+
+        # Clear caches and re-render with new crop
+        self._bboxes_cache.clear()
+        self._stats_cache.clear()
+        self._pixmap_cache.clear()
         self._render_all_spreads()
-        self._apply_cropping_to_spreads()
+        self._detect_visible_pages()
+
+    # ------------------------------------------------------------------
+    # Coordinate transformation when crop changes
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _side_for_page(page_idx: int, crop_data: dict) -> dict:
+        """Return the crop side dict for *page_idx* given arbitrary *crop_data*."""
+        if not crop_data:
+            return {}
+        two_page = crop_data.get("two_page", False)
+        cover = crop_data.get("first_is_cover", False)
+        if not two_page:
+            return crop_data.get("left", {})
+        shifted = page_idx + (1 if cover else 0)
+        return crop_data.get("left", {}) if shifted % 2 == 0 else crop_data.get("right", {})
+
+    def _crop_origin_for_page(self, page_idx: int, crop_data: dict) -> tuple[float, float]:
+        """Return (x0, y0) of the crop area in MediaBox coordinates.
+
+        If no crop is defined the MediaBox origin is returned (typically 0, 0),
+        meaning bbox coords are in full-page space.
+        """
+        page = self._doc[page_idx]
+        mb = page.mediabox
+
+        side = self._side_for_page(page_idx, crop_data)
+        if not side:
+            return (mb.x0, mb.y0)
+
+        h_lines = sorted(side.get("h_lines", []))
+        v_lines = sorted(side.get("v_lines", []))
+        x0 = mb.x0 + v_lines[0] * mb.width if v_lines else mb.x0
+        y0 = mb.y0 + h_lines[0] * mb.height if h_lines else mb.y0
+        return (x0, y0)
+
+    def _crop_rect_for_page(self, page_idx: int, crop_data: dict) -> "fitz.Rect":
+        """Return the crop Rect in MediaBox coordinates for *page_idx*."""
+        page = self._doc[page_idx]
+        mb = page.mediabox
+
+        side = self._side_for_page(page_idx, crop_data)
+        if not side:
+            return fitz.Rect(mb)
+
+        h_lines = sorted(side.get("h_lines", []))
+        v_lines = sorted(side.get("v_lines", []))
+        if not h_lines and not v_lines:
+            return fitz.Rect(mb)
+
+        x0 = mb.x0 + v_lines[0] * mb.width if v_lines else mb.x0
+        x1 = mb.x0 + v_lines[-1] * mb.width if v_lines else mb.x1
+        y0 = mb.y0 + h_lines[0] * mb.height if h_lines else mb.y0
+        y1 = mb.y0 + h_lines[-1] * mb.height if h_lines else mb.y1
+        return fitz.Rect(x0, y0, x1, y1)
+
+    def _transform_objects_for_crop(
+        self, old_crop_data: dict, new_crop_data: dict,
+    ) -> None:
+        """Transform saved object coordinates from old crop space to new crop space.
+
+        Bbox coords are 0-based within the crop area.  When the crop changes
+        the origin shifts, so every saved coordinate must be adjusted::
+
+            new_xy = old_xy + old_origin - new_origin
+
+        Objects that end up completely outside the new crop area are removed.
+        """
+        if not self._file_path or not self._doc:
+            return
+
+        # Reset all pages to MediaBox so mediabox dims are reliable
+        for pi in range(self._page_count):
+            self._doc[pi].set_cropbox(self._doc[pi].mediabox)
+
+        meta = self._catalog_meta
+        objects = meta.get("objects", [])
+        if not objects:
+            return
+
+        transformed: list[dict] = []
+        for obj in objects:
+            pi = obj.get("page", 0)
+            if pi >= self._page_count:
+                transformed.append(obj)
+                continue
+
+            old_ox, old_oy = self._crop_origin_for_page(pi, old_crop_data)
+            new_ox, new_oy = self._crop_origin_for_page(pi, new_crop_data)
+            new_rect = self._crop_rect_for_page(pi, new_crop_data)
+            crop_w = new_rect.width
+            crop_h = new_rect.height
+
+            dx = old_ox - new_ox
+            dy = old_oy - new_oy
+
+            pts = obj.get("pts", [])
+            if len(pts) != 4:
+                transformed.append(obj)
+                continue
+
+            new_pts = [pts[0] + dx, pts[1] + dy, pts[2] + dx, pts[3] + dy]
+
+            # Skip objects completely outside the new crop area
+            if new_pts[2] <= 0 or new_pts[3] <= 0 or new_pts[0] >= crop_w or new_pts[1] >= crop_h:
+                continue
+
+            # Clamp to crop bounds
+            new_pts[0] = max(0.0, new_pts[0])
+            new_pts[1] = max(0.0, new_pts[1])
+            new_pts[2] = min(crop_w, new_pts[2])
+            new_pts[3] = min(crop_h, new_pts[3])
+            obj["pts"] = new_pts
+
+            # Transform user_pts if present
+            u = obj.get("user_pts")
+            if u and len(u) == 4:
+                obj["user_pts"] = [u[0] + dx, u[1] + dy, u[2] + dx, u[3] + dy]
+
+            # Transform table grid segments: h_seg=(x0, x1, y), v_seg=(x, y0, y1)
+            if obj.get("h_segments"):
+                obj["h_segments"] = [
+                    [s[0] + dx, s[1] + dx, s[2] + dy] for s in obj["h_segments"]
+                ]
+            if obj.get("v_segments"):
+                obj["v_segments"] = [
+                    [s[0] + dx, s[1] + dy, s[2] + dy] for s in obj["v_segments"]
+                ]
+
+            transformed.append(obj)
+
+        meta["objects"] = transformed
+        logger.info(
+            "Transformed %d objects for crop change (%d removed)",
+            len(transformed), len(objects) - len(transformed),
+        )
+
+    def _apply_pdf_cropbox(self) -> None:
+        """Set CropBox on each page from cropping guide lines.
+
+        Guide lines are fractional (0..1) relative to the original MediaBox.
+        Content between first and last h/v lines is kept.
+        """
+        if not self._doc:
+            return
+        for page_idx in range(self._page_count):
+            page = self._doc[page_idx]
+            # Always reset to full page first
+            page.set_cropbox(page.mediabox)
+
+            side = self._cropping_for_page(page_idx)
+            if not side:
+                continue
+            h_lines = sorted(side.get("h_lines", []))
+            v_lines = sorted(side.get("v_lines", []))
+            if not h_lines and not v_lines:
+                continue
+
+            mb = page.mediabox
+            x0 = mb.x0 + v_lines[0] * mb.width if v_lines else mb.x0
+            x1 = mb.x0 + v_lines[-1] * mb.width if v_lines else mb.x1
+            y0 = mb.y0 + h_lines[0] * mb.height if h_lines else mb.y0
+            y1 = mb.y0 + h_lines[-1] * mb.height if h_lines else mb.y1
+
+            page.set_cropbox(fitz.Rect(x0, y0, x1, y1))
 
     def _cropping_for_page(self, page_idx: int) -> dict:
         """Return the cropping side data (h_lines, v_lines, boxes) for a page."""
@@ -1727,85 +3959,304 @@ class PreviewView(QWidget):
                 pw._crop_boxes = side.get("boxes", [])
                 pw.update()
 
+    def _on_content_filter_changed(self, _checked: bool = False) -> None:
+        """Update content mask on all page widgets."""
+        mask = {
+            key: cb.isChecked()
+            for key, cb in self._content_checkboxes.items()
+        }
+        for spread in self._spreads:
+            spread.left_page.set_content_mask(mask)
+            spread.right_page.set_content_mask(mask)
+
+    def _on_show_only(self, type_key: str) -> None:
+        """Show only the selected type, uncheck all others."""
+        for key, cb in self._filter_checkboxes.items():
+            cb.blockSignals(True)
+            cb.setChecked(key == type_key or key == "bbox")
+            cb.blockSignals(False)
+        self._on_bbox_filter_changed()
+
     def _on_bbox_filter_changed(self, _checked: bool = False) -> None:
         """Update visible layers on all page widgets."""
+        # Sync parent "PDF Objects" → toggle all sub-types together
+        pdf_parent = self._filter_checkboxes.get("pdf_objects")
+        if pdf_parent:
+            pdf_subs = ["pdf_text", "pdf_image", "pdf_table"]
+            parent_on = pdf_parent.isChecked()
+            for sk in pdf_subs:
+                scb = self._filter_checkboxes.get(sk)
+                if scb:
+                    scb.blockSignals(True)
+                    if not parent_on:
+                        scb.setChecked(False)
+                    elif not any(self._filter_checkboxes[s].isChecked() for s in pdf_subs):
+                        scb.setChecked(True)  # turning parent on → enable all subs
+                    scb.setEnabled(parent_on)
+                    scb.blockSignals(False)
+
         layers = {
-            key: act.isChecked()
-            for key, act in self.bbox_filter_actions.items()
+            key: cb.isChecked()
+            for key, cb in self._filter_checkboxes.items()
         }
         for spread in self._spreads:
             spread.left_page.set_visible_layers(layers)
             spread.right_page.set_visible_layers(layers)
 
     def _apply_bboxes_to_spreads(self) -> None:
-        """Apply cached bboxes to all spread widgets with current zoom."""
+        """Apply cached bboxes and pdf objects to all spread widgets with current zoom."""
         zf = self._current_zoom_factor()
-        for i, spread in enumerate(self._spreads):
-            left_idx = i * 2
-            right_idx = i * 2 + 1
-
-            if left_idx in self._bboxes_cache:
-                spread.left_page.set_bboxes(
-                    self._bboxes_cache[left_idx], zf
-                )
-            if right_idx in self._bboxes_cache:
-                spread.right_page.set_bboxes(
-                    self._bboxes_cache[right_idx], zf
-                )
+        for spread in self._spreads:
+            for pw in (spread.left_page, spread.right_page):
+                pi = pw._page_index
+                if pi < 0:
+                    continue
+                if pi in self._bboxes_cache:
+                    pw.set_bboxes(self._bboxes_cache[pi], zf)
+                if pi in self._pdf_objects_cache:
+                    pw.set_pdf_objects(self._pdf_objects_cache[pi], zf)
 
     def _get_current_page(self) -> int:
         """Return the 0-based page index currently visible."""
         return max(0, self.page_spin.value() - 1)
 
     def _detect_visible_pages(self) -> None:
-        """Detect objects only for visible pages (current ±2 pages).
+        """Schedule background detection for pages near the viewport."""
+        if not self._doc or not self._file_path:
+            return
+        if not hasattr(self, "_detect_timer"):
+            self._detect_timer = QTimer(self)
+            self._detect_timer.setSingleShot(True)
+            self._detect_timer.timeout.connect(self._start_next_detect)
+            self._detect_worker: DetectWorker | None = None
+        # Debounce rapid scroll
+        self._detect_timer.start(50)
 
-        Skips pages already in the cache. Updates spread widgets
-        for any newly detected pages.
-        """
-        if not self._doc:
+    def _start_next_detect(self) -> None:
+        """Find the next undetected page and launch a background worker."""
+        if not self._doc or not self._file_path:
+            return
+        # Don't start a new worker if one is already running
+        if self._detect_worker and self._detect_worker.isRunning():
+            return
+
+        current = self._get_current_page()
+        start = max(0, current - 2)
+        end = min(self._page_count, current + 4)
+
+        page_num = None
+        for p in range(start, end):
+            if p not in self._bboxes_cache:
+                page_num = p
+                break
+        if page_num is None:
+            self.progress.emit("")
             return
 
         import time
-
-        current = self._get_current_page()
-        # Current spread ± 2 pages (1 spread each side)
-        start = max(0, current - 2)
-        end = min(self._page_count, current + 4)  # +4 to cover 2 pages ahead
-
-        to_detect = [p for p in range(start, end) if p not in self._bboxes_cache]
-        if not to_detect:
-            return
-
         self._op_start = time.perf_counter()
-        detected_new = False
-        for step, page_num in enumerate(to_detect):
-            self._emit_progress("Detect", step, len(to_detect))
-            try:
-                page = self._doc[page_num]
-                crop_side = self._cropping_for_page(page_num)
-                bboxes, stats = self._detect_native_page(page, crop_side)
-                # Merge with saved metadata (assigns IDs, preserves user edits)
-                if self._file_path:
-                    bboxes = merge_detected(self._file_path, page_num, bboxes)
-                    self._catalog_meta = load_meta(self._file_path)
+        remaining = sum(1 for p in range(start, end) if p not in self._bboxes_cache)
+        self._emit_progress(f"Detect p.{page_num+1} ({remaining} remaining)")
 
+        worker = DetectWorker(self, page_num, parent=self)
+        worker.page_detected.connect(self._on_page_detected)
+        worker.finished.connect(self._on_detect_worker_done)
+        self._detect_worker = worker
+        worker.start()
 
-                self._bboxes_cache[page_num] = bboxes
-                self._stats_cache[page_num] = stats
-                detected_new = True
-                logger.info("Lazy detect page %d: %s", page_num + 1, stats)
-            except Exception as e:
-                logger.error("Detection failed for page %d: %s", page_num + 1, e)
+    def _on_page_detected(self, page_num: int, bboxes: list, stats: str, pdf_objects: list) -> None:
+        """Slot: background detection finished for one page."""
+        pn = page_num + 1
+        self._emit_progress(f"Detect p.{pn} — {len(bboxes)} objects, merge")
 
-        if detected_new:
+        for b in bboxes:
+            b["page"] = page_num
+        if self._file_path:
+            bboxes = merge_detected(self._file_path, page_num, bboxes)
+            self._catalog_meta = load_meta(self._file_path)
+
+        self._bboxes_cache[page_num] = bboxes
+        self._stats_cache[page_num] = stats
+        self._pdf_objects_cache[page_num] = pdf_objects
+        self._apply_bboxes_to_spreads()
+
+        # Run template detection after 3+ pages cached
+        if len(self._bboxes_cache) >= 3:
+            self._detect_template_objects()
             self._apply_bboxes_to_spreads()
 
-        self._emit_done()
+        self._emit_done(f"Detect p.{pn}")
+        logger.info("Detect page %d: %s", pn, stats)
 
-    def _detect_native_page(
-        self, page, crop_side: dict | None = None,
-    ) -> tuple[list[dict], str]:
+    def _detect_template_objects(self) -> None:
+        """Compare bboxes across cached pages to find template objects.
+
+        Template = same type + same position (±5pt) + same size (±10%)
+        appearing on 3+ pages. Marks matching bboxes with is_template=True.
+        """
+        if len(self._bboxes_cache) < 3:
+            return
+
+        # Collect all bboxes with page info
+        all_bboxes: list[tuple[int, dict]] = []  # (page, bbox)
+        for page_num, page_bboxes in self._bboxes_cache.items():
+            for bbox in page_bboxes:
+                all_bboxes.append((page_num, bbox))
+
+        # Clear old template marks
+        for _, bbox in all_bboxes:
+            bbox["is_template"] = False
+
+        # Group by similar position + size
+        pos_tol = 5    # pt tolerance for position
+        size_tol = 0.1  # 10% tolerance for size
+
+        # Find template candidates: for each bbox, count matches on other pages
+        templates_found = 0
+        for i, (pi, bi) in enumerate(all_bboxes):
+            if bi.get("is_template"):
+                continue
+            pts_i = bi["pts"]
+            wi = pts_i[2] - pts_i[0]
+            hi = pts_i[3] - pts_i[1]
+            if wi < 5 or hi < 5:
+                continue
+
+            matching_pages: set[int] = {pi}
+            matching_indices: list[int] = [i]
+
+            for j, (pj, bj) in enumerate(all_bboxes):
+                if j == i or pj == pi:
+                    continue
+                if pj in matching_pages:
+                    continue
+                pts_j = bj["pts"]
+                # Position match (within tolerance)
+                pos_match = (abs(pts_i[0] - pts_j[0]) <= pos_tol
+                             and abs(pts_i[1] - pts_j[1]) <= pos_tol
+                             and abs(pts_i[2] - pts_j[2]) <= pos_tol
+                             and abs(pts_i[3] - pts_j[3]) <= pos_tol)
+                # Content hash match
+                hash_i = bi.get("_chash", b"")
+                hash_j = bj.get("_chash", b"")
+                hash_match = (hash_i and hash_j and hash_i == hash_j)
+                # Both position AND content must match
+                if pos_match and hash_match:
+                    matching_pages.add(pj)
+                    matching_indices.append(j)
+
+            if len(matching_pages) >= 3:
+                for idx in matching_indices:
+                    if all_bboxes[idx][1].get("type") != "table":
+                        all_bboxes[idx][1]["is_template"] = True
+                templates_found += 1
+
+        if templates_found:
+            logger.info("Template detection: %d template groups found", templates_found)
+
+    def _on_detect_worker_done(self) -> None:
+        """Worker finished — schedule next page if needed."""
+        self._detect_worker = None
+        # Check if more pages need detection
+        self._detect_timer.start(10)
+
+    def _extract_pdf_objects(self, page) -> list[dict]:
+        """Extract native PDF object bounding boxes from a page.
+
+        Includes text, images, tables, and graphics (shapes, lines, curves).
+        """
+        objects: list[dict] = []
+        logger.info(f"_extract_pdf_objects: page {page.number + 1}")
+        try:
+            # get_text("dict") returns text and images
+            td = page.get_text("dict")
+            blocks = td["blocks"]
+            text_count = 0
+            img_count = 0
+            for b in blocks:
+                bbox = b["bbox"]
+                if b["type"] == 0:
+                    pdf_type = "pdf_text"
+                    text_count += 1
+                    lines = b.get("lines", [])
+                    preview = ""
+                    for ln in lines[:2]:
+                        for sp in ln.get("spans", []):
+                            preview += sp.get("text", "") + " "
+                    preview = preview.strip()[:30]
+                    label = f"text: {preview}" if preview else "text"
+                elif b["type"] == 1:
+                    pdf_type = "pdf_image"
+                    img_count += 1
+                    w = int(bbox[2] - bbox[0])
+                    h = int(bbox[3] - bbox[1])
+                    label = f"image {w}x{h}pt"
+                else:
+                    pdf_type = "pdf_text"
+                    label = f"block-{b['type']}"
+                objects.append({
+                    "pdf_type": pdf_type,
+                    "label": label,
+                    "pts": (bbox[0], bbox[1], bbox[2], bbox[3]),
+                })
+            logger.info(f"  get_text blocks: {text_count} text, {img_count} images, total blocks: {len(blocks)}")
+        except Exception as e:
+            logger.error(f"  get_text error: {e}")
+        try:
+            tables = page.find_tables()
+            logger.info(f"  tables: {len(tables.tables) if tables else 0}")
+            if tables:
+                for t in tables.tables:
+                    objects.append({
+                        "pdf_type": "pdf_table",
+                        "label": f"table {t.row_count}x{t.col_count}",
+                        "pts": tuple(t.bbox),
+                    })
+        except Exception as e:
+            logger.error(f"  find_tables error: {e}")
+        try:
+            # Extract graphics (shapes, lines, curves)
+            drawings = page.get_drawings()
+            logger.info(f"  drawings: {len(drawings)}")
+            for drw in drawings:
+                # drw is a dict with "rect" field (not an object with .bbox attribute)
+                rect = drw.get("rect")
+                if not rect:
+                    continue
+                x0, y0, x1, y1 = rect
+                if x1 <= x0 or y1 <= y0:
+                    continue
+                w = int(x1 - x0)
+                h = int(y1 - y0)
+                objects.append({
+                    "pdf_type": "pdf_image",  # Graphics treated as image-like objects
+                    "label": f"graphics {w}x{h}pt",
+                    "pts": (x0, y0, x1, y1),
+                })
+        except Exception as e:
+            logger.error(f"  get_drawings error: {e}")
+        try:
+            # Extract all embedded images (covers inline images, XObjects, etc.)
+            image_list = page.get_images()
+            logger.info(f"  images: {len(image_list)}")
+            for img_idx in image_list:
+                xref = img_idx[0]
+                try:
+                    rect = page.get_image_bbox(img_idx)
+                    if not rect.is_empty:
+                        objects.append({
+                            "pdf_type": "pdf_image",
+                            "label": f"image xref={xref}",
+                            "pts": (rect.x0, rect.y0, rect.x1, rect.y1),
+                        })
+                except Exception:
+                    pass
+        except Exception as e:
+            logger.error(f"  get_images error: {e}")
+        logger.info(f"  total objects detected: {len(objects)}")
+        return objects
+
+    def _detect_native_page(self, page) -> tuple[list[dict], str]:
         """Detect object bounding boxes via rasterization.
 
         Renders the page to bitmap, finds connected content regions
@@ -1827,105 +4278,315 @@ class PreviewView(QWidget):
         gray = np.mean(img[:, :, :3], axis=2)
         binary = (gray < 240).astype(np.uint8)
 
-        # Apply cropping mask — zero out pixels outside crop area
-        if crop_side:
-            h_lines = sorted(crop_side.get("h_lines", []))
-            v_lines = sorted(crop_side.get("v_lines", []))
-            h_img, w_img = binary.shape
-            # Horizontal crop: mask above first h_line and below last h_line
-            if h_lines:
-                top_px = int(h_lines[0] * h_img)
-                bot_px = int(h_lines[-1] * h_img)
-                binary[:top_px, :] = 0
-                binary[bot_px:, :] = 0
-            # Vertical crop: mask left of first v_line and right of last v_line
-            if v_lines:
-                left_px = int(v_lines[0] * w_img)
-                right_px = int(v_lines[-1] * w_img)
-                binary[:, :left_px] = 0
-                binary[:, right_px:] = 0
-            # Mask crop boxes (exclusion zones)
-            for box in crop_side.get("boxes", []):
-                bx0 = int(box[0] * w_img)
-                by0 = int(box[1] * h_img)
-                bx1 = int(box[2] * w_img)
-                by1 = int(box[3] * h_img)
-                binary[by0:by1, bx0:bx1] = 0
-
-        # Dilate to bridge small gaps (~2pt)
-        for _ in range(2):
-            padded = np.pad(binary, 1, mode="constant")
-            binary = (
-                padded[:-2, 1:-1] | padded[2:, 1:-1]
-                | padded[1:-1, :-2] | padded[1:-1, 2:]
-                | binary
-            ).astype(np.uint8)
-
-        # Connected components via flood fill
         h_img, w_img = binary.shape
-        visited = np.zeros_like(binary, dtype=bool)
-        bboxes: list[dict] = []
-        obj_id = 0
 
-        for start_y in range(h_img):
-            for start_x in range(w_img):
-                if not binary[start_y, start_x] or visited[start_y, start_x]:
-                    continue
-                stack = [(start_y, start_x)]
-                visited[start_y, start_x] = True
-                min_x, min_y = start_x, start_y
-                max_x, max_y = start_x, start_y
-                count = 0
-                while stack:
-                    cy, cx = stack.pop()
-                    count += 1
-                    if cx < min_x: min_x = cx
-                    if cx > max_x: max_x = cx
-                    if cy < min_y: min_y = cy
-                    if cy > max_y: max_y = cy
-                    for dy, dx in ((-1, 0), (1, 0), (0, -1), (0, 1)):
-                        ny, nx = cy + dy, cx + dx
-                        if (0 <= ny < h_img and 0 <= nx < w_img
-                                and binary[ny, nx] and not visited[ny, nx]):
-                            visited[ny, nx] = True
-                            stack.append((ny, nx))
+        # Save raw binary (unmasked) for grow operations
+        binary_raw = binary.copy()
 
-                bw = max_x - min_x
-                bh = max_y - min_y
-                # Skip noise (<50 pixels) and tiny regions (<20pt)
-                if count < 50 or bw < 20 or bh < 20:
-                    continue
-                # Skip full-page frames (>80% of page)
-                if bw * bh > page_area * 0.8:
-                    continue
+        # ── Extract PDF text blocks and mask them ────────────────
+        pdf_text_bboxes: list[dict] = []
+        text_blocks = page.get_text("blocks")
+        for tb in text_blocks:
+            if tb[6] == 0:  # text block
+                tx0 = max(0, int(tb[0]))
+                ty0 = max(0, int(tb[1]))
+                tx1 = min(w_img, int(tb[2]))
+                ty1 = min(h_img, int(tb[3]))
+                if tx1 > tx0 and ty1 > ty0:
+                    binary[ty0:ty1, tx0:tx1] = 0
+                    pdf_text_bboxes.append({
+                        "type": "text",
+                        "label": f"text {tx1-tx0}x{ty1-ty0}pt",
+                        "pts": (float(tx0), float(ty0),
+                                float(tx1), float(ty1)),
+                    })
 
+        # ── Detection using selected method ──────────────────────
+        method_idx = getattr(self, '_detect_method_idx', 8)  # default: Hybrid 2-pass
+
+        # PDF objects only method: extract native PDF objects and map types
+        if method_idx == 9:
+            pdf_objs = self._extract_pdf_objects(page)
+            type_map = {
+                "pdf_text": "text",
+                "pdf_image": "photo",
+                "pdf_table": "table",
+            }
+            bboxes: list[dict] = []
+            for obj in pdf_objs:
+                pdf_type = obj.get("pdf_type", "pdf_text")
+                mapped_type = type_map.get(pdf_type, "unknown")
                 bboxes.append({
-                    "type": "unknown",
-                    "label": f"#{obj_id} {bw}x{bh}pt",
-                    "pts": (float(min_x), float(min_y),
-                            float(max_x), float(max_y)),
+                    "type": mapped_type,
+                    "label": obj.get("label", ""),
+                    "pts": obj.get("pts"),
                 })
-                obj_id += 1
+            # Generate stats
+            n_t = sum(1 for b in bboxes if b["type"] == "table")
+            n_d = sum(1 for b in bboxes if b["type"] == "drawing")
+            n_x = sum(1 for b in bboxes if b["type"] == "text")
+            n_p = sum(1 for b in bboxes if b["type"] in ("photo", "picture"))
+            stats = (
+                f"P{page.number + 1}  |  "
+                f"T:{n_t} Drw:{n_d} Txt:{n_x} Img:{n_p}  "
+                f"Total:{len(bboxes)}"
+            )
+            return bboxes, stats
 
-        # Remove nested bboxes (fully contained inside a larger one)
-        filtered: list[dict] = []
-        for i, a in enumerate(bboxes):
-            ap = a["pts"]
-            nested = False
-            for j, b in enumerate(bboxes):
-                if i == j:
+        min_obj_size = 20
+
+        # PDF text skip rects for scanline
+        text_skip = [tb["pts"] for tb in pdf_text_bboxes]
+
+        # Pass 1: scanline on masked binary (grow on raw)
+        pass1_raw, _ = _scanline_v1_core(
+            binary_raw.copy(), h_img, w_img, margin=3,
+            min_obj=min_obj_size, skip_rects=text_skip,
+        )
+
+        # Filter out bboxes mostly covered by PDF text (≥80%)
+        pass1_filtered: list[tuple[int, int, int, int]] = []
+        for bt in pass1_raw:
+            bbox_area = max((bt[2]-bt[0]) * (bt[3]-bt[1]), 1)
+            text_cover = 0.0
+            for tb in pdf_text_bboxes:
+                tp = tb["pts"]
+                ix0 = max(bt[0], tp[0]); iy0 = max(bt[1], tp[1])
+                ix1 = min(bt[2], tp[2]); iy1 = min(bt[3], tp[3])
+                if ix0 < ix1 and iy0 < iy1:
+                    text_cover += (ix1-ix0) * (iy1-iy0)
+            if text_cover / bbox_area < 0.8:
+                pass1_filtered.append(bt)
+
+        # Hybrid pass 2 (if selected): merge fragmented tables
+        if method_idx == 8:  # Hybrid 2-pass
+            binary_full = (gray < 240).astype(np.uint8)
+            pass2_raw, _ = _scanline_v1_core(
+                binary_full, h_img, w_img, margin=3, min_obj=min_obj_size,
+            )
+            used_p1: set[int] = set()
+            merged_pts: list[tuple[int, int, int, int]] = []
+            for p2 in pass2_raw:
+                contained: list[int] = []
+                for i, p1 in enumerate(pass1_filtered):
+                    if i in used_p1:
+                        continue
+                    p1a = max((p1[2]-p1[0])*(p1[3]-p1[1]), 1)
+                    ix0 = max(p1[0],p2[0]); iy0 = max(p1[1],p2[1])
+                    ix1 = min(p1[2],p2[2]); iy1 = min(p1[3],p2[3])
+                    if ix0<ix1 and iy0<iy1 and (ix1-ix0)*(iy1-iy0)/p1a >= 0.7:
+                        contained.append(i)
+                if len(contained) >= 2:
+                    merged_pts.append(p2)
+                    used_p1.update(contained)
+            final_pts = [p for i, p in enumerate(pass1_filtered) if i not in used_p1]
+            final_pts.extend(merged_pts)
+        else:
+            final_pts = pass1_filtered
+
+        # Build bbox dicts with content hash
+        bboxes: list[dict] = []
+        for i, bt in enumerate(final_pts):
+            bw, bh = bt[2]-bt[0], bt[3]-bt[1]
+            chash = self._bbox_content_hash(gray, bt[1], bt[0], bt[3], bt[2])
+            bboxes.append({
+                "type": "unknown",
+                "label": f"#{i} {bw}x{bh}pt",
+                "pts": (float(bt[0]), float(bt[1]), float(bt[2]), float(bt[3])),
+                "_chash": chash,
+            })
+
+        # ── Classify untyped bboxes (skip already classified) ─────
+        words = page.get_text("words")
+        for bbox in bboxes:
+            if bbox["type"] == "unknown":
+                bbox["type"] = self._classify_bbox(bbox, page, img, words)
+
+        # ── Absorb fully nested PDF text blocks into detected bboxes ──
+        # If a PDF text block is fully inside a detected bbox → merge it.
+        # Detected bbox with absorbed text → classify as "table" immediately.
+        absorbed_text: set[int] = set()
+        for bbox in bboxes:
+            bp = bbox["pts"]
+            has_text = False
+            for ti, tb in enumerate(pdf_text_bboxes):
+                if ti in absorbed_text:
                     continue
-                bp = b["pts"]
-                if (ap[0] >= bp[0] and ap[1] >= bp[1]
-                        and ap[2] <= bp[2] and ap[3] <= bp[3]):
-                    nested = True
-                    break
-            if not nested:
-                filtered.append(a)
-        bboxes = filtered
+                tp = tb["pts"]
+                t_area = max((tp[2]-tp[0]) * (tp[3]-tp[1]), 1)
+                ix0 = max(bp[0], tp[0]); iy0 = max(bp[1], tp[1])
+                ix1 = min(bp[2], tp[2]); iy1 = min(bp[3], tp[3])
+                if ix0 < ix1 and iy0 < iy1:
+                    inter = (ix1-ix0) * (iy1-iy0)
+                    if inter / t_area >= 0.9:
+                        absorbed_text.add(ti)
+                        has_text = True
+            if has_text:
+                bbox["type"] = "table"
 
-        stats = f"P{page.number + 1}  |  Obj:{len(bboxes)}"
+        # Add standalone PDF text blocks (not absorbed by any detected bbox)
+        for ti, tb in enumerate(pdf_text_bboxes):
+            if ti not in absorbed_text:
+                bboxes.append(tb)
+
+        # Update labels
+        for i, bbox in enumerate(bboxes):
+            pts = bbox["pts"]
+            w, h = pts[2] - pts[0], pts[3] - pts[1]
+            bbox["label"] = f"#{i} {bbox['type']} {w:.0f}x{h:.0f}pt"
+
+        n_t = sum(1 for b in bboxes if b["type"] == "table")
+        n_d = sum(1 for b in bboxes if b["type"] == "drawing")
+        n_x = sum(1 for b in bboxes if b["type"] == "text")
+        n_p = sum(1 for b in bboxes if b["type"] in ("photo", "picture"))
+        stats = (
+            f"P{page.number + 1}  |  "
+            f"T:{n_t} Drw:{n_d} Txt:{n_x} Img:{n_p}  "
+            f"Total:{len(bboxes)}"
+        )
         return bboxes, stats
+
+    @staticmethod
+    def _bbox_content_hash(gray, y0: int, x0: int, y1: int, x1: int) -> bytes:
+        """Compute perceptual hash of bbox region (16x16 average hash).
+
+        Resize region to 16x16 via block averaging, binarize at mean → 32 bytes.
+        """
+        import numpy as np
+        region = gray[y0:y1, x0:x1]
+        if region.size == 0:
+            return b"\x00" * 32
+        h, w = region.shape
+        # Block average to 16x16
+        bh = max(h // 16, 1)
+        bw = max(w // 16, 1)
+        thumb = np.zeros((16, 16), dtype=np.float32)
+        for ty in range(16):
+            for tx in range(16):
+                sy = min(ty * bh, h - 1)
+                ey = min(sy + bh, h)
+                sx = min(tx * bw, w - 1)
+                ex = min(sx + bw, w)
+                thumb[ty, tx] = region[sy:ey, sx:ex].mean()
+        # Binarize at mean
+        mean_val = thumb.mean()
+        bits = (thumb > mean_val).flatten()
+        # Pack 256 bits into 32 bytes
+        result = bytearray(32)
+        for i, bit in enumerate(bits):
+            if bit:
+                result[i // 8] |= (1 << (i % 8))
+        return bytes(result)
+
+    def _classify_bbox(
+        self, bbox: dict, page, img_arr, words: list,
+    ) -> str:
+        """Classify a bbox by analyzing its content.
+
+        Checks color map, text structure, dimension patterns.
+        Returns: 'drawing', 'photo', 'picture', 'table', or 'text'.
+        """
+        import numpy as np
+
+        pts = bbox["pts"]
+        x0, y0, x1, y1 = pts[0], pts[1], pts[2], pts[3]
+
+        # Crop the rendered image region (72 DPI, 1px = 1pt)
+        crop = img_arr[int(y0):int(y1), int(x0):int(x1)]
+        if crop.size == 0:
+            return "unknown"
+
+        # ── Color analysis ──────────────────────────────────────────
+        h, w = crop.shape[:2]
+        # Sample up to 2000 pixels for color diversity
+        total_px = h * w
+        step = max(total_px // 2000, 1)
+        flat = crop.reshape(-1, crop.shape[2])
+        sampled = flat[::step, :3]
+        unique_colors = len(set(map(bytes, sampled)))
+
+        is_bw = unique_colors <= 8
+        is_limited_palette = unique_colors <= 64
+        is_photo_palette = unique_colors > 200
+
+        # ── Text words inside bbox ──────────────────────────────────
+        bbox_words = []
+        for wd in words:
+            wx0, wy0, wx1, wy1 = float(wd[0]), float(wd[1]), float(wd[2]), float(wd[3])
+            if wx0 >= x0 - 2 and wy0 >= y0 - 2 and wx1 <= x1 + 2 and wy1 <= y1 + 2:
+                bbox_words.append(wd)
+
+        n_words = len(bbox_words)
+
+        # ── Dimension pattern check ─────────────────────────────────
+        dim_count = 0
+        if bbox_words:
+            for wd in bbox_words:
+                if _DIM_PATTERN.match(wd[4]):
+                    dim_count += 1
+
+        # ── Row structure analysis (table detection) ────────────────
+        is_table = False
+        if n_words >= 6:
+            # Group words by Y proximity (3pt threshold)
+            word_ys = sorted(set(round(float(wd[1]) / 3) * 3 for wd in bbox_words))
+            n_rows = len(word_ys)
+
+            if n_rows >= 3:
+                # Count words per row
+                row_word_counts = []
+                for ry in word_ys:
+                    row_words = [
+                        wd for wd in bbox_words
+                        if abs(float(wd[1]) - ry) < 4
+                    ]
+                    row_word_counts.append(len(row_words))
+
+                # Table: multiple rows with similar word count (>=3 cols)
+                cols_per_row = [c for c in row_word_counts if c >= 3]
+                if len(cols_per_row) >= 3:
+                    # Check column alignment: X positions repeat across rows
+                    all_x_starts = []
+                    for ry in word_ys:
+                        row_words = sorted(
+                            [wd for wd in bbox_words if abs(float(wd[1]) - ry) < 4],
+                            key=lambda w: float(w[0]),
+                        )
+                        all_x_starts.append([round(float(w[0]) / 5) * 5 for w in row_words])
+
+                    # Count how many X positions appear in multiple rows
+                    from collections import Counter
+                    x_counts = Counter()
+                    for xs in all_x_starts:
+                        for x in set(xs):
+                            x_counts[x] += 1
+                    aligned_cols = sum(1 for x, cnt in x_counts.items() if cnt >= n_rows * 0.3)
+                    if aligned_cols >= 3:
+                        is_table = True
+
+        # ── Classification decision ─────────────────────────────────
+        if is_table:
+            return "table"
+
+        # Drawing: has dimension annotations OR narrow color palette with few words
+        has_dimensions = dim_count >= 2 or (
+            n_words > 0 and dim_count / max(n_words, 1) > 0.3
+        )
+        if has_dimensions:
+            return "drawing"
+        if (is_bw or is_limited_palette) and n_words < 20:
+            return "drawing"
+
+        if is_photo_palette and n_words < 5:
+            return "photo"
+
+        if not is_limited_palette and n_words < 10:
+            return "picture"
+
+        if n_words >= 3:
+            return "text"
+
+        return "unknown"
 
     @staticmethod
     def _classify_raster(doc, xref: int, img_w: int, img_h: int) -> str:
@@ -2631,11 +5292,13 @@ class PreviewView(QWidget):
         return sep
 
     def wheelEvent(self, event: QWheelEvent) -> None:
-        """Ctrl+Wheel to zoom."""
+        """Ctrl+Wheel to zoom, anchored at mouse position."""
         if event.modifiers() & Qt.KeyboardModifier.ControlModifier:
             delta = event.angleDelta().y()
             step = 0.1 if delta > 0 else -0.1
-            self._set_zoom(self._zoom + step)
+            # Map mouse position to viewport coordinates
+            vp_pos = self.scroll_area.viewport().mapFromGlobal(event.globalPosition().toPoint())
+            self._set_zoom(self._zoom + step, anchor=QPointF(vp_pos))
             event.accept()
         else:
             super().wheelEvent(event)
@@ -2647,6 +5310,18 @@ class PreviewView(QWidget):
                 if page is not source_page and page._selected_idx >= 0:
                     page._selected_idx = -1
                     page.update()
+
+    def _on_bbox_testbench(self, page_idx: int) -> None:
+        """Open scanline detection test dialog for the given page."""
+        if not self._doc or page_idx < 0:
+            return
+        dlg = ScanlineTestDialog(self._doc, page_idx, parent=self)
+        dlg.show()
+
+    def _on_object_stats_requested(self, bbox: dict, page_index: int, file_path: str) -> None:
+        """Open stats dialog for double-clicked bbox."""
+        dlg = BboxStatsDialog(bbox, page_index, file_path, parent=self)
+        dlg.exec()
 
     def _on_hide_object(self, obj_id: str, hidden: bool) -> None:
         """Toggle hidden state on object by ID."""
