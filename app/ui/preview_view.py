@@ -2196,7 +2196,7 @@ class ScanlineTestDialog(QWidget):
 
 
 class BboxStatsWidget(QWidget):
-    """Custom widget displaying bbox preview with overlayed stats."""
+    """Custom widget displaying bbox preview with overlayed stats, scrollable and zoomable."""
 
     def __init__(
         self, bbox: dict, page_index: int, file_path: str
@@ -2210,6 +2210,9 @@ class BboxStatsWidget(QWidget):
         self._padding = 10
         self._last_render_width = 0
         self._nested_objects: list[dict] = []
+        self._zoom = 1.0  # Zoom factor (1.0 = 100%)
+        self._scroll_offset_x = 0  # Pan offset for scrolling
+        self._scroll_offset_y = 0
         self.setMinimumSize(600, 400)
 
         # Generate stats text
@@ -2217,6 +2220,18 @@ class BboxStatsWidget(QWidget):
 
         # Initial render
         self._render_at_optimal_dpi()
+
+    def set_zoom(self, zoom: float) -> None:
+        """Set zoom factor and re-render."""
+        self._zoom = max(0.1, min(zoom, 5.0))  # Clamp between 10% and 500%
+        self.update()
+
+    def wheelEvent(self, event: QWheelEvent) -> None:
+        """Handle mouse wheel for zooming."""
+        delta = event.angleDelta().y()
+        zoom_step = 1.1 if delta > 0 else 0.9
+        self.set_zoom(self._zoom * zoom_step)
+        event.accept()
 
     def resizeEvent(self, event) -> None:
         """Re-render object at optimal DPI on resize."""
@@ -2464,6 +2479,12 @@ class BboxStatsWidget(QWidget):
 
         return objects
 
+    def sizeHint(self):
+        """Return hint size based on pixmap and zoom."""
+        if self._pixmap.isNull():
+            return super().sizeHint()
+        return int(self._pixmap.width() * self._zoom + 2 * self._margin), int(self._pixmap.height() * self._zoom + 2 * self._margin)
+
     def paintEvent(self, event) -> None:
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
@@ -2471,11 +2492,23 @@ class BboxStatsWidget(QWidget):
         # Fill background
         painter.fillRect(self.rect(), QColor(240, 240, 240))
 
-        # Draw pixmap centered
+        # Draw pixmap scaled by zoom factor
         if not self._pixmap.isNull():
-            x = (self.width() - self._pixmap.width()) // 2
-            y = (self.height() - self._pixmap.height()) // 2
-            painter.drawPixmap(x, y, self._pixmap)
+            scaled_width = int(self._pixmap.width() * self._zoom)
+            scaled_height = int(self._pixmap.height() * self._zoom)
+            scaled_pixmap = self._pixmap.scaledToWidth(scaled_width, Qt.TransformationMode.SmoothTransformation)
+
+            # Center within available space
+            x = (self.width() - scaled_width) // 2
+            y = (self.height() - scaled_height) // 2
+
+            # Clamp to valid drawing area
+            if x < 0:
+                x = self._margin
+            if y < 0:
+                y = self._margin
+
+            painter.drawPixmap(x, y, scaled_pixmap)
 
         # Draw semi-transparent overlay panel with stats (bottom-left)
         padding = self._padding
@@ -2491,7 +2524,7 @@ class BboxStatsWidget(QWidget):
         text_height = len(lines) * line_height + 2 * padding
         text_width = min(max_text_width, max((fm.horizontalAdvance(line) for line in lines), default=100) + 2 * padding)
 
-        # Position: bottom-left
+        # Position: bottom-left (adjust for scrolling if needed)
         panel_x = self._margin
         panel_y = self.height() - text_height - self._margin
 
@@ -2522,22 +2555,71 @@ class BboxStatsDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Object Statistics")
         self.setModal(True)
-        self.setMinimumWidth(700)
-        self.setMinimumHeight(600)
+        self.setMinimumWidth(800)
+        self.setMinimumHeight(650)
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(12, 12, 12, 12)
         layout.setSpacing(8)
 
-        # Custom widget with adaptive rendering
-        stats_widget = BboxStatsWidget(bbox, page_index, file_path)
+        # Zoom control bar
+        zoom_bar = QHBoxLayout()
 
-        layout.addWidget(stats_widget, 1)
+        zoom_btn_minus = QPushButton("−")
+        zoom_btn_minus.setMaximumWidth(40)
+        zoom_btn_minus.setToolTip("Zoom out (Ctrl+Scroll)")
+
+        self._zoom_slider = QSlider(Qt.Orientation.Horizontal)
+        self._zoom_slider.setMinimum(10)   # 10% (0.1)
+        self._zoom_slider.setMaximum(500)  # 500% (5.0)
+        self._zoom_slider.setValue(100)    # 100% (1.0)
+        self._zoom_slider.setToolTip("Adjust zoom level")
+
+        zoom_btn_plus = QPushButton("+")
+        zoom_btn_plus.setMaximumWidth(40)
+        zoom_btn_plus.setToolTip("Zoom in (Ctrl+Scroll)")
+
+        self._zoom_label = QLabel("100%")
+        self._zoom_label.setMinimumWidth(40)
+
+        zoom_bar.addWidget(QLabel("Zoom:"))
+        zoom_bar.addWidget(zoom_btn_minus)
+        zoom_bar.addWidget(self._zoom_slider, 1)
+        zoom_bar.addWidget(zoom_btn_plus)
+        zoom_bar.addWidget(self._zoom_label)
+
+        layout.addLayout(zoom_bar)
+
+        # Custom widget with adaptive rendering in scrollable area
+        self._stats_widget = BboxStatsWidget(bbox, page_index, file_path)
+
+        scroll_area = QScrollArea()
+        scroll_area.setWidget(self._stats_widget)
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setStyleSheet("QScrollArea { border: none; }")
+
+        layout.addWidget(scroll_area, 1)
 
         # Close button
         close_btn = QPushButton("Close")
+        close_btn.setMinimumHeight(32)
         close_btn.clicked.connect(self.accept)
         layout.addWidget(close_btn)
+
+        # Connect zoom controls
+        zoom_btn_minus.clicked.connect(lambda: self._set_zoom_slider(self._zoom_slider.value() - 10))
+        zoom_btn_plus.clicked.connect(lambda: self._set_zoom_slider(self._zoom_slider.value() + 10))
+        self._zoom_slider.valueChanged.connect(self._on_zoom_changed)
+
+    def _set_zoom_slider(self, value: int) -> None:
+        """Set zoom slider and emit change."""
+        self._zoom_slider.setValue(max(10, min(500, value)))
+
+    def _on_zoom_changed(self, value: int) -> None:
+        """Handle zoom slider change."""
+        zoom = value / 100.0  # Convert from 0-500 scale to 0.1-5.0
+        self._stats_widget.set_zoom(zoom)
+        self._zoom_label.setText(f"{value}%")
 
 
 class CroppingDialog(QWidget):
