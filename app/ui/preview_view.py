@@ -2376,50 +2376,10 @@ class BboxStatsWidget(QWidget):
             qimg.loadFromData(img_data, "PPM")
             base_pixmap = QPixmap.fromImage(qimg)
 
-            # Now draw nested PDF objects on top
-            painter = QPainter(base_pixmap)
-            painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-
-            # Extract PDF objects within this bbox
-            self._nested_objects = self._get_nested_pdf_objects(page, clip_rect)
-
-            # Draw bboxes for each PDF object
-            for obj in self._nested_objects:
-                obj_type = obj["type"]
-                obj_pts = obj["pts"]
-
-                # Transform to clipped coordinates
-                ox0, oy0, ox1, oy1 = obj_pts
-                # Translate to clip origin
-                ox0_rel = (ox0 - x0) * dpi / 72.0
-                oy0_rel = (oy0 - y0) * dpi / 72.0
-                ox1_rel = (ox1 - x0) * dpi / 72.0
-                oy1_rel = (oy1 - y0) * dpi / 72.0
-
-                # Color by type
-                if obj_type == "text":
-                    color = QColor(0, 200, 100, 180)  # Green
-                    thickness = 1
-                elif obj_type == "image":
-                    color = QColor(255, 150, 0, 180)  # Orange
-                    thickness = 2
-                elif obj_type == "table":
-                    color = QColor(0, 150, 255, 180)  # Blue
-                    thickness = 2
-                else:
-                    color = QColor(200, 200, 200, 150)  # Gray
-                    thickness = 1
-
-                pen = QPen(color, thickness)
-                pen.setStyle(Qt.PenStyle.SolidLine)
-                painter.setPen(pen)
-                painter.drawRect(
-                    int(ox0_rel), int(oy0_rel),
-                    int(ox1_rel - ox0_rel), int(oy1_rel - oy0_rel)
-                )
-
-            painter.end()
             self._pixmap = base_pixmap
+
+            # Extract nested objects info for statistics (don't draw them)
+            self._nested_objects = self._get_nested_pdf_objects(page, clip_rect)
 
             # Update stats text with nested objects count
             self._stats_text = self._generate_stats_text()
