@@ -63,3 +63,23 @@ def test_complete_json_empty_choices(tmp_path, monkeypatch):
     client = DeepSeekClient("sk", tmp_path, post_fn=fake_post)
     with pytest.raises(LLMError):
         client.complete_json("k4", "sys", "user")
+
+
+def test_complete_json_sanitizes_cache_key(tmp_path):
+    calls = []
+
+    def fake_post(url, headers, payload, timeout):
+        calls.append(payload)
+        return api_response(json.dumps({"ok": 3}))
+
+    client = DeepSeekClient("sk", tmp_path, post_fn=fake_post)
+    # Use cache_key with special characters invalid in Windows filenames
+    dirty_key = "rule-0303|1,2:4*8"
+    r1 = client.complete_json(dirty_key, "sys", "user")
+    r2 = client.complete_json(dirty_key, "sys", "user")
+    assert r1 == {"ok": 3} and r2 == {"ok": 3}
+    assert len(calls) == 1  # second call from cache
+    # Verify cache file was created with sanitized name (pipes/colons/asterisks replaced with underscores)
+    cache_files = list(tmp_path.glob("*.json"))
+    assert len(cache_files) == 1
+    assert "rule-0303_1_2_4_8" in cache_files[0].name

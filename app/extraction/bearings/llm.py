@@ -4,6 +4,7 @@ import hashlib
 import json
 import logging
 import os
+import re
 import time
 from collections.abc import Callable
 from pathlib import Path
@@ -13,6 +14,19 @@ import requests
 logger = logging.getLogger(__name__)
 
 API_URL = "https://api.deepseek.com/chat/completions"
+
+
+def _sanitize_cache_key(key: str) -> str:
+    """Sanitize cache_key for Windows filesystem.
+
+    Keeps only [A-Za-z0-9._-], replaces others with _.
+    If result is longer than 60 chars, truncates to 60.
+    SHA1 suffix preserves uniqueness across truncations.
+    """
+    sanitized = re.sub(r"[^A-Za-z0-9._-]", "_", key)
+    if len(sanitized) > 60:
+        sanitized = sanitized[:60]
+    return sanitized
 
 
 class LLMError(Exception):
@@ -62,7 +76,8 @@ class DeepSeekClient:
         force: bool = False,
     ) -> dict:
         digest = hashlib.sha1((system + "\x00" + user).encode()).hexdigest()[:10]
-        cache_file = self.cache_dir / f"{cache_key}-{digest}.json"
+        sanitized_key = _sanitize_cache_key(cache_key)
+        cache_file = self.cache_dir / f"{sanitized_key}-{digest}.json"
         if cache_file.exists() and not force:
             return json.loads(cache_file.read_text(encoding="utf-8"))
 
