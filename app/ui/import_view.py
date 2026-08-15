@@ -21,7 +21,10 @@ from PySide6.QtWidgets import (
 
 from app.db.engine import get_session
 from app.db.models import ImportJob
+from app.extraction.bearings.cli import DEFAULT_OUT, brand_from_filename, run_extract
+from app.extraction.bearings.llm import DeepSeekClient, load_api_key
 from app.services.import_service import ImportService
+from app.ui.extract_result_dialog import ExtractResultDialog
 
 logger = logging.getLogger(__name__)
 
@@ -134,6 +137,44 @@ class ImportWorker(QThread):
             self.finished.emit(e)
 
 
+class _SignalLogHandler(logging.Handler):
+    """Forward pipeline log records to a Qt signal for the status bar."""
+
+    def __init__(self, signal) -> None:
+        super().__init__(level=logging.INFO)
+        self._signal = signal
+
+    def emit(self, record: logging.LogRecord) -> None:
+        self._signal.emit(record.getMessage())
+
+
+class ExtractWorker(QThread):
+    """Run the bearing extraction pipeline for one PDF in the background."""
+
+    finished = Signal(object)  # CatalogResult or Exception
+    progress = Signal(str)
+
+    def __init__(self, pdf_path: Path) -> None:
+        super().__init__()
+        self.pdf_path = pdf_path
+
+    def run(self) -> None:
+        pipeline_logger = logging.getLogger("app.extraction.bearings")
+        handler = _SignalLogHandler(self.progress)
+        pipeline_logger.addHandler(handler)
+        try:
+            client = DeepSeekClient(
+                load_api_key(), DEFAULT_OUT / "cache" / self.pdf_path.stem
+            )
+            result = run_extract(self.pdf_path, DEFAULT_OUT, client)
+            self.finished.emit(result)
+        except Exception as exc:  # noqa: BLE001 — показываем любую ошибку в UI
+            logger.exception("Extraction failed for %s", self.pdf_path)
+            self.finished.emit(exc)
+        finally:
+            pipeline_logger.removeHandler(handler)
+
+
 class ImportView(QWidget):
     """File import tab — grid view with PDF thumbnails."""
 
@@ -142,6 +183,7 @@ class ImportView(QWidget):
     def __init__(self) -> None:
         super().__init__()
         self._worker: ImportWorker | None = None
+        self._extract_worker: ExtractWorker | None = None
         self._thumb_worker: ThumbWorker | None = None
         self._jobs: list[ImportJob] = []
         self._thumb_cache: dict[str, tuple[QPixmap, int]] = {}  # key: path::mtime
@@ -162,6 +204,18 @@ class ImportView(QWidget):
         self.preview_btn.setEnabled(False)
         self.preview_btn.clicked.connect(self._on_preview)
         top_bar.addWidget(self.preview_btn)
+
+        self.extract_btn = QPushButton("Extract Data")
+        self.extract_btn.setMinimumHeight(40)
+        self.extract_btn.setEnabled(False)
+        self.extract_btn.clicked.connect(self._on_extract)
+        top_bar.addWidget(self.extract_btn)
+
+        self.results_btn = QPushButton("Results")
+        self.results_btn.setMinimumHeight(40)
+        self.results_btn.setEnabled(False)
+        self.results_btn.clicked.connect(self._on_show_results)
+        top_bar.addWidget(self.results_btn)
 
         self.status_label = QLabel("Ready")
         top_bar.addWidget(self.status_label)
@@ -232,9 +286,59 @@ class ImportView(QWidget):
                 return job
         return None
 
+    def _result_paths(self, job: ImportJob) -> tuple[Path, Path]:
+        """(json_path, manifest_path) in output/bearings for a job's PDF."""
+        brand = brand_from_filename(Path(job.file_path)).lower()
+        return DEFAULT_OUT / f"{brand}.json", DEFAULT_OUT / f"{brand}.manifest.json"
+
     def _on_selection_changed(self, *_args) -> None:
         job = self._current_job()
-        self.preview_btn.setEnabled(bool(job and job.file_type.lower() == "pdf"))
+        is_pdf = bool(job and job.file_type.lower() == "pdf")
+        self.preview_btn.setEnabled(is_pdf)
+        self.extract_btn.setEnabled(is_pdf and self._extract_worker is None)
+        has_result = bool(is_pdf and job and self._result_paths(job)[0].exists())
+        self.results_btn.setEnabled(has_result)
+
+    def _on_extract(self) -> None:
+        job = self._current_job()
+        if not job or job.file_type.lower() != "pdf":
+            return
+        pdf_path = Path(job.file_path)
+        if not pdf_path.exists():
+            QMessageBox.warning(self, "Extract", f"Файл не найден: {pdf_path}")
+            return
+
+        self.extract_btn.setEnabled(False)
+        self.status_label.setText(f"Извлечение: {pdf_path.name}…")
+
+        self._extract_worker = ExtractWorker(pdf_path)
+        self._extract_worker.progress.connect(self.status_label.setText)
+        self._extract_worker.finished.connect(self._on_extract_finished)
+        self._extract_worker.start()
+
+    def _on_extract_finished(self, result: object) -> None:
+        self._extract_worker = None
+        self._on_selection_changed()
+        if isinstance(result, Exception):
+            self.status_label.setText("Извлечение не удалось")
+            QMessageBox.critical(self, "Extract Error", str(result))
+            return
+        stats = result.stats
+        self.status_label.setText(
+            f"Готово: {stats.get('items_count', 0)} записей, {len(result.issues)} issues"
+        )
+        self._on_show_results()
+
+    def _on_show_results(self) -> None:
+        job = self._current_job()
+        if not job:
+            return
+        json_path, manifest_path = self._result_paths(job)
+        if not json_path.exists():
+            QMessageBox.information(self, "Results", "Результатов для этого каталога ещё нет.")
+            return
+        dialog = ExtractResultDialog(json_path, manifest_path, parent=self)
+        dialog.exec()
 
     def _on_double_click(self, item: QListWidgetItem) -> None:
         job_id = item.data(Qt.ItemDataRole.UserRole)
