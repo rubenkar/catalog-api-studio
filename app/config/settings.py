@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     base_dir: Path = Path(__file__).resolve().parent.parent.parent
     data_dir: Path = base_dir / "data"
     uploads_dir: Path = data_dir / "uploads"
+    working_dir: Path = data_dir / "working"
     previews_dir: Path = data_dir / "previews"
 
     # Database
@@ -41,4 +42,5 @@ settings = Settings()
 
 # Ensure directories exist
 settings.uploads_dir.mkdir(parents=True, exist_ok=True)
+settings.working_dir.mkdir(parents=True, exist_ok=True)
 settings.previews_dir.mkdir(parents=True, exist_ok=True)

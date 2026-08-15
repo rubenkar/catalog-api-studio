@@ -70,7 +70,10 @@ class APIView(QWidget):
         layout.addWidget(endpoints_title)
 
         endpoints = [
-            "GET /health — Server health check",
+            "GET /              — Dashboard (glassmorphism UI)",
+            "GET /api/dashboard/stats — Aggregated stats (JSON)",
+            "GET /health        — Server health check",
+            "GET /docs          — OpenAPI docs",
         ]
         for ep in endpoints:
             label = QLabel(f"  {ep}")

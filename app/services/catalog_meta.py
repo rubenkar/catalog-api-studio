@@ -182,7 +182,7 @@ def merge_detected(catalog_path: Path, page: int, detected: list[dict]) -> list[
     # Save updated objects back
     save_objects = []
     for obj in result:
-        save_objects.append({
+        entry = {
             "id": obj["id"],
             "page": page,
             "type": obj.get("user_type") or obj.get("type", "unknown"),
@@ -191,7 +191,13 @@ def merge_detected(catalog_path: Path, page: int, detected: list[dict]) -> list[
             "hidden": obj.get("hidden", False),
             "user_type": obj.get("user_type"),
             "user_pts": list(obj["user_pts"]) if obj.get("user_pts") else None,
-        })
+        }
+        # Preserve template flags
+        for flag in ("is_template_exact", "is_template_medium", "is_template_loose",
+                      "excluded_from_template"):
+            if obj.get(flag):
+                entry[flag] = True
+        save_objects.append(entry)
 
     meta["objects"] = other + save_objects
     meta["next_id"] = next_id

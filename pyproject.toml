@@ -16,6 +16,8 @@ dependencies = [
     # PDF
     "PyMuPDF>=1.24",
     "pdfplumber>=0.10",
+    "pypdfium2>=4.30",
+    "pikepdf>=9.0",
     "Pillow>=10.0",
     # Import
     "openpyxl>=3.1",

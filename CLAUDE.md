@@ -27,3 +27,4 @@
 
 ## Rules
 - Do NOT start/run the app after making changes — user will start it manually
+- When pasting screenshots with yellow-marked areas — those areas indicate issues that need attention
