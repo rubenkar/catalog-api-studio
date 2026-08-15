@@ -11,7 +11,7 @@ import fitz
 
 
 def extract_table_lines(
-    page, table_rect: "fitz.Rect",
+    page: fitz.Page, table_rect: fitz.Rect,
 ) -> tuple[list[tuple[float, float, float]], list[tuple[float, float, float]]]:
     """Extract exact horizontal and vertical line segments from PDF drawings.
 
