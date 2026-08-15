@@ -52,3 +52,14 @@ def test_complete_json_gives_up(tmp_path):
     client = DeepSeekClient("sk", tmp_path, post_fn=fake_post)
     with pytest.raises(LLMError):
         client.complete_json("k3", "sys", "user")
+
+
+def test_complete_json_empty_choices(tmp_path, monkeypatch):
+    monkeypatch.setattr("app.extraction.bearings.llm.time.sleep", lambda s: None)
+
+    def fake_post(url, headers, payload, timeout):
+        return {"choices": []}
+
+    client = DeepSeekClient("sk", tmp_path, post_fn=fake_post)
+    with pytest.raises(LLMError):
+        client.complete_json("k4", "sys", "user")
