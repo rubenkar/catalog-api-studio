@@ -4,6 +4,7 @@ import argparse
 import glob as globmod
 import json
 import logging
+import shutil
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -33,16 +34,20 @@ def brand_from_filename(path: Path) -> str:
 
 def _client_for(pdf_path: Path, out_dir: Path, force: bool = False) -> DeepSeekClient:
     cache_dir = out_dir / "cache" / pdf_path.stem
+    if force:
+        shutil.rmtree(cache_dir, ignore_errors=True)
     return DeepSeekClient(load_api_key(), cache_dir)
 
 
 def _page_data(doc: fitz.Document) -> dict[int, dict]:
     """page_no (1-based) -> {words, text, width, col_xs} for data pages only."""
     pages: dict[int, dict] = {}
+    skipped: list[int] = []
     for idx in range(len(doc)):
         page = doc[idx]
         words = page_words(page)
         if not is_data_page(words):
+            skipped.append(idx + 1)
             continue
         _, v_segs = extract_table_lines(page, page.rect)
         pages[idx + 1] = {
@@ -51,6 +56,8 @@ def _page_data(doc: fitz.Document) -> dict[int, dict]:
             "width": page.rect.width,
             "col_xs": column_bounds(v_segs),
         }
+    if skipped:
+        logger.info("Skipped %d non-data page(s): %s", len(skipped), skipped)
     return pages
 
 
@@ -106,7 +113,7 @@ def run_extract(pdf_path: Path, out_dir: Path, client: DeepSeekClient) -> Catalo
                 [pages[n]["text"] for n in page_nos[:2]],
                 column_hints=pages[page_nos[0]]["col_xs"] or None,
             )
-        except (LLMError, ValueError) as exc:
+        except (LLMError, TypeError, ValueError) as exc:
             logger.warning("Rule failed for cluster %s: %s", cluster_id, exc)
             rule = None
         for n in page_nos:
@@ -124,9 +131,12 @@ def run_extract(pdf_path: Path, out_dir: Path, client: DeepSeekClient) -> Catalo
                 try:
                     raw = extract_page_direct(client, manifest, n, pages[n]["text"])
                     items, page_issues = validate_items(raw, manifest, n)
-                except LLMError:
+                except Exception as exc:  # noqa: BLE001 — ответ LLM непредсказуем, не падаем
+                    logger.warning("Fallback failed on page %d: %s", n, exc)
                     issues.append(Issue(page=n, problem="rule and fallback failed"))
                     continue
+                if not raw and not items:
+                    issues.append(Issue(page=n, problem="no items extracted"))
             all_items.extend(items)
             issues.extend(page_issues)
 
@@ -156,14 +166,19 @@ def main(argv: list[str] | None = None) -> int:
     if not paths:
         parser.error(f"no PDF matches {args.pdf_glob}")
     out_dir = Path(args.out)
+    any_success = False
     for pdf_path in paths:
-        client = _client_for(pdf_path, out_dir, force=args.force)
-        if args.command == "profile":
-            run_profile(pdf_path, out_dir, client, sample=args.sample)
-        else:
-            result = run_extract(pdf_path, out_dir, client)
-            print(
-                f"{pdf_path.name}: {result.stats['items_count']} items, "
-                f"{len(result.issues)} issues"
-            )
-    return 0
+        try:
+            client = _client_for(pdf_path, out_dir, force=args.force)
+            if args.command == "profile":
+                run_profile(pdf_path, out_dir, client, sample=args.sample)
+            else:
+                result = run_extract(pdf_path, out_dir, client)
+                print(
+                    f"{pdf_path.name}: {result.stats['items_count']} items, "
+                    f"{len(result.issues)} issues"
+                )
+            any_success = True
+        except Exception as exc:  # noqa: BLE001 — изоляция ошибок между PDF в batch
+            logger.error("Failed to process %s: %s", pdf_path.name, exc)
+    return 0 if any_success else 1
