@@ -24,7 +24,8 @@ from .validate import validate_items
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_OUT = Path("output/bearings")
+# Абсолютный путь: приложение может запускаться с произвольным CWD (ярлык, exe-обёртка)
+DEFAULT_OUT = Path(__file__).resolve().parents[3] / "output" / "bearings"
 
 
 def brand_from_filename(path: Path) -> str:
