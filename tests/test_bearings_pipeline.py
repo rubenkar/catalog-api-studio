@@ -98,11 +98,9 @@ def test_extract_end_to_end(tiny_catalog, tmp_path, monkeypatch):
     }
 
     def fake_post(url, headers, payload, timeout):
-        import json as _json
-        user = payload["messages"][1]["content"]
         key = "manifest" if "какие характеристики" in payload["messages"][0]["content"] \
             else "rule"
-        return {"choices": [{"message": {"content": _json.dumps(responses[key])}}]}
+        return {"choices": [{"message": {"content": json.dumps(responses[key])}}]}
 
     monkeypatch.setenv("DEEPSEEK_API_KEY", "sk-test")
     monkeypatch.setattr("app.extraction.bearings.llm._default_post", fake_post)
@@ -111,11 +109,101 @@ def test_extract_end_to_end(tiny_catalog, tmp_path, monkeypatch):
     code = main(["extract", str(tiny_catalog), "--out", str(out)])
     assert code == 0
 
-    import json as _json
-    data = _json.loads((out / "koyo.json").read_text(encoding="utf-8"))
+    data = json.loads((out / "koyo.json").read_text(encoding="utf-8"))
     assert data["brand"] == "KOYO"
     assert data["stats"]["items_count"] == 20
     assert data["stats"]["pages_total"] == 3
     assert all(isinstance(i["d"], float) for i in data["items"])
     pages = {i["page"] for i in data["items"]}
     assert pages == {2, 3}
+
+
+def test_extract_end_to_end_fallback_direct(tiny_catalog, tmp_path, monkeypatch):
+    """apply_rule yields 0 rows (columns outside the page) -> extract_page_direct fallback."""
+    import re
+
+    responses = {
+        "manifest": {"fields": [
+            {"key": "designation", "label": "Bearing number", "unit": None, "core": True},
+            {"key": "d", "label": "Bore", "unit": "mm", "core": True},
+            {"key": "D", "label": "Outer", "unit": "mm", "core": True},
+            {"key": "B", "label": "Width", "unit": "mm", "core": True},
+        ]},
+        "rule": {"header_skip_lines": 1,
+                 "columns": [
+                     {"x_min": 1000, "x_max": 1010, "field": "designation"},
+                 ],
+                 "row_gap_pt": 5.0, "inherit_fields": [], "type_default": None},
+    }
+
+    def fake_post(url, headers, payload, timeout):
+        system = payload["messages"][0]["content"]
+        if "какие характеристики" in system:
+            return {"choices": [{"message": {"content": json.dumps(responses["manifest"])}}]}
+        if "правило разбора" in system:
+            return {"choices": [{"message": {"content": json.dumps(responses["rule"])}}]}
+        assert "Извлеки ВСЕ записи" in system
+        user = payload["messages"][1]["content"]
+        match = re.search(r"(62\d+)", user)
+        designation = match.group(1) if match else "FALLBACK"
+        content = {"items": [{"designation": designation, "d": "20", "D": "47", "B": "14"}]}
+        return {"choices": [{"message": {"content": json.dumps(content)}}]}
+
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "sk-test")
+    monkeypatch.setattr("app.extraction.bearings.llm._default_post", fake_post)
+    monkeypatch.setattr("app.extraction.bearings.llm.time.sleep", lambda s: None)
+
+    out = tmp_path / "out"
+    code = main(["extract", str(tiny_catalog), "--out", str(out)])
+    assert code == 0
+
+    data = json.loads((out / "koyo.json").read_text(encoding="utf-8"))
+    designations = {i["designation"] for i in data["items"]}
+    assert designations == {"6200", "6210"}
+    pages = {i["page"] for i in data["items"]}
+    assert pages == {2, 3}
+    assert data["issues"] == []
+
+
+def test_extract_end_to_end_fallback_fails_records_issue(tiny_catalog, tmp_path, monkeypatch):
+    """apply_rule yields 0 rows and extract_page_direct never returns valid JSON.
+
+    The page must end up in issues with "rule and fallback failed"; the run
+    must not crash and the result file must still be written.
+    """
+    responses = {
+        "manifest": {"fields": [
+            {"key": "designation", "label": "Bearing number", "unit": None, "core": True},
+            {"key": "d", "label": "Bore", "unit": "mm", "core": True},
+            {"key": "D", "label": "Outer", "unit": "mm", "core": True},
+            {"key": "B", "label": "Width", "unit": "mm", "core": True},
+        ]},
+        "rule": {"header_skip_lines": 1,
+                 "columns": [
+                     {"x_min": 1000, "x_max": 1010, "field": "designation"},
+                 ],
+                 "row_gap_pt": 5.0, "inherit_fields": [], "type_default": None},
+    }
+
+    def fake_post(url, headers, payload, timeout):
+        system = payload["messages"][0]["content"]
+        if "какие характеристики" in system:
+            return {"choices": [{"message": {"content": json.dumps(responses["manifest"])}}]}
+        if "правило разбора" in system:
+            return {"choices": [{"message": {"content": json.dumps(responses["rule"])}}]}
+        assert "Извлеки ВСЕ записи" in system
+        return {"choices": [{"message": {"content": "not-json"}}]}
+
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "sk-test")
+    monkeypatch.setattr("app.extraction.bearings.llm._default_post", fake_post)
+    monkeypatch.setattr("app.extraction.bearings.llm.time.sleep", lambda s: None)
+
+    out = tmp_path / "out"
+    code = main(["extract", str(tiny_catalog), "--out", str(out)])
+    assert code == 0
+
+    data = json.loads((out / "koyo.json").read_text(encoding="utf-8"))
+    assert data["items"] == []
+    assert data["stats"]["items_count"] == 0
+    problems = {(issue["page"], issue["problem"]) for issue in data["issues"]}
+    assert problems == {(2, "rule and fallback failed"), (3, "rule and fallback failed")}
