@@ -25,6 +25,7 @@ from app.extraction.bearings.cli import DEFAULT_OUT, brand_from_filename, run_ex
 from app.extraction.bearings.llm import DeepSeekClient, load_api_key
 from app.services.import_service import ImportService
 from app.ui.extract_result_dialog import ExtractResultDialog
+from app.ui.page_extract import SignalLogHandler
 
 logger = logging.getLogger(__name__)
 
@@ -137,17 +138,6 @@ class ImportWorker(QThread):
             self.finished.emit(e)
 
 
-class _SignalLogHandler(logging.Handler):
-    """Forward pipeline log records to a Qt signal for the status bar."""
-
-    def __init__(self, signal) -> None:
-        super().__init__(level=logging.INFO)
-        self._signal = signal
-
-    def emit(self, record: logging.LogRecord) -> None:
-        self._signal.emit(record.getMessage())
-
-
 class ExtractWorker(QThread):
     """Run the bearing extraction pipeline for one PDF in the background."""
 
@@ -160,7 +150,7 @@ class ExtractWorker(QThread):
 
     def run(self) -> None:
         pipeline_logger = logging.getLogger("app.extraction.bearings")
-        handler = _SignalLogHandler(self.progress)
+        handler = SignalLogHandler(self.progress)
         pipeline_logger.addHandler(handler)
         try:
             client = DeepSeekClient(

@@ -9792,8 +9792,10 @@ class RecognitionView(LayoutView):
 
     def __init__(self) -> None:
         super().__init__()
+        self._page_extract_worker = None
         self._build_recognition_header()
         self._build_probe_header()
+        self._build_results_panel()
 
     def _build_recognition_header(self) -> None:
         header = QWidget()
@@ -9864,6 +9866,100 @@ class RecognitionView(LayoutView):
 
         h.addStretch()
         self.layout().insertWidget(2, header)
+
+    def _build_results_panel(self) -> None:
+        """Wrap existing content in a splitter; right side = structured results.
+
+        Правая панель показывает записи текущей страницы в том виде, в каком
+        они попали бы в финальный JSON (живое извлечение по кнопке).
+        """
+        from PySide6.QtWidgets import (
+            QPushButton,
+            QSplitter,
+            QTableWidget,
+        )
+
+        # Documented Qt trick: re-parent the existing layout onto a child
+        # widget, freeing this widget for a new top-level layout.
+        left = QWidget()
+        left.setLayout(self.layout())
+
+        panel = QWidget()
+        v = QVBoxLayout(panel)
+        v.setContentsMargins(6, 4, 6, 4)
+
+        header = QHBoxLayout()
+        self._extract_page_btn = QPushButton("Extract page")
+        self._extract_page_btn.setFixedHeight(26)
+        self._extract_page_btn.clicked.connect(self._on_extract_page)
+        header.addWidget(self._extract_page_btn)
+        self._extract_status = QLabel("")
+        self._extract_status.setStyleSheet("color: #444; font-size: 11px;")
+        header.addWidget(self._extract_status, 1)
+        v.addLayout(header)
+
+        self._results_table = QTableWidget(0, 0)
+        self._results_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        v.addWidget(self._results_table, 1)
+
+        self._results_issues = QLabel("")
+        self._results_issues.setWordWrap(True)
+        self._results_issues.setStyleSheet("color: #a33; font-size: 11px;")
+        v.addWidget(self._results_issues)
+
+        splitter = QSplitter(Qt.Orientation.Horizontal)
+        splitter.addWidget(left)
+        splitter.addWidget(panel)
+        splitter.setStretchFactor(0, 3)
+        splitter.setStretchFactor(1, 2)
+
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(0, 0, 0, 0)
+        outer.addWidget(splitter)
+
+    def _on_extract_page(self) -> None:
+        from pathlib import Path as _Path
+
+        from app.ui.page_extract import PageExtractWorker
+
+        if not self._doc or not self._doc.name:
+            self._extract_status.setText("Нет документа")
+            return
+        page_no = self._get_current_page() + 1
+        self._extract_page_btn.setEnabled(False)
+        self._extract_status.setText(f"Извлечение стр. {page_no}…")
+        self._page_extract_worker = PageExtractWorker(_Path(self._doc.name), page_no)
+        self._page_extract_worker.progress.connect(self._extract_status.setText)
+        self._page_extract_worker.finished.connect(self._on_page_extracted)
+        self._page_extract_worker.start()
+
+    def _on_page_extracted(self, result: object) -> None:
+        from PySide6.QtWidgets import QTableWidgetItem
+
+        from app.ui.result_table import result_table_rows
+
+        self._extract_page_btn.setEnabled(True)
+        self._page_extract_worker = None
+        if isinstance(result, Exception):
+            self._extract_status.setText(f"Ошибка: {result}")
+            return
+        items, issues, manifest = result
+        headers, rows = result_table_rows({"items": items}, manifest)
+        table = self._results_table
+        table.setSortingEnabled(False)
+        table.clear()
+        table.setRowCount(len(rows))
+        table.setColumnCount(len(headers))
+        table.setHorizontalHeaderLabels(headers)
+        for r, row in enumerate(rows):
+            for c, value in enumerate(row):
+                table.setItem(r, c, QTableWidgetItem(value))
+        table.setSortingEnabled(True)
+        table.resizeColumnsToContents()
+        self._extract_status.setText(f"{len(items)} записей")
+        self._results_issues.setText(
+            "\n".join(f"стр. {i.page}: {i.problem}" for i in issues) if issues else ""
+        )
 
     def _run_probe_on_current_page(self) -> None:
         """Apply the selected PyMuPDF method to the current page, visualize

@@ -87,13 +87,38 @@ def run_profile(
     return manifest
 
 
+def _load_or_build_manifest(
+    pdf_path: Path, out_dir: Path, client: DeepSeekClient
+) -> Manifest:
+    manifest_file = _manifest_path(out_dir, brand_from_filename(pdf_path))
+    if manifest_file.exists():
+        return Manifest(**json.loads(manifest_file.read_text(encoding="utf-8")))
+    return run_profile(pdf_path, out_dir, client)
+
+
+def extract_page(
+    pdf_path: Path, page_no: int, out_dir: Path, client: DeepSeekClient
+) -> tuple[list[dict], list[Issue]]:
+    """Live-extract a single page via the direct LLM path.
+
+    Returns exactly the (items, issues) this page would contribute to the
+    final catalog JSON. The manifest is loaded from disk or built once by
+    profiling (cached like every LLM call).
+    """
+    manifest = _load_or_build_manifest(pdf_path, out_dir, client)
+    with fitz.open(str(pdf_path)) as doc:
+        if not 1 <= page_no <= len(doc):
+            raise ValueError(f"page {page_no} out of range 1..{len(doc)}")
+        page = doc[page_no - 1]
+        words = page_words(page)
+        text = layout_text(words, page.rect.width)
+    raw = extract_page_direct(client, manifest, page_no, text)
+    return validate_items(raw, manifest, page_no)
+
+
 def run_extract(pdf_path: Path, out_dir: Path, client: DeepSeekClient) -> CatalogResult:
     brand = brand_from_filename(pdf_path)
-    manifest_file = _manifest_path(out_dir, brand)
-    if manifest_file.exists():
-        manifest = Manifest(**json.loads(manifest_file.read_text(encoding="utf-8")))
-    else:
-        manifest = run_profile(pdf_path, out_dir, client)
+    manifest = _load_or_build_manifest(pdf_path, out_dir, client)
 
     with fitz.open(str(pdf_path)) as doc:
         pages_total = len(doc)

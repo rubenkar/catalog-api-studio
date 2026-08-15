@@ -408,3 +408,37 @@ def test_batch_isolates_errors_between_pdfs(tmp_path, monkeypatch):
     data = json.loads((out / "koyo.json").read_text(encoding="utf-8"))
     assert data["stats"]["items_count"] == 20
     assert not (out / "0scan.json").exists()
+
+
+def test_extract_page_live(tiny_catalog, tmp_path):
+    """extract_page: живое извлечение одной страницы через прямой LLM-путь."""
+    import json as _json
+    import re
+
+    from app.extraction.bearings.cli import extract_page
+    from app.extraction.bearings.llm import DeepSeekClient
+
+    def fake_post(url, headers, payload, timeout):
+        system = payload["messages"][0]["content"]
+        user = payload["messages"][1]["content"]
+        if "какие характеристики" in system:
+            content = {"fields": [
+                {"key": "designation", "label": "Bearing number", "unit": None, "core": True},
+                {"key": "d", "label": "Bore", "unit": "mm", "core": True},
+            ]}
+        else:
+            assert "Извлеки ВСЕ записи" in system
+            designations = sorted(set(re.findall(r"(62\d\d)\[", user)))
+            content = {"items": [{"designation": des, "d": "25"} for des in designations]}
+        return {"choices": [{"message": {"content": _json.dumps(content)}}]}
+
+    client = DeepSeekClient("sk", tmp_path / "cache", post_fn=fake_post)
+    out_dir = tmp_path / "out"
+
+    items, issues = extract_page(tiny_catalog, 2, out_dir, client)
+
+    assert issues == []
+    assert len(items) == 10
+    assert all(item["page"] == 2 for item in items)
+    assert all(item["d"] == 25.0 for item in items)
+    assert (out_dir / "koyo.manifest.json").exists()  # манифест создан профилированием
