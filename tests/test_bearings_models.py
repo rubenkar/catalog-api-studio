@@ -1,6 +1,7 @@
 from app.extraction.bearings.models import (
     CatalogResult, ColumnSpec, FieldSpec, Issue, Manifest, ParseRule,
 )
+from app.extraction.bearings.validate import parse_number, validate_items
 
 
 def test_manifest_field_keys():
@@ -31,3 +32,34 @@ def test_catalog_result_round_trip():
     data = r.model_dump()
     assert data["pipeline_version"] == "1.0"
     assert data["issues"][0]["page"] == 4
+
+
+def _manifest():
+    return Manifest(
+        source="x.pdf", brand="X",
+        fields=[
+            FieldSpec(key="designation", label="No", core=True),
+            FieldSpec(key="d", label="Bore", unit="mm", core=True),
+            FieldSpec(key="D", label="Outer", unit="mm", core=True),
+            FieldSpec(key="Cr", label="Load", unit="kN"),
+        ],
+    )
+
+
+def test_parse_number():
+    assert parse_number("14,0") == 14.0
+    assert parse_number("12 000") == 12000.0
+    assert parse_number("—") is None
+    assert parse_number("abc") is None
+
+
+def test_validate_items_ok_and_bad():
+    rows = [
+        {"designation": "6205", "d": "25", "D": "52", "Cr": "14,0"},
+        {"designation": "", "d": "1", "D": "2", "Cr": "3"},        # dropped silently
+        {"designation": "BAD", "d": "52", "D": "25", "Cr": "1"},   # d >= D → issue
+    ]
+    items, issues = validate_items(rows, _manifest(), page=7)
+    assert len(items) == 1
+    assert items[0] == {"designation": "6205", "d": 25.0, "D": 52.0, "Cr": 14.0, "page": 7}
+    assert len(issues) == 1 and issues[0].page == 7
