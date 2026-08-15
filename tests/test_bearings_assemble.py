@@ -16,6 +16,18 @@ def test_dedupe_merges_nulls():
     assert merged == {"designation": "6205", "d": 25.0, "Cr": 14.0, "page": 10}
 
 
+def test_dedupe_both_pages_none():
+    """Regression: two duplicates with page=None should not raise TypeError."""
+    items = [
+        {"designation": "6205", "d": 25.0, "page": None},
+        {"designation": "6205", "d": None, "Cr": 14.0, "page": None},
+    ]
+    result = dedupe_items(items)
+    assert len(result) == 1
+    merged = result[0]
+    assert merged == {"designation": "6205", "d": 25.0, "Cr": 14.0, "page": None}
+
+
 def test_assemble_and_write(tmp_path):
     r = assemble(
         source="a.pdf", brand="X",

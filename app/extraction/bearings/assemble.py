@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 def dedupe_items(items: list[dict]) -> list[dict]:
     by_designation: dict[str, dict] = {}
-    for item in sorted(items, key=lambda i: i.get("page") or 0):
+    for item in sorted(items, key=lambda i: (i.get("page") is None, i.get("page") or 0)):
         key = item["designation"]
         if key not in by_designation:
             by_designation[key] = dict(item)
@@ -19,7 +19,15 @@ def dedupe_items(items: list[dict]) -> list[dict]:
         merged = by_designation[key]
         for field, value in item.items():
             if field == "page":
-                merged["page"] = min(merged.get("page") or value, value)
+                merged_page = merged.get("page")
+                if merged_page is None and value is None:
+                    merged["page"] = None
+                elif merged_page is None:
+                    merged["page"] = value
+                elif value is None:
+                    pass  # keep merged_page
+                else:
+                    merged["page"] = min(merged_page, value)
             elif merged.get(field) is None:
                 merged[field] = value
             elif value is not None and merged[field] != value:
