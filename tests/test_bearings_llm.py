@@ -1,3 +1,4 @@
+import hashlib
 import json
 
 import pytest
@@ -83,3 +84,26 @@ def test_complete_json_sanitizes_cache_key(tmp_path):
     cache_files = list(tmp_path.glob("*.json"))
     assert len(cache_files) == 1
     assert "rule-0303_1_2_4_8" in cache_files[0].name
+
+
+def test_complete_json_recovers_from_corrupt_cache(tmp_path):
+    """A cache file with broken JSON must be treated as a cache miss, not a crash."""
+    calls = []
+
+    def fake_post(url, headers, payload, timeout):
+        calls.append(payload)
+        return api_response(json.dumps({"ok": 5}))
+
+    client = DeepSeekClient("sk", tmp_path, post_fn=fake_post)
+    digest = hashlib.sha1(("sys" + "\x00" + "user").encode()).hexdigest()[:10]
+    cache_file = tmp_path / f"k5-{digest}.json"
+    cache_file.write_text("{not valid json at all", encoding="utf-8")
+
+    result = client.complete_json("k5", "sys", "user")
+    assert result == {"ok": 5}
+    assert len(calls) == 1  # transport was called despite the stale cache file existing
+
+    # the corrupt cache file must have been overwritten with valid content
+    assert json.loads(cache_file.read_text(encoding="utf-8")) == {"ok": 5}
+    # no leftover temp file from the atomic write
+    assert not list(tmp_path.glob("*.tmp"))

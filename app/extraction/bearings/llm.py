@@ -79,7 +79,12 @@ class DeepSeekClient:
         sanitized_key = _sanitize_cache_key(cache_key)
         cache_file = self.cache_dir / f"{sanitized_key}-{digest}.json"
         if cache_file.exists() and not force:
-            return json.loads(cache_file.read_text(encoding="utf-8"))
+            try:
+                return json.loads(cache_file.read_text(encoding="utf-8"))
+            except (json.JSONDecodeError, OSError) as exc:
+                logger.warning(
+                    "Cache read failed for %s: %s — treating as cache miss", cache_file, exc
+                )
 
         error_note = ""
         for attempt in range(3):
@@ -106,8 +111,10 @@ class DeepSeekClient:
                 logger.warning("LLM returned invalid JSON (attempt %d): %s", attempt + 1, exc)
                 error_note = f"\n\nПредыдущий ответ не был валидным JSON ({exc}). Верни строго один JSON-объект."
                 continue
-            cache_file.write_text(
+            tmp_file = cache_file.with_name(cache_file.name + ".tmp")
+            tmp_file.write_text(
                 json.dumps(result, ensure_ascii=False, indent=1), encoding="utf-8"
             )
+            os.replace(tmp_file, cache_file)
             return result
         raise LLMError(f"LLM failed after 3 attempts for cache_key={cache_key}")
