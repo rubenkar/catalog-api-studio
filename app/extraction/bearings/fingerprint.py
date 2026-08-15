@@ -13,7 +13,7 @@ def page_fingerprint(
         return "empty"
     hist = [0] * bins
     for w in words:
-        idx = min(bins - 1, int(w[0] / page_width * bins))
+        idx = max(0, min(bins - 1, int(w[0] / page_width * bins)))
         hist[idx] += 1
     peak = max(hist)
     if peak == 0:
@@ -21,7 +21,7 @@ def page_fingerprint(
     # quantize each bin to 0..3 relative to the page's own peak
     sig = "".join(str(min(3, h * 4 // (peak + 1))) for h in hist)
     if v_xs:
-        border_bins = sorted({min(bins - 1, int(x / page_width * bins)) for x in v_xs})
+        border_bins = sorted({max(0, min(bins - 1, int(x / page_width * bins))) for x in v_xs})
         sig += "|" + ",".join(str(b) for b in border_bins)
     return sig
 

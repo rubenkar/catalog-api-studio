@@ -34,3 +34,14 @@ def test_cluster_pages():
     clusters = cluster_pages(fps)
     assert clusters["AAA"] == [1, 3, 4]
     assert clusters["BBB"] == [2]
+
+
+def test_negative_coordinates_clamped_to_bin_zero():
+    # слово с x=-100 должно быть клэмпировано к корзине 0
+    words_negative = make_words([-100, 150, 250, 350])
+    words_zero = make_words([0, 150, 250, 350])
+    assert page_fingerprint(words_negative, 595) == page_fingerprint(words_zero, 595)
+    # v_xs с отрицательным значением должно быть клэмпировано к корзине 0 и иметь суффикс "|0"
+    with_negative_line = page_fingerprint(words_negative, 595, v_xs=[-50.0])
+    assert with_negative_line.endswith("|0")
+    assert "|-" not in with_negative_line  # no negative bin indices
