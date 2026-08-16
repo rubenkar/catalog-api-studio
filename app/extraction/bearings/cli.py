@@ -5,6 +5,7 @@ import glob as globmod
 import json
 import logging
 import shutil
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -155,6 +156,7 @@ def run_extract(pdf_path: Path, out_dir: Path, client: DeepSeekClient) -> Catalo
 
     all_items: list[dict] = []
     issues: list[Issue] = []
+    fallback_pages: list[int] = []
     for cluster_id, page_nos in clusters.items():
         try:
             rule = build_rule(
@@ -177,17 +179,33 @@ def run_extract(pdf_path: Path, out_dir: Path, client: DeepSeekClient) -> Catalo
                 except Exception as exc:  # noqa: BLE001 — правило от LLM, не падаем
                     logger.warning("apply_rule failed on page %d: %s", n, exc)
             if rule is None or raw_count == 0 or len(items) < raw_count * 0.5:
-                try:
-                    raw = extract_page_direct(client, manifest, n, pages[n]["text"])
-                    items, page_issues = validate_items(raw, manifest, n)
-                except Exception as exc:  # noqa: BLE001 — ответ LLM непредсказуем, не падаем
+                fallback_pages.append(n)
+                continue
+            all_items.extend(items)
+            issues.extend(page_issues)
+
+    # LLM-fallback страниц — параллельно: узкое место не CPU, а сетевые вызовы
+    def _fallback(n: int) -> tuple[int, list[dict], list[Issue], Exception | None]:
+        try:
+            raw = extract_page_direct(client, manifest, n, pages[n]["text"])
+            items, page_issues = validate_items(raw, manifest, n)
+            logger.info("Fallback page %d: %d items", n, len(items))
+            return n, items, page_issues, None
+        except Exception as exc:  # noqa: BLE001 — ответ LLM непредсказуем, не падаем
+            return n, [], [], exc
+
+    if fallback_pages:
+        logger.info("LLM fallback for %d page(s)", len(fallback_pages))
+        with ThreadPoolExecutor(max_workers=6) as pool:
+            for n, items, page_issues, exc in pool.map(_fallback, sorted(fallback_pages)):
+                if exc is not None:
                     logger.warning("Fallback failed on page %d: %s", n, exc)
                     issues.append(Issue(page=n, problem="rule and fallback failed"))
                     continue
                 if not items:
                     issues.append(Issue(page=n, problem="no items extracted"))
-            all_items.extend(items)
-            issues.extend(page_issues)
+                all_items.extend(items)
+                issues.extend(page_issues)
 
     result = assemble(
         source=pdf_path.name, brand=brand, items=all_items, issues=issues,

@@ -21,7 +21,16 @@ def _get_engine():
         from paddleocr import PaddleOCR
 
         logger.info("Initializing PaddleOCR engine (first use)")
-        _engine = PaddleOCR(lang="en", use_textline_orientation=False)
+        # mobile-модель детекции + без mkldnn: paddle 3.3.1 падает в oneDNN
+        # (ConvertPirAttribute2RuntimeAttribute), а server-модель на CPU
+        # неприемлемо медленна для сотен страниц
+        _engine = PaddleOCR(
+            lang="en",
+            use_textline_orientation=False,
+            text_detection_model_name="PP-OCRv5_mobile_det",
+            text_recognition_model_name="en_PP-OCRv5_mobile_rec",
+            enable_mkldnn=False,
+        )
     return _engine
 
 

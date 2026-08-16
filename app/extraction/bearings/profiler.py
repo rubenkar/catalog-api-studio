@@ -43,7 +43,8 @@ def build_manifest(
     client: DeepSeekClient, source_name: str, brand: str, sample_texts: list[str]
 ) -> Manifest:
     user = "Образцы страниц каталога:\n\n" + "\n\n=== СТРАНИЦА ===\n".join(sample_texts)
-    data = client.complete_json("manifest", _SYSTEM, user, max_tokens=4096)
+    # 8192: манифесты каталогов с десятками полей обрезались на 4096 токенах
+    data = client.complete_json("manifest", _SYSTEM, user, max_tokens=8192)
     manifest = Manifest(source=source_name, brand=brand, fields=data["fields"])
     fix_units(manifest, sample_texts)
     logger.info("Manifest for %s: %d fields", brand, len(manifest.fields))

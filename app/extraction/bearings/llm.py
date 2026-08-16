@@ -102,7 +102,11 @@ class DeepSeekClient:
             try:
                 raw = self.post_fn(API_URL, headers, payload, 120)
                 content = raw["choices"][0]["message"]["content"]
-                result = json.loads(content)
+                try:
+                    result = json.loads(content)
+                except json.JSONDecodeError:
+                    # «Extra data»: валидный JSON + мусорный хвост — берём объект
+                    result, _ = json.JSONDecoder().raw_decode(content.strip())
             except (requests.RequestException, KeyError, IndexError) as exc:
                 logger.warning("LLM call failed (attempt %d): %s", attempt + 1, exc)
                 time.sleep(min(2**attempt, 8))

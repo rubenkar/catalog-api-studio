@@ -46,6 +46,16 @@ def test_complete_json_retries_bad_json(tmp_path):
     assert client.complete_json("k2", "sys", "user") == {"ok": 2}
 
 
+def test_complete_json_tolerates_trailing_data(tmp_path):
+    # DeepSeek при temperature=0 иногда детерминированно дописывает мусор
+    # после валидного JSON («Extra data») — берём первый объект, хвост игнорируем
+    def fake_post(url, headers, payload, timeout):
+        return api_response('{"ok": 3}\nПримечание: правило построено.')
+
+    client = DeepSeekClient("sk", tmp_path, post_fn=fake_post)
+    assert client.complete_json("k-trail", "sys", "user") == {"ok": 3}
+
+
 def test_complete_json_gives_up(tmp_path):
     def fake_post(url, headers, payload, timeout):
         return api_response("garbage")
