@@ -293,6 +293,51 @@ def test_extract_end_to_end_fallback_empty_records_no_items_issue(
     assert problems == {(2, "no items extracted"), (3, "no items extracted")}
 
 
+def test_extract_all_rows_invalid_records_no_items_issue(
+    tiny_catalog, tmp_path, monkeypatch
+):
+    """Страница-легенда: fallback возвращает строки, но все отбрасываются
+    валидацией (нереальные размеры) -> issue "no items extracted"."""
+    responses = {
+        "manifest": {"fields": [
+            {"key": "designation", "label": "Bearing number", "unit": None, "core": True},
+            {"key": "d", "label": "Bore", "unit": "mm", "core": True},
+            {"key": "D", "label": "Outer", "unit": "mm", "core": True},
+            {"key": "B", "label": "Width", "unit": "mm", "core": True},
+        ]},
+        "rule": {"header_skip_lines": 1,
+                 "columns": [
+                     {"x_min": 1000, "x_max": 1010, "field": "designation"},
+                 ],
+                 "row_gap_pt": 5.0, "inherit_fields": [], "type_default": None},
+    }
+
+    def fake_post(url, headers, payload, timeout):
+        system = payload["messages"][0]["content"]
+        if "какие характеристики" in system:
+            return {"choices": [{"message": {"content": json.dumps(responses["manifest"])}}]}
+        if "правило разбора" in system:
+            return {"choices": [{"message": {"content": json.dumps(responses["rule"])}}]}
+        assert "Извлеки ВСЕ записи" in system
+        garbage = {"items": [{"designation": "9000", "d": "100150", "D": "215180", "B": "4734"}]}
+        return {"choices": [{"message": {"content": json.dumps(garbage)}}]}
+
+    monkeypatch.setenv("DEEPSEEK_API_KEY", "sk-test")
+    monkeypatch.setattr("app.extraction.bearings.llm._default_post", fake_post)
+    monkeypatch.setattr("app.extraction.bearings.llm.time.sleep", lambda s: None)
+
+    out = tmp_path / "out"
+    code = main(["extract", str(tiny_catalog), "--out", str(out)])
+    assert code == 0
+
+    data = json.loads((out / "koyo.json").read_text(encoding="utf-8"))
+    assert data["items"] == []
+    problems = {issue["problem"] for issue in data["issues"]}
+    assert "no items extracted" in problems
+    pages = {issue["page"] for issue in data["issues"] if issue["problem"] == "no items extracted"}
+    assert pages == {2, 3}
+
+
 def test_force_clears_cache(tiny_catalog, tmp_path, monkeypatch):
     """--force must wipe the per-PDF cache dir so the transport is hit again."""
     responses = {
@@ -400,6 +445,10 @@ def test_batch_isolates_errors_between_pdfs(tmp_path, monkeypatch):
 
     monkeypatch.setenv("DEEPSEEK_API_KEY", "sk-test")
     monkeypatch.setattr("app.extraction.bearings.llm._default_post", fake_post)
+    # OCR-фолбэк на «скане» ничего не находит — PDF остаётся без данных
+    monkeypatch.setattr(
+        "app.extraction.bearings.cli.ocr_page_words", lambda page, cache_dir=None: []
+    )
 
     out = tmp_path / "out"
     code = main(["extract", str(tmp_path / "*.pdf"), "--out", str(out)])

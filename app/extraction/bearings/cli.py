@@ -17,6 +17,7 @@ from .fingerprint import cluster_pages, page_fingerprint
 from .llm import DeepSeekClient, LLMError, load_api_key
 from .models import CatalogResult, Issue, Manifest
 from .mechanics import apply_rule
+from .ocr import ocr_page_words
 from .pagetext import is_data_page, layout_text, page_words
 from .profiler import build_manifest
 from .rules import build_rule, extract_page_direct
@@ -40,16 +41,22 @@ def _client_for(pdf_path: Path, out_dir: Path, force: bool = False) -> DeepSeekC
     return DeepSeekClient(load_api_key(), cache_dir)
 
 
-def _page_data(doc: fitz.Document) -> dict[int, dict]:
-    """page_no (1-based) -> {words, text, width, col_xs} for data pages only."""
+def _page_data(doc: fitz.Document, ocr_fn=None) -> dict[int, dict]:
+    """page_no (1-based) -> {words, text, width, col_xs} for data pages only.
+
+    ``ocr_fn(page) -> list[Word]`` — фолбэк для страниц без текстового слоя.
+    """
     pages: dict[int, dict] = {}
     skipped: list[int] = []
     for idx in range(len(doc)):
         page = doc[idx]
         words = page_words(page)
         if not is_data_page(words):
-            skipped.append(idx + 1)
-            continue
+            if ocr_fn is not None and len(words) < 5:
+                words = ocr_fn(page)
+            if not is_data_page(words):
+                skipped.append(idx + 1)
+                continue
         _, v_segs = extract_table_lines(page, page.rect)
         pages[idx + 1] = {
             "words": words,
@@ -66,12 +73,26 @@ def _manifest_path(out_dir: Path, brand: str) -> Path:
     return out_dir / f"{brand.lower()}.manifest.json"
 
 
+def _ocr_fn(pdf_path: Path, out_dir: Path):
+    cache = out_dir / "ocr_cache" / pdf_path.stem
+    return lambda page: ocr_page_words(page, cache_dir=cache)
+
+
+def _page_data_auto(doc: fitz.Document, pdf_path: Path, out_dir: Path) -> dict[int, dict]:
+    """Обычный путь; если текстового слоя нет вообще — второй проход с OCR."""
+    pages = _page_data(doc)
+    if not pages:
+        logger.info("%s: no text layer, trying OCR fallback", pdf_path.name)
+        pages = _page_data(doc, ocr_fn=_ocr_fn(pdf_path, out_dir))
+    return pages
+
+
 def run_profile(
     pdf_path: Path, out_dir: Path, client: DeepSeekClient, sample: int = 12
 ) -> Manifest:
     brand = brand_from_filename(pdf_path)
     with fitz.open(str(pdf_path)) as doc:
-        pages = _page_data(doc)
+        pages = _page_data_auto(doc, pdf_path, out_dir)
     if not pages:
         raise RuntimeError(f"{pdf_path.name}: no data pages found")
     page_nos = sorted(pages)
@@ -111,6 +132,8 @@ def extract_page(
             raise ValueError(f"page {page_no} out of range 1..{len(doc)}")
         page = doc[page_no - 1]
         words = page_words(page)
+        if len(words) < 5:
+            words = _ocr_fn(pdf_path, out_dir)(page)
         text = layout_text(words, page.rect.width)
     raw = extract_page_direct(client, manifest, page_no, text)
     return validate_items(raw, manifest, page_no)
@@ -122,7 +145,7 @@ def run_extract(pdf_path: Path, out_dir: Path, client: DeepSeekClient) -> Catalo
 
     with fitz.open(str(pdf_path)) as doc:
         pages_total = len(doc)
-        pages = _page_data(doc)
+        pages = _page_data_auto(doc, pdf_path, out_dir)
 
     fps = {
         n: page_fingerprint(p["words"], p["width"], v_xs=p["col_xs"])
@@ -161,7 +184,7 @@ def run_extract(pdf_path: Path, out_dir: Path, client: DeepSeekClient) -> Catalo
                     logger.warning("Fallback failed on page %d: %s", n, exc)
                     issues.append(Issue(page=n, problem="rule and fallback failed"))
                     continue
-                if not raw and not items:
+                if not items:
                     issues.append(Issue(page=n, problem="no items extracted"))
             all_items.extend(items)
             issues.extend(page_issues)
